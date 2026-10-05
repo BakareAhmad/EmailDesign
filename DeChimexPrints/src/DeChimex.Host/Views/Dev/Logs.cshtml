@@ -1,0 +1,80 @@
+@model LogPage
+@using DeChimex.Application.Common.Interfaces
+@{
+    var f = Model.Filter;
+    var q = Context.Request.Query;
+}
+<partial name="~/Views/Dev/_RangePicker.cshtml" model="Model.Range" />
+<form method="get" class="dv-filters" aria-label="Filter technical log">
+    <input type="hidden" name="range" value="@Model.Range.Key" />
+    @if (Model.Range.Key == "custom") { <input type="hidden" name="from" value="@q["from"]" /><input type="hidden" name="to" value="@q["to"]" /> }
+    <label>Search <input type="search" name="q" value="@f.Q" placeholder="message, exception, route, source" maxlength="200" style="min-width:240px" /></label>
+    <label>Severity
+        <select name="severity">
+            <option value="">Any</option>
+            @foreach (var s in new[] { "Warning+", "Error+", "Information", "Warning", "Error", "Critical" })
+            {
+                <option value="@s" selected="@(f.Severity == s)">@(s.EndsWith("+") ? s.TrimEnd('+') + " and above" : s)</option>
+            }
+        </select>
+    </label>
+    <label>Category
+        <select name="category"><option value="">Any</option>
+            @foreach (var c in TechnicalCategory.All) { <option selected="@(f.Category == c)">@c</option> }
+        </select>
+    </label>
+    <label>Event type
+        <select name="eventType"><option value="">Any</option>
+            @foreach (var e in Model.EventTypes) { <option selected="@(f.EventType == e)">@e</option> }
+        </select>
+    </label>
+    <label>Integration
+        <select name="integration"><option value="">Any</option>
+            @foreach (var i in new[] { "Paystack", "Brevo" }) { <option selected="@(f.Integration == i)">@i</option> }
+        </select>
+    </label>
+    <label>Correlation ID <input name="correlationId" value="@f.CorrelationId" maxlength="64" class="dv-mono" /></label>
+    <label>Order ID <input name="orderId" value="@f.OrderId" class="dv-mono" size="14" /></label>
+    <label>User ID <input name="userId" value="@f.UserId" class="dv-mono" size="14" /></label>
+    <button class="dv-btn" type="submit">Apply</button>
+    <a class="dv-btn dv-btn-ghost" href="/dev/logs?range=@Model.Range.Key">Reset</a>
+</form>
+@if (!ModelStateValidGuid(q, "orderId") || !ModelStateValidGuid(q, "userId"))
+{
+    <div class="dv-warnbox" style="margin-bottom:10px">Order ID and User ID must be full GUIDs; the invalid value was ignored.</div>
+}
+<section class="dv-card">
+    <div class="dv-card-head"><h2>@DevUi.Num(Model.Total) event(s)</h2><span class="dv-muted dv-small">newest first · 50 per page · passwords, tokens, keys, card data and contact details are redacted before storage</span></div>
+    @if (Model.Items.Count == 0)
+    {
+        <p class="dv-muted">No technical events match these filters in this time range.</p>
+    }
+    else
+    {
+        <div class="dv-table-wrap"><table class="dv-table">
+            <thead><tr><th>Time (UTC)</th><th>Severity</th><th>Category / type</th><th>Message</th><th>Route</th><th>Correlation</th></tr></thead>
+            <tbody>
+            @foreach (var e in Model.Items)
+            {
+                <tr>
+                    <td class="dv-nowrap dv-small">@e.TimestampUtc.ToString("MM-dd HH:mm:ss")</td>
+                    <td>@DevUi.Severity(e.Severity)</td>
+                    <td class="dv-small">@e.Category<div class="dv-muted">@e.EventType</div></td>
+                    <td class="dv-wrap"><a href="/dev/logs/@e.Id">@(e.Message.Length > 160 ? e.Message[..160] + "…" : e.Message)</a>@if (e.ExceptionType is not null) { <div class="dv-mono dv-small dv-muted">@e.ExceptionType</div> }</td>
+                    <td class="dv-mono dv-small dv-wrap">@e.Route</td>
+                    <td class="dv-mono dv-small">@if (e.CorrelationId is not null) { <a href="/dev/logs?range=30d&correlationId=@Uri.EscapeDataString(e.CorrelationId)" title="All events of this request">@(e.CorrelationId.Length > 24 ? "…" + e.CorrelationId[^20..] : e.CorrelationId)</a> }</td>
+                </tr>
+            }
+            </tbody>
+        </table></div>
+        <div class="dv-pager">
+            @if (Model.Page > 1) { <a class="dv-btn dv-btn-ghost" href="/dev/logs@(DevUi.Query(q, ("page", (Model.Page - 1).ToString())))">← Newer</a> }
+            <span class="dv-muted">Page @Model.Page of @Model.Pages</span>
+            @if (Model.Page < Model.Pages) { <a class="dv-btn dv-btn-ghost" href="/dev/logs@(DevUi.Query(q, ("page", (Model.Page + 1).ToString())))">Older →</a> }
+        </div>
+    }
+</section>
+@functions {
+    private static bool ModelStateValidGuid(Microsoft.AspNetCore.Http.IQueryCollection q, string key)
+        => string.IsNullOrWhiteSpace(q[key]) || Guid.TryParse(q[key], out _);
+}

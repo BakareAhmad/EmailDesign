@@ -1,0 +1,8 @@
+Test run for /home/user/v047/DeChimexPrints/tests/DeChimex.UnitTests/bin/Debug/net9.0/DeChimex.UnitTests.dll (.NETCoreApp,Version=v9.0)
+Test run for /home/user/v047/DeChimexPrints/tests/DeChimex.IntegrationTests/bin/Debug/net9.0/DeChimex.IntegrationTests.dll (.NETCoreApp,Version=v9.0)
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   418, Skipped:     0, Total:   418, Duration: 980 ms - DeChimex.UnitTests.dll (net9.0)
+
+Passed!  - Failed:     0, Passed:   330, Skipped:     0, Total:   330, Duration: 50 s - DeChimex.IntegrationTests.dll (net9.0)

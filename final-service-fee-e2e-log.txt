@@ -1,0 +1,102 @@
+
+===== STAGE 0: setup =====
+ok 01 - owner logged in
+PASS 01: category created: SF Direct sf-e2e
+PASS 02: category created: SF Custom sf-e2e
+ok 02 - register buyer -> verify page
+ok 03 - verification token captured for buyer
+ok 04 - brevo api-key header present (key loaded at runtime)
+ok 05 - customer buyer signed in
+PASS 01: buyer registered + signed in
+
+===== STAGE 1: service fee configuration =====
+PASS 02: settings page shows Service Fee card
+PASS 03: service fee starts at 100% (legacy full pass-through)
+SHOT  01-settings-at-100.png
+PASS 04: preview shows the confirmation dialog
+PASS 05: confirmation shows current value (100%)
+PASS 06: confirmation shows new value (50%)
+PASS 07: confirmation warns future transactions only
+PASS 08: confirmation protects existing transactions
+PASS 09: confirmation asks for explicit consent
+SHOT  02-confirm-dialog-100-to-50.png
+PASS 10: service fee saved at 50%
+SHOT  03-settings-at-50.png
+PASS 11: audit: Service fee configuration changed
+PASS 12: audit records old and new values
+PASS 13: audit states future-only scope
+SHOT  04-audit-service-fee-changed.png
+
+===== STAGE 2: checkout prices the service fee =====
+PASS 14: checkout shows the Service fee line
+PASS 15: checkout hides provider internals
+PASS 16: service fee at 50% = ₦122.17 (50% of the Paystack fee on ₦9,500)
+PASS 17: payable = order + service fee (9,622.17)
+SHOT  05-checkout-service-fee-50.png
+PASS 18: lands on /checkout/complete/{order}
+PASS 19: complete page: Payment Required
+PASS 20: complete page shows the service fee
+SHOT  06-order-placed-payment-required.png
+
+===== STAGE 3: pay order A at 50% =====
+PASS 21: paystack stub checkout opened (order e8e7046d)
+PASS 22: payment successful at 50%
+SHOT  07-payment-successful.png
+
+===== STAGE 4: receipt / history / admin snapshot =====
+PASS 23: payment history shows the service fee incl. split
+PASS 24: payment history amount includes the fee
+SHOT  08-payment-history-incl-fee.png
+PASS 25: receipt document reachable
+PASS 26: receipt shows Order total
+PASS 27: receipt shows Service fee ₦122.17
+PASS 28: receipt shows Amount paid ₦9,622.17
+SHOT  09-receipt-fee-breakdown-50.png
+PASS 29: admin payment card shows Order total
+PASS 30: admin payment card shows Service fee (50%)
+PASS 31: admin payment card shows Paystack fee expected/charged
+SHOT  10-admin-payment-snapshot-50.png
+
+===== STAGE 5: reconfiguration keeps history =====
+PASS 32: second confirmation shows 50% -> 25%
+PASS 33: service fee now 25%
+SHOT  11-settings-at-25.png
+PASS 34: receipt still shows the applied 50% fee (122.17)
+PASS 35: receipt still shows full amount paid (9,622.17)
+SHOT  12-receipt-immutable-after-reconfig.png
+
+===== STAGE 6: decline + retry at 25% =====
+PASS 36: lands on /checkout/complete/{order}
+PASS 37: paystack stub checkout opened (order 02e89964)
+PASS 38: declined payment is not a success
+PASS 39: failed attempt generated no receipt
+SHOT  13-payment-failed-no-fee.png
+PASS 40: paystack stub checkout opened (order 02e89964)
+PASS 41: retry on the same order succeeds
+PASS 42: retry priced at current config: service fee ≈ ₦60.85 (25%)
+PASS 43: one receipt only — fee never charged twice
+SHOT  14-retry-paid-at-25.png
+
+===== STAGE 7: custom order pays with the same rules =====
+PASS 03: category ordering question retained
+PASS 04: order completed through persisted workspace
+PASS 44: custom request placed
+PASS 45: paystack stub checkout opened (order 4897522d)
+PASS 46: custom order paid at 25%
+PASS 47: custom receipt service fee ≈ ₦70.27 (25% of the fee on ₦12,000)
+SHOT  15-custom-paid-receipt-at-25.png
+
+===== STAGE 8: refund order A =====
+PASS 48: lifetime spending before refund = 31,000
+PASS 49: refund action available
+PASS 50: refunded receipt keeps the applied 50% fee (122.17)
+PASS 51: receipt marked refunded
+SHOT  16-refunded-receipt-keeps-fee.png
+PASS 52: spending reversed exactly the order value (21,500 left)
+
+===== STAGE 9: business activity =====
+PASS 53: activity: payment received
+PASS 54: activity: refund recorded
+SHOT  17-activity-feed-fees.png
+
+===== RESULT: 54 passed, 0 failed =====

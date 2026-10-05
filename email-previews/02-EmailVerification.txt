@@ -1,0 +1,9 @@
+﻿Confirm your email address to activate your DE-CHIMEX account.
+
+Verify your email address
+Hi O'Neil <b>Attridge-Smith-Worthington the Third</b>, please confirm this address to activate your account. Enter this code on the verification page:
+Your verification code
+483920
+Note: The code expires in 24 hours. You can also use the button below.
+Verify email address https://dechimexprinthub.com/Account/VerifyEmail?userId=abc&token=t1
+Button not working? Copy this link: https://dechimexprinthub.com/Account/VerifyEmail?userId=abc&token=t1

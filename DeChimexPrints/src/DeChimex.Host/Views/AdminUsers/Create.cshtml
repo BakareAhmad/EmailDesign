@@ -1,0 +1,56 @@
+@model DeChimex.Host.Models.Admin.StaffUserFormViewModel
+@{
+    Layout = "_AdminLayout";
+    var roles = ViewBag.Roles as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+}
+<div class="card" style="max-width:520px">
+    <div class="card-head"><h3>New staff user</h3></div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+            <div class="field">
+                <label class="label" asp-for="FirstName">First name <span class="req">*</span></label>
+                <input class="input" asp-for="FirstName" />
+                <span asp-validation-for="FirstName" class="field-error"></span>
+            </div>
+
+            <div class="field">
+                <label class="label" asp-for="LastName">Last name <span class="req">*</span></label>
+                <input class="input" asp-for="LastName" />
+                <span asp-validation-for="LastName" class="field-error"></span>
+            </div>
+
+            <div class="field">
+                <label class="label" asp-for="Email">Email <span class="req">*</span></label>
+                <input class="input" asp-for="Email" type="email" />
+                <span asp-validation-for="Email" class="field-error"></span>
+            </div>
+
+            <div class="field">
+                <label class="label" asp-for="Password">Password <span class="req">*</span></label>
+                <input class="input" asp-for="Password" type="password" placeholder="At least 8 characters, incl. A-Z, a-z &amp; 0-9" />
+                <span asp-validation-for="Password" class="field-error"></span>
+            </div>
+
+            <div class="field">
+                <label class="label" asp-for="Username">Username <span class="req">*</span></label>
+                <input class="input" asp-for="Username" autocomplete="off"
+                       placeholder="e.g. shakur (customers see this in chat)" />
+                <span class="hint">3 to 30 characters. Letters, digits, dots, underscores and hyphens. This is the name customers see in conversations.</span>
+                <span asp-validation-for="Username" class="field-error"></span>
+            </div>
+
+            <div class="field">
+                <label class="label">Roles <span class="req">*</span></label>
+                <select class="select" asp-for="RoleIds" asp-items="roles" multiple size="5"></select>
+                <span asp-validation-for="RoleIds" class="field-error"></span>
+            </div>
+
+            <div class="flex items-center gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">Create user</button>
+                <a class="btn btn-outline" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

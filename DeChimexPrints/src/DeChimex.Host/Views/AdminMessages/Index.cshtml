@@ -1,0 +1,65 @@
+@model IReadOnlyList<DeChimex.Contracts.Contacts.ContactMessageDto>
+@{
+    Layout = "_AdminLayout";
+    var unresolvedOnly = ViewBag.UnresolvedOnly is true;
+}
+<div class="toolbar" style="margin-bottom:16px">
+    <form method="get" class="flex items-center gap-2">
+        <input class="input" type="search" name="search" value="@(ViewBag.Search)" placeholder="Search name, email or phone..." style="width:280px;min-width:220px" />
+        @if (unresolvedOnly) { <input type="hidden" name="unresolvedOnly" value="true" /> }
+        <button class="btn btn-secondary" type="submit">Search</button>
+    </form>
+    <span style="flex:1"></span>
+    <a class="btn @(unresolvedOnly ? "btn-primary" : "btn-outline") btn-sm"
+       asp-action="Index" asp-route-search="@(ViewBag.Search)" asp-route-unresolvedOnly="@(unresolvedOnly ? (object?)null : true)">Unresolved only</a>
+    <a class="btn @(unresolvedOnly ? "btn-outline" : "btn-primary") btn-sm"
+       asp-action="Index" asp-route-search="@(ViewBag.Search)">All messages</a>
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead>
+            <tr><th>Name</th><th>Email</th><th>Phone</th><th>Interested in</th><th>Received</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                var es = !string.IsNullOrWhiteSpace((string?)ViewBag.Search)
+                    ? new EmptyState(EmptyIcons.Search, "No results", "Try adjusting your search or filters.")
+                    : (unresolvedOnly
+                        ? new EmptyState(EmptyIcons.Check, "Nothing waiting", "Every message has been resolved.")
+                        : new EmptyState(EmptyIcons.Inbox, "No messages yet", "Submissions from the public contact form appear here."));
+                <tr><td colspan="7" class="table-empty">
+                    <partial name="_EmptyState" model="es" />
+                </td></tr>
+            }
+            @foreach (var m in Model)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@m.Id" class="font-semibold">@m.Name</a></td>
+                    <td class="text-muted">@m.Email</td>
+                    <td class="text-muted">@(m.Phone ?? "-")</td>
+                    <td class="text-muted">@(m.Service ?? "General")</td>
+                    <td class="text-muted">@m.CreatedUtc.ToLocalTime().ToString("d MMM yyyy HH:mm")</td>
+                    <td>
+                        @if (m.IsResolved)
+                        { <span class="badge badge-success">Resolved</span> }
+                        else { <span class="badge badge-warning">Open</span> }
+                    </td>
+                    <td style="text-align:right;white-space:nowrap">
+                        <a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@m.Id">View</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.HasPrevious) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)" asp-route-search="@(ViewBag.Search)" asp-route-unresolvedOnly="@(unresolvedOnly ? (object?)true : null)">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.HasNext) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)" asp-route-search="@(ViewBag.Search)" asp-route-unresolvedOnly="@(unresolvedOnly ? (object?)true : null)">Next</a> }
+    </div>
+}

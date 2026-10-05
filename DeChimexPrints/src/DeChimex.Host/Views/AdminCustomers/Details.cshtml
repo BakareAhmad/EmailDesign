@@ -1,0 +1,139 @@
+@model DeChimex.Contracts.Customers.CustomerDto
+@{
+    Layout = "_AdminLayout";
+    var orders = ViewBag.Orders as IReadOnlyList<DeChimex.Contracts.Orders.OrderSummaryDto> ?? Array.Empty<DeChimex.Contracts.Orders.OrderSummaryDto>();
+    var canManage = User.HasClaim("permission", Permissions.Customers.Manage);
+}
+<div class="card" style="max-width:840px">
+    <div class="card-head">
+        <h3>@Model.FullName</h3>
+        <div class="flex items-center gap-2">
+            <a class="btn btn-outline btn-sm" asp-action="Index" aria-label="Back to customer list">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                Back to list
+            </a>
+            @if (canManage)
+            {
+                <a class="btn btn-outline btn-sm" asp-action="Edit" asp-route-id="@Model.Id">Edit</a>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="g" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+            <div><div class="text-xs text-muted">Email</div><div>@(Model.Email ?? (Model.IsGuest ? "Guest (no email)" : "-"))</div></div>
+            <div><div class="text-xs text-muted">Phone</div><div>@(Model.Phone ?? "-")</div></div>
+            <div><div class="text-xs text-muted">Lifetime spending</div><div>₦@Model.LifetimeSpending.ToString("N2")</div></div>
+            <div><div class="text-xs text-muted">Joined</div><div>@Model.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy")</div></div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <div class="mt-4"><div class="text-xs text-muted">Notes</div><p>@Model.Notes</p></div>
+        }
+
+        <div class="flex items-center justify-between mt-4 mb-2">
+            <h4 style="margin:0">Addresses</h4>
+        </div>
+        @if (Model.Addresses.Count == 0)
+        {
+            
+    var es = new EmptyState(EmptyIcons.User, "No addresses saved", "This customer has not saved any delivery addresses yet.", Compact: true);
+                <partial name="_EmptyState" model="es" />
+        }
+        else
+        {
+            <table class="table">
+                <thead><tr><th>Label</th><th>Address</th><th>Default</th>@if (canManage) { <th></th> }</tr></thead>
+                <tbody>
+                    @foreach (var a in Model.Addresses)
+                    {
+                        <tr>
+                            <td>@a.Label</td>
+                            <td>@a.Street, @a.City, @a.State, @a.Country</td>
+                            <td>@(a.IsDefault ? "Yes" : "-")</td>
+                            @if (canManage)
+                            {
+                                <td style="text-align:right">
+                                    <form asp-action="RemoveAddress" method="post" onsubmit="return confirm('Remove this address?');">
+                                        <input type="hidden" name="id" value="@Model.Id" />
+                                        <input type="hidden" name="addressId" value="@a.Id" />
+                                        <button class="btn btn-ghost btn-sm" type="submit">Remove</button>
+                                    </form>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        @if (canManage)
+        {
+            <details class="mt-3" style="border:1px solid var(--n-200);border-radius:10px;padding:12px">
+                <summary style="cursor:pointer;font-weight:600;font-size:14px">Add address</summary>
+                <form asp-action="AddAddress" method="post" class="mt-3">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <div class="field">
+                            <label class="label">Label <span class="req">*</span></label>
+                            <input class="input" name="Label" placeholder="Home / Office" required maxlength="60" />
+                        </div>
+                        <div class="field">
+                            <label class="label">City <span class="req">*</span></label>
+                            <input class="input" name="City" required maxlength="120" />
+                        </div>
+                        <div class="field" style="grid-column:1/-1">
+                            <label class="label">Street <span class="req">*</span></label>
+                            <input class="input" name="Street" required maxlength="250" />
+                        </div>
+                        <div class="field">
+                            <label class="label">State <span class="req">*</span></label>
+                            <input class="input" name="State" required maxlength="120" />
+                        </div>
+                        <div class="field">
+                            <label class="label">Country <span class="req">*</span></label>
+                            <input class="input" name="Country" value="Nigeria" required maxlength="120" />
+                        </div>
+                        <div class="field">
+                            <label class="label">Postal code</label>
+                            <input class="input" name="PostalCode" maxlength="20" />
+                        </div>
+                        <div class="field">
+                            <label class="label" style="display:flex;align-items:center;gap:8px">
+                                <input type="checkbox" name="IsDefault" value="true" /> Set as default
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-primary btn-sm" type="submit">Add address</button>
+                    </div>
+                </form>
+            </details>
+        }
+
+        <h4 class="mt-4 mb-2">Orders (@orders.Count)</h4>
+        @if (orders.Count == 0)
+        {
+            
+    var es2 = new EmptyState(EmptyIcons.Cart, "No orders yet", "Orders placed by this customer will appear here.", Compact: true);
+                <partial name="_EmptyState" model="es2" />
+        }
+        else
+        {
+            <table class="table">
+                <thead><tr><th>Order</th><th>Status</th><th>Total</th><th>Date</th></tr></thead>
+                <tbody>
+                    @foreach (var o in orders)
+                    {
+                        <tr>
+                            <td><a asp-controller="AdminOrders" asp-action="Details" asp-route-id="@o.Id" class="font-semibold">@o.OrderNumber</a></td>
+                            <td><span class="badge badge-neutral">@(Enum.TryParse<DeChimex.Domain.Enums.OrderStatus>(o.Status, out var _s5) ? DeChimex.Domain.Enums.OrderStatusPresentation.CustomerLabel(_s5) : o.Status)</span></td>
+                            <td>₦@o.GrandTotal.ToString("N2")</td>
+                            <td class="text-muted">@o.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

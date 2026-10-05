@@ -1,0 +1,27 @@
+@using DeChimex.Contracts.Categories
+@{
+ var categories = (IReadOnlyList<CategoryDto>)ViewBag.Categories;
+ var majors = (IReadOnlyList<MajorCategoryDto>)ViewBag.MajorCategories;
+ var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+ var majorId = ViewBag.MajorCategoryId as Guid?; var categoryId = ViewBag.CategoryId as Guid?;
+ string? search = ViewBag.Search; string? sort = ViewBag.Sort;
+}
+<div id="cats" role="navigation" aria-label="Category filter" style="display:flex;flex-direction:column;gap:4px">
+<a class="side-link-pub @(majorId == null && categoryId == null ? "active" : "")" href="@Url.Action("Index", controller, new { search, sort })">All products</a>
+@foreach (var major in majors.Where(m => categories.Any(c => c.MajorCategoryId == m.Id))) {
+ <div class="mt-3" data-major-category="@major.Id">
+ <a class="side-link-pub font-semibold @(majorId == major.Id && categoryId == null ? "active" : "")" href="@Url.Action("Index", controller, new { majorCategoryId = major.Id, search, sort })">@major.Name</a>
+ @foreach (var c in categories.Where(c => c.MajorCategoryId == major.Id)) {
+ <a style="padding-left:24px" class="side-link-pub @(categoryId == c.Id ? "active" : "")" href="@Url.Action("Index", controller, new { majorCategoryId = major.Id, categoryId = c.Id, search, sort })">@c.Name</a>
+ }
+ </div>
+}
+@if (categories.Any(c => c.MajorCategoryId == null)) {
+ <div class="mt-3"><strong>Other categories</strong>
+ @foreach (var c in categories.Where(c => c.MajorCategoryId == null)) {
+ <a class="side-link-pub @(categoryId == c.Id ? "active" : "")" href="@Url.Action("Index", controller, new { categoryId = c.Id, search, sort })">@c.Name</a>
+ }
+ </div>
+}
+@if (categories.Count == 0) { <p class="text-muted">Categories appear here as we grow the catalog.</p> }
+</div>

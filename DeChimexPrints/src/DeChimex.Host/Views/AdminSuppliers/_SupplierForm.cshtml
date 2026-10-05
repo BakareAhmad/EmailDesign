@@ -1,0 +1,36 @@
+@model DeChimex.Host.Models.Admin.SupplierFormViewModel
+<div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+<div class="field">
+    <label class="label" asp-for="Name">Name <span class="req">*</span></label>
+    <input class="input" asp-for="Name" />
+    <span asp-validation-for="Name" class="field-error"></span>
+</div>
+
+<div class="field">
+    <label class="label" asp-for="Contact">Contact person</label>
+    <input class="input" asp-for="Contact" />
+</div>
+
+<div class="field">
+    <label class="label" asp-for="Email">Email</label>
+    <input class="input" asp-for="Email" type="email" />
+</div>
+
+<div class="field">
+    <label class="label" asp-for="Phone">Phone</label>
+    <input class="input" asp-for="Phone" />
+</div>
+
+<div class="field">
+    <label class="label" asp-for="Category">Category</label>
+    <input class="input" asp-for="Category" placeholder="e.g. Materials, Print media" />
+</div>
+
+<div class="field">
+    <label class="label" asp-for="Status">Status</label>
+    <select class="select" asp-for="Status">
+        <option>Active</option>
+        <option>Inactive</option>
+    </select>
+</div>

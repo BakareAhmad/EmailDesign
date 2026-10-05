@@ -1,0 +1,232 @@
+@model DeChimex.Contracts.Orders.OrderWorkspaceDto
+@* Shared workspace conversation card (portal + staff). ONE markup contract: the
+   live-sync script builds identical nodes for pushed messages, so server render
+   and live append can never drift. Role comes from ViewData["ChatMyRole"]. *@
+@{
+    var myRole = (string?)ViewData["ChatMyRole"] == "staff" ? "staff" : "customer";
+    var placeholder = myRole == "staff" ? "Reply to the customer…" : "Type a message…";
+    var emptyText = myRole == "staff" ? "No messages yet." : "No messages yet. Start the conversation below.";
+    DeChimex.Contracts.Orders.OrderMessageDto? prevMsg = null;
+}
+
+<div class="card">
+    <details class="ws-details" id="chatCard" open>
+        <summary class="card-head ws-summary">
+            <span class="chev" aria-hidden="true">▸</span>
+            <h3 style="margin:0">Conversation</h3>
+            <span class="ws-count">@Model.Messages.Count</span>
+            <span id="presenceLine" class="text-xs text-muted" style="margin-left:auto"></span>
+        </summary>
+        <div class="card-body">
+        <div id="chatLog" class="chat-log" style="display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto">
+            @if (Model.Messages.Count == 0)
+            {
+                <div class="text-muted" id="chatEmpty">@emptyText</div>
+            }
+            @foreach (var m in Model.Messages)
+            {
+                var mine = m.AuthorRole == myRole;
+                var grouped = prevMsg is not null && prevMsg.AuthorRole == m.AuthorRole
+                    && (m.CreatedDateUtc - prevMsg.CreatedDateUtc).TotalMinutes < 5;
+                <div class="chat-bubble @(mine ? "mine" : "theirs")@(grouped ? " grouped" : "")"
+                     style="align-self:@(mine ? "flex-end" : "flex-start")"
+                     data-msg-id="@m.Id" data-author-role="@m.AuthorRole" data-created="@m.CreatedDateUtc.ToString("o")">
+                    <div class="msg-head text-xs text-muted">@m.AuthorName · @m.CreatedDateUtc.ToLocalTime().ToString("d MMM, HH:mm")</div>
+                    @if (m.ReplyToMessageId is not null)
+                    {
+                        <button type="button" class="msg-quote" data-quote-for="@m.ReplyToMessageId" title="Go to the original message">
+                            <span class="msg-quote-name">@(m.ReplyToAuthorName ?? "Message")</span>
+                            <span class="msg-quote-text">@(m.ReplyToSnippet ?? "Original message unavailable")</span>
+                        </button>
+                    }
+                    @if (!string.IsNullOrEmpty(m.Body))
+                    {
+                        var isLong = m.Body.Length > 800;
+                        <div class="msg-body@(isLong ? " is-long" : "")">@m.Body</div>
+                        @if (isLong)
+                        {
+                            <button type="button" class="msg-more">Show more</button>
+                        }
+                    }
+                    @if (m.Attachments is { Count: > 0 })
+                    {
+                        <div class="msg-media">
+                        @foreach (var a in m.Attachments)
+                        {
+                            @if (a.Kind == "image")
+                            {
+                                <a href="@a.Url" class="msg-img-link" data-preview data-content-type="@a.ContentType"
+                                   data-name="@a.OriginalFileName" data-size="@a.SizeBytes">
+                                    <img src="@a.Url" alt="@a.OriginalFileName" loading="lazy" class="msg-img" />
+                                </a>
+                            }
+                            else if (a.Kind == "video")
+                            {
+                                <video class="msg-video" controls preload="metadata" src="@a.Url"></video>
+                            }
+                            else if (a.Kind is "audio" or "voice")
+                            {
+                                <div class="msg-voice">
+                                    @if (a.Kind == "voice")
+                                    {
+                                        <span class="msg-voice-ic" aria-hidden="true">🎙</span>
+                                    }
+                                    <audio controls preload="metadata" src="@a.Url"></audio>
+                                    @if (a.DurationSeconds is not null)
+                                    {
+                                        <span class="msg-dur">@DeChimex.Host.ChatDisplay.Duration(a.DurationSeconds)</span>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <a class="msg-file" href="@a.Url" data-preview data-content-type="@a.ContentType"
+                                   data-name="@a.OriginalFileName" data-size="@a.SizeBytes">
+                                    <span class="msg-file-ic" aria-hidden="true">📄</span>
+                                    <span class="msg-file-name">@a.OriginalFileName</span>
+                                    <span class="msg-file-size">@DeChimex.Host.ChatDisplay.FileSize(a.SizeBytes)</span>
+                                </a>
+                            }
+                        }
+                        </div>
+                    }
+                    <div class="msg-foot">
+                        <span class="msg-time">@m.CreatedDateUtc.ToLocalTime().ToString("HH:mm")</span>
+                        @if (mine)
+                        {
+                            var tick = m.ReadAtUtc is not null ? ("read", "✓✓", "Read")
+                                : m.DeliveredAtUtc is not null ? ("delivered", "✓✓", "Delivered") : ("sent", "✓", "Sent");
+                            <span class="msg-ticks is-@tick.Item1" data-ticks data-tick-state="@tick.Item1" title="@tick.Item3">@tick.Item2</span>
+                        }
+                        <button type="button" class="msg-reply-btn" data-reply-to="@m.Id"
+                                data-reply-author="@m.AuthorName" title="Reply to this message">Reply</button>
+                    </div>
+                </div>
+                prevMsg = m;
+            }
+        </div>
+        <div id="typingRow" class="typing-row" hidden>
+            <span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span id="typingText" class="text-xs text-muted"></span>
+        </div>
+        <form id="chatForm" asp-action="SendMessage" asp-route-id="@Model.Id" asp-route-orderId="@Model.Id"
+              method="post" enctype="multipart/form-data" style="margin-top:12px">
+            <div id="replyBar" class="reply-bar" hidden>
+                <div class="reply-bar-body">
+                    <span id="replyBarName" class="reply-bar-name"></span>
+                    <span id="replyBarText" class="reply-bar-text"></span>
+                </div>
+                <button type="button" id="replyCancel" class="reply-bar-x" title="Cancel reply">✕</button>
+                <input type="hidden" name="replyToMessageId" id="replyToInput" value="" />
+            </div>
+            <div id="stageBar" class="stage-bar" hidden></div>
+            <div id="recBar" class="rec-bar" hidden>
+                <span class="rec-dot" aria-hidden="true"></span>
+                <span id="recTime">0:00</span>
+                <button type="button" id="recStop" class="btn btn-sm btn-primary">Stop</button>
+                <button type="button" id="recCancel" class="btn btn-sm btn-ghost">Cancel</button>
+            </div>
+            <div id="voiceBar" class="voice-bar" hidden>
+                <audio id="voicePreview" controls></audio>
+                <span class="text-xs text-muted">Voice note preview. Send it or re-record.</span>
+                <button type="button" id="voiceDiscard" class="btn btn-sm btn-ghost">Re-record</button>
+            </div>
+            <div class="flex gap-2 chat-compose">
+                <button type="button" id="attachBtn" class="btn btn-outline btn-icon" title="Attach photos, videos or files">📎</button>
+                <input type="file" id="attachInput" hidden multiple
+                       accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.mp4,.webm,.ogg,.oga,.wav,.m4a" />
+                <input class="input" type="text" name="body" id="chatInput" placeholder="@placeholder"
+                       maxlength="4000" autocomplete="off" style="flex:1" />
+                <button type="button" id="micBtn" class="btn btn-outline btn-icon" title="Record a voice note" hidden>🎙</button>
+                <button type="submit" class="btn btn-primary" id="chatSend">Send</button>
+            </div>
+            <div id="sendProgress" class="send-progress" hidden>
+                <div id="sendProgressFill" class="send-progress-fill"></div>
+            </div>
+            <div id="chatError" class="chat-error" role="alert" hidden></div>
+        </form>
+        </div>
+    </details>
+</div>
+<style>
+.chat-bubble{border-radius:12px;padding:8px 12px;max-width:78%;background:var(--n-100,#f1f5f9);position:relative}
+.chat-bubble.mine{background:linear-gradient(120deg,#7C3AED,#EC4899);color:#fff}
+.chat-bubble.mine .text-muted{color:rgba(255,255,255,.75)!important}
+.chat-bubble.grouped .msg-head{display:none}
+.msg-head{margin-bottom:2px}
+.msg-body{white-space:pre-wrap;overflow-wrap:anywhere}
+.msg-body.is-long{max-height:120px;overflow:hidden;position:relative}
+.msg-body.is-long.expanded{max-height:none}
+.msg-body.is-long:not(.expanded)::after{content:"";position:absolute;left:0;right:0;bottom:0;height:44px;
+    background:linear-gradient(transparent,rgba(241,245,249,.95))}
+.chat-bubble.mine .msg-body.is-long:not(.expanded)::after{background:linear-gradient(transparent,rgba(190,80,170,.9))}
+.msg-more{background:none;border:0;color:var(--primary,#7C3AED);font-size:12px;cursor:pointer;padding:2px 0}
+.chat-bubble.mine .msg-more{color:#fff;text-decoration:underline}
+.msg-quote{display:block;width:100%;text-align:left;border:0;border-left:3px solid var(--primary,#7C3AED);
+    background:rgba(124,58,237,.08);border-radius:0 8px 8px 0;padding:6px 10px;margin:2px 0 6px;cursor:pointer}
+.chat-bubble.mine .msg-quote{background:rgba(255,255,255,.18);border-left-color:#fff}
+.msg-quote-name{display:block;font-size:12px;font-weight:700;color:var(--primary,#7C3AED)}
+.chat-bubble.mine .msg-quote-name{color:#fff}
+.msg-quote-text{display:block;font-size:12.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-media{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.msg-img{max-width:260px;max-height:220px;border-radius:8px;display:block;cursor:zoom-in}
+.msg-video{max-width:260px;max-height:220px;border-radius:8px;background:#000}
+.msg-voice{display:flex;align-items:center;gap:8px;max-width:280px}
+.msg-voice audio{max-width:220px;height:36px}
+.msg-voice-ic{font-size:18px}
+.msg-dur{font-size:11px;opacity:.8;white-space:nowrap}
+.msg-file{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.06);border-radius:8px;
+    padding:8px 10px;text-decoration:none;color:inherit;max-width:280px}
+.chat-bubble.mine .msg-file{background:rgba(255,255,255,.18);color:#fff}
+.msg-file-name{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.msg-file-size{font-size:11px;opacity:.75;white-space:nowrap;margin-left:auto}
+.msg-foot{display:flex;align-items:center;gap:8px;margin-top:4px;font-size:11px}
+.msg-time{opacity:.75}
+.msg-ticks{font-weight:700;letter-spacing:-1px}
+.msg-ticks.is-read{color:#7dd3fc}
+.chat-bubble.theirs .msg-ticks.is-read{color:#0284c7}
+.msg-reply-btn{background:none;border:0;font-size:11px;cursor:pointer;opacity:0;color:inherit;padding:0 2px}
+.chat-bubble:hover .msg-reply-btn,.chat-bubble:focus-within .msg-reply-btn{opacity:.85}
+@("@")media (hover:none){.msg-reply-btn{opacity:.85}}
+.msg-flash{animation:msgflash 1.6s ease-out}
+@("@")keyframes msgflash{0%,40%{box-shadow:0 0 0 3px var(--primary,#7C3AED)}100%{box-shadow:none}}
+.reply-bar{display:flex;align-items:center;gap:8px;border-left:3px solid var(--primary,#7C3AED);
+    background:var(--n-50,#f8fafc);border-radius:0 8px 8px 0;padding:6px 10px;margin-bottom:8px}
+.reply-bar[hidden]{display:none}
+.reply-bar-body{display:flex;flex-direction:column;min-width:0;flex:1}
+.reply-bar-name{font-size:12px;font-weight:700;color:var(--primary,#7C3AED)}
+.reply-bar-text{font-size:12.5px;color:var(--muted,#6b7280);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reply-bar-x{background:none;border:0;font-size:14px;cursor:pointer;color:var(--muted,#6b7280)}
+.stage-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.stage-bar[hidden]{display:none}
+.stage-item{position:relative;border:1px solid var(--border,#e5e7eb);border-radius:8px;padding:6px;
+    display:flex;align-items:center;gap:6px;font-size:12px;max-width:220px;background:#fff}
+.stage-item img{width:44px;height:44px;object-fit:cover;border-radius:6px}
+.stage-item .stage-meta{min-width:0}
+.stage-item .stage-name{display:block;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.stage-item .stage-sub{color:var(--muted,#6b7280);font-size:11px}
+.stage-x{border:0;background:var(--n-100,#f1f5f9);border-radius:999px;width:22px;height:22px;cursor:pointer;font-size:12px}
+.rec-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.rec-bar[hidden]{display:none}
+.rec-dot{width:12px;height:12px;border-radius:999px;background:var(--danger,#dc2626);animation:recpulse 1s infinite}
+@("@")keyframes recpulse{50%{opacity:.35}}
+.voice-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.voice-bar[hidden]{display:none}
+.voice-bar audio{height:36px;max-width:230px}
+.send-progress{height:5px;background:var(--n-100,#f1f5f9);border-radius:999px;margin-top:8px;overflow:hidden}
+.send-progress[hidden]{display:none}
+.send-progress-fill{height:100%;width:0;background:linear-gradient(90deg,#7C3AED,#EC4899);transition:width .15s}
+.chat-error{margin-top:8px;font-size:12.5px;color:var(--danger,#dc2626)}
+.chat-error[hidden]{display:none}
+.typing-row{display:flex;align-items:center;gap:8px;padding:6px 2px 0}
+.typing-row[hidden]{display:none}
+.typing-dots{display:inline-flex;gap:3px}
+.typing-dots i{width:6px;height:6px;border-radius:999px;background:var(--muted,#9ca3af);animation:tbounce 1.2s infinite}
+.typing-dots i:nth-child(2){animation-delay:.15s}.typing-dots i:nth-child(3){animation-delay:.3s}
+@("@")keyframes tbounce{30%{transform:translateY(-4px)}}
+.chat-compose{flex-wrap:wrap}
+#presenceLine.is-online{color:#16a34a;font-weight:600}
+.stage-ic{font-size:22px}
+.btn-icon{padding-left:10px;padding-right:10px}
+@("@")media (max-width:640px){.chat-bubble{max-width:88%}.msg-img,.msg-video{max-width:100%}}
+</style>

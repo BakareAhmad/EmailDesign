@@ -1,0 +1,10 @@
+﻿Your design proof for DCX-2026-000123 is waiting for review.
+
+Design proof ready
+Hi O'Neil <b>Attridge-Smith-Worthington the Third</b>, we've prepared a design proof for your order.
+Awaiting your approval
+Request number
+DCX-2026-000123
+Security: Nothing goes into production until you approve the design or ask for changes.
+Review the design https://dechimexprinthub.com/portal/orders/11111111-2222-3333-4444-555555555555/workspace
+Button not working? Copy this link: https://dechimexprinthub.com/portal/orders/11111111-2222-3333-4444-555555555555/workspace

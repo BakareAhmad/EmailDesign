@@ -1,0 +1,89 @@
+@model DeChimex.Contracts.Procurement.ProcurementDto
+@{
+    Layout = "_AdminLayout";
+    var canApprove = ViewBag.CanApprove is true;
+    var canReceive = ViewBag.CanReceive is true;
+}
+<div class="card" style="max-width:840px">
+    <div class="card-head">
+        <h3>@Model.Reference</h3>
+        <div class="flex items-center gap-2">
+            <span class="badge badge-neutral">@Model.Status</span>
+            <a class="btn btn-outline btn-sm" asp-action="Index" aria-label="Back to procurement list">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                Back to list
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="g" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+            <div><div class="text-xs text-muted">Supplier</div><div>@(Model.SupplierName ?? "-")</div></div>
+            <div><div class="text-xs text-muted">Approved by</div><div>@(Model.ApprovedBy ?? "-")</div></div>
+            <div><div class="text-xs text-muted">Approved at</div><div>@(Model.ApprovedAtUtc?.ToLocalTime().ToString("d MMM yyyy") ?? "-")</div></div>
+            <div><div class="text-xs text-muted">Received at</div><div>@(Model.ReceivedAtUtc?.ToLocalTime().ToString("d MMM yyyy") ?? "-")</div></div>
+            @if (Model.SourceOrderId is not null)
+            {
+                <div><div class="text-xs text-muted">Linked order</div><div>
+                    @if (!string.IsNullOrEmpty(Model.SourceOrderNumber))
+                    {
+                        <a href="/admin/orders/@Model.SourceOrderId">@Model.SourceOrderNumber</a>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Order @Model.SourceOrderId</span>
+                    }
+                </div></div>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <div class="mt-4"><div class="text-xs text-muted">Notes</div><p>@Model.Notes</p></div>
+        }
+
+        <h4 class="mt-4 mb-2">Items</h4>
+        <table class="table">
+            <thead><tr><th>Product</th><th>Qty</th><th>Unit cost</th><th>Received</th></tr></thead>
+            <tbody>
+                @foreach (var i in Model.Items)
+                {
+                    <tr>
+                        <td>@i.ProductName</td>
+                        <td>@i.Quantity</td>
+                        <td>@(i.UnitCost.HasValue ? "₦" + i.UnitCost.Value.ToString("N2") : "-")</td>
+                        <td>@i.QuantityReceived</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="flex gap-2 mt-4">
+    @if (canApprove && Model.Status == "Pending")
+    {
+        <form asp-action="Approve" asp-route-id="@Model.Id" method="post">
+            <button type="submit" class="btn btn-primary">Approve</button>
+        </form>
+    }
+    @if (canApprove && Model.Status == "Approved")
+    {
+        var suppliers = ViewBag.Suppliers as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+        <form asp-action="Purchase" asp-route-id="@Model.Id" method="post" class="flex items-center gap-2">
+            <select class="select" name="supplierName" style="min-width:220px">
+                <option value="">Select supplier...</option>
+                @foreach (var s in suppliers)
+                {
+                    <option value="@s.Value">@s.Text</option>
+                }
+            </select>
+            <button type="submit" class="btn btn-primary">Mark purchased</button>
+        </form>
+    }
+    @if (canReceive && Model.Status == "Purchased")
+    {
+        <form asp-action="Receive" asp-route-id="@Model.Id" method="post">
+            <button type="submit" class="btn btn-success">Receive stock</button>
+        </form>
+    }
+</div>

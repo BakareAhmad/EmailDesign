@@ -1,0 +1,59 @@
+@{
+    Layout = "_CustomerLayout";
+    var isApple = false; // server render lists every path; the script highlights the user's platform
+}
+<div class="cs-wrap cs-wrap-md" id="installHelpPage">
+    <div class="cs-page-head">
+        <h1>Install DE-CHIMEX</h1>
+        <p class="cs-muted">Use DE-CHIMEX like an app: open it from your Home Screen, keep your place between visits, and get updates about your orders.</p>
+    </div>
+
+    <div class="pg-prose" style="display:grid;gap:16px">
+        <section class="cs-card" data-platform="android" style="padding:16px 18px">
+            <h2 style="margin:0 0 8px;font-size:17px">On Android (Chrome, Samsung Internet and most browsers)</h2>
+            <ol style="margin:0;padding-left:20px;display:grid;gap:6px;font-size:14.5px;line-height:1.5">
+                <li>Open this site in your browser.</li>
+                <li>Tap the browser menu (the <strong>&#8942;</strong> or <strong>&#8943;</strong> button).</li>
+                <li>Look for <strong>Install app</strong> or <strong>Add to Home Screen</strong>. The exact wording depends on your browser.</li>
+                <li>Confirm the installation.</li>
+                <li>Open DE-CHIMEX from your Home Screen or app list.</li>
+            </ol>
+        </section>
+
+        <section class="cs-card" data-platform="ios" style="padding:16px 18px">
+            <h2 style="margin:0 0 8px;font-size:17px">On iPhone or iPad (Safari)</h2>
+            <ol style="margin:0;padding-left:20px;display:grid;gap:6px;font-size:14.5px;line-height:1.5">
+                <li>Open this site in <strong>Safari</strong>.</li>
+                <li>Tap the <strong>Share</strong> button (the square with an arrow).</li>
+                <li>Scroll down and tap <strong>Add to Home Screen</strong>.</li>
+                <li>Tap <strong>Add</strong> in the top corner.</li>
+            </ol>
+            <p class="cs-muted" style="margin:10px 0 0;font-size:13px">Using another browser on iPhone? Installation works differently there; on recent iOS versions the Share menu in most browsers offers Add to Home Screen.</p>
+        </section>
+
+        <section class="cs-card" data-platform="desktop" style="padding:16px 18px">
+            <h2 style="margin:0 0 8px;font-size:17px">On a computer</h2>
+            <p style="margin:0;font-size:14.5px;line-height:1.5">In Chrome or Edge, look for the install icon in the address bar, or open the browser menu and choose <strong>Install DE-CHIMEX PRINT HUB</strong> / <strong>Install page as app</strong>.</p>
+        </section>
+
+        <p class="cs-muted" style="font-size:13.5px;margin:0">If your browser doesn't offer installation, you can still open DE-CHIMEX directly at any time; everything works in the browser too.</p>
+    </div>
+</div>
+
+<script>
+    // Highlight the reader's own platform so the relevant card is unmissable.
+    (function () {
+        var ua = navigator.userAgent || '';
+        var platform = 'desktop';
+        if (/iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) platform = 'ios';
+        else if (/android/i.test(ua)) platform = 'android';
+        var card = document.querySelector('#installHelpPage [data-platform="' + platform + '"]');
+        if (card) {
+            card.style.borderColor = '#111827';
+            card.style.boxShadow = '0 6px 18px rgba(15,23,42,.10)';
+            card.id = 'installHelpCurrent';
+            card.setAttribute('tabindex', '-1');
+            if (location.hash === '#mine') card.scrollIntoView({ block: 'center' });
+        }
+    })();
+</script>

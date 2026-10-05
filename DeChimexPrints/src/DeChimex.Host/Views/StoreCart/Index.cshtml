@@ -1,0 +1,95 @@
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Your cart";
+    ViewData["ActiveNav"] = "cart";
+    var cart = ViewBag.Cart as DeChimex.Contracts.Cart.CartDto;
+    var isAuth = ViewBag.IsAuthenticated is true;
+    var isCustomer = User.Identity?.IsAuthenticated == true && User.IsInRole(DeChimex.Shared.Constants.RoleNames.Customer);
+    var shopBase = isCustomer ? "/portal/shop" : "/products";
+    var deliveryFee = ViewBag.DeliveryFee is decimal fee ? fee : 1500m;
+    var hasItems = isAuth && cart != null && cart.Items.Count > 0;
+    if (hasItems) { ViewData["BodyClass"] = "has-ck-sticky"; }
+}
+
+<div class="cs-wrap">
+    <div class="cs-page-head">
+        <h1>Your cart @if (hasItems) { <span class="cs-muted" style="font-weight:600;font-size:.6em">(@cart!.ItemCount item@(cart.ItemCount == 1 ? "" : "s"))</span> }</h1>
+    </div>
+
+    @if (hasItems)
+    {
+        <div class="ck-steps" aria-label="Checkout progress">
+            <span class="is-on"><i>1</i> Cart</span>@Html.Raw(CustomerIcons.Svg("chev-right", 12))
+            <span><i>2</i> Delivery</span>@Html.Raw(CustomerIcons.Svg("chev-right", 12))
+            <span><i>3</i> Payment</span>
+        </div>
+        <div class="ck-layout">
+            <div>
+                <div class="ck-lines">
+                    @foreach (var item in cart!.Items)
+                    {
+                        var href = item.LineType == "Product" ? $"{shopBase}/{item.ReferenceId}" : "/services";
+                        <div class="ck-line" data-cart-item="@item.Id">
+                            <a class="ck-thumb" href="@href" tabindex="-1" aria-hidden="true">
+                                @if (!string.IsNullOrWhiteSpace(item.ImageUrl)) { <img src="@item.ImageUrl" alt="" loading="lazy" width="96" height="96"> }
+                                else { <span class="pc-noimg">@Html.Raw(CustomerIcons.Svg("image", 24, null, 1.5))</span> }
+                            </a>
+                            <div class="ck-line-body">
+                                <div class="ck-line-name"><a href="@href">@item.Name</a></div>
+                                @if (!string.IsNullOrEmpty(item.Notes)) { <div class="ck-line-note">@item.Notes</div> }
+                                <div class="ck-line-unit">@CustomerPresentation.Money(item.UnitPrice) each</div>
+                                <div class="ck-line-foot">
+                                    <form asp-controller="StoreCart" asp-action="Update" asp-route-itemId="@item.Id" method="post" class="ck-qty" aria-label="Quantity for @item.Name">
+                                        <button type="button" data-qty="-" data-qty-submit aria-label="Decrease quantity">−</button>
+                                        <input type="number" name="quantity" value="@item.Quantity" min="1" max="10000" inputmode="numeric" aria-label="Quantity" data-submit-on-change>
+                                        <button type="button" data-qty="+" data-qty-submit aria-label="Increase quantity">+</button>
+                                        <noscript><button type="submit" class="btn btn-sm btn-ghost">Update</button></noscript>
+                                    </form>
+                                    <div class="ck-line-total">@CustomerPresentation.Money(item.LineTotal)</div>
+                                </div>
+                                <form asp-controller="StoreCart" asp-action="Remove" asp-route-itemId="@item.Id" method="post">
+                                    <button type="submit" class="ck-remove">@Html.Raw(CustomerIcons.Svg("trash", 15)) Remove</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="cs-row-between" style="margin-top:14px">
+                    <a href="@shopBase" class="cs-link">@Html.Raw(CustomerIcons.Svg("arrow-left", 16)) Continue shopping</a>
+                    <form asp-controller="StoreCart" asp-action="Clear" method="post"><button type="submit" class="ck-remove">Clear cart</button></form>
+                </div>
+            </div>
+
+            <aside class="ck-summary cs-card cs-card-pad" aria-labelledby="sumHeading">
+                <h2 id="sumHeading" class="cs-card-title">Summary</h2>
+                <div class="ck-sum-row"><span>Subtotal</span><span>@CustomerPresentation.Money(cart.Subtotal)</span></div>
+                <div class="ck-sum-row"><span>Delivery <span class="cs-xs">(if you choose delivery)</span></span><span>@CustomerPresentation.Money(deliveryFee)</span></div>
+                <div class="ck-sum-row is-total"><span>Estimated total</span><span>@CustomerPresentation.Money(cart.Subtotal + deliveryFee)</span></div>
+                <p class="ck-sum-hint">Pickup at our Lagos point is free (choose it at the next step). A small payment service fee is shown before you pay.</p>
+                <a href="/checkout" class="btn btn-primary btn-lg btn-block" style="margin-top:14px">Proceed to checkout</a>
+                <div class="ck-secure">@Html.Raw(CustomerIcons.Svg("lock", 14)) Secure checkout · card, transfer or USSD</div>
+            </aside>
+        </div>
+
+        <div class="ck-sticky">
+            <div class="ck-sticky-total"><small>Subtotal</small><b>@CustomerPresentation.Money(cart.Subtotal)</b></div>
+            <a href="/checkout" class="btn btn-primary">Checkout</a>
+        </div>
+    }
+    else if (isAuth)
+    {
+        <div class="cs-card">
+            @{ var es = new EmptyState(EmptyIcons.Cart, "Your cart is empty", "Ready-to-buy products can be added straight to your cart.", CtaHref: shopBase, CtaText: "Start shopping"); }
+            <partial name="_EmptyState" model="es" />
+        </div>
+    }
+    else
+    {
+        <div class="cs-card">
+            @{ var es = new EmptyState(EmptyIcons.Lock, "Sign in to see your cart", "Your cart is saved to your account, so it follows you across devices.", CtaHref: "/Account/Login?returnUrl=%2Fcart", CtaText: "Sign in"); }
+            <partial name="_EmptyState" model="es" />
+            <p class="cs-small cs-muted" style="text-align:center;padding:0 20px 24px;margin-top:-20px">New here? <a class="cs-link" href="/Account/Register?returnUrl=%2Fcart">Create a free account</a></p>
+        </div>
+    }
+</div>

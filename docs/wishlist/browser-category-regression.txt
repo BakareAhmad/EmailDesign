@@ -1,0 +1,85 @@
+ok 01 - owner logged in
+PASS 01: category created: Mugs wcat1
+PASS 02: product created with category: Magic Mug wcat1
+PASS 03: unassigned legacy category link and product work
+SCREENSHOT 01 existing-unassigned-category-product
+PASS 04: major required name blocked in browser
+SCREENSHOT 02 required-name-validation
+PASS 05: major created: Drinkware wcat1
+SCREENSHOT 03 major-created-name-only
+PASS 06: major created: Apparel Wear wcat1
+SCREENSHOT 04 major-created-with-description
+PASS 07: case-whitespace duplicate rejected
+SCREENSHOT 05 duplicate-major-rejected
+PASS 08: category assignment persisted
+SCREENSHOT 06 existing-subcategory-assigned
+PASS 09: category created: Flasks wcat1
+PASS 10: category created: Jerseys wcat1
+PASS 11: product created with category: Stainless Steel Flask wcat1
+PASS 12: product created with category: Barcelona Jersey wcat1
+PASS 13: major shows associated subcategories
+SCREENSHOT 07 major-with-associated-subcategories
+PASS 14: assigned subcategories absent from unassigned view
+SCREENSHOT 08 unassigned-admin-filter
+PASS 15: product edit shows hierarchy
+PASS 16: product edit retained category and persisted price
+SCREENSHOT 09 existing-product-edit-preserved
+PASS 17: major filter includes both leaves and excludes unrelated products
+SCREENSHOT 10 public-major-discovery
+PASS 18: combined navigation filters intersect
+SCREENSHOT 11 public-combined-subcategory-filter
+PASS 19: search preserves both filters
+PASS 20: sort preserves both filters and search
+SCREENSHOT 12 search-and-sort-retain-hierarchy
+PASS 21: old category-only URL still works
+PASS 22: mismatched combination returns no unrelated products
+SCREENSHOT 13 conflicting-filters-empty-state
+PASS 23: invalid major ID input is rejected
+PASS 24: unknown major never broadens results
+ok 02 - register shop -> verify page
+ok 03 - verification token captured for shop
+ok 04 - brevo api-key header present (key loaded at runtime)
+ok 05 - customer shop signed in
+PASS 25: portal major navigation works
+SCREENSHOT 14 portal-major-shopping
+PASS 26: portal combined filter works
+SCREENSHOT 15 portal-subcategory-shopping
+PASS 27: required category option cannot submit empty
+SCREENSHOT 16 ordering-option-required-validation
+PASS 28: category ordering question retained
+PASS 29: order completed through persisted workspace
+SCREENSHOT 17 order-created-before-move
+PASS 30: customer cannot manage major categories
+SCREENSHOT 18 customer-management-denied
+PASS 31: missing antiforgery rejected
+PASS 32: major deletion with children rejected
+SCREENSHOT 19 major-in-use-deletion-blocked
+PASS 33: category assignment persisted
+SCREENSHOT 20 subcategory-moved-to-another-major
+PASS 34: moving keeps category ordering
+PASS 35: old group immediately loses moved category products
+PASS 36: new group immediately gains moved category products
+SCREENSHOT 21 moved-products-derived-from-category
+PASS 37: existing order history survives move
+PASS 38: category ordering question retained
+PASS 39: order completed through persisted workspace
+SCREENSHOT 22 order-created-after-move
+PASS 40: category with products deletion still blocked
+SCREENSHOT 23 product-bearing-category-deletion-blocked
+PASS 41: category created: Temporary wcat1
+PASS 42: empty category deletion succeeds
+PASS 43: category assignment persisted
+PASS 44: unassigned category now listed
+SCREENSHOT 24 unassignment-and-unassigned-view
+PASS 45: empty major deletion succeeds
+SCREENSHOT 25 empty-major-deleted
+PASS 46: deleted major cannot be reassigned
+PASS 47: deleted major link shows no products
+PASS 48: unassigned product and old leaf URL survive parent deletion
+SCREENSHOT 26 leaf-still-shoppable-after-unassignment
+PASS 49: rename keeps stable URL and refreshes group labels
+SCREENSHOT 27 renamed-major-stable-link
+PASS 50: mobile category navigation visible
+PASS 51: mobile major navigation works
+SCREENSHOT 28 mobile-major-discovery
+ALL 51 MAJOR-CATEGORY E2E CHECKS PASSED; 28 screenshots; TAG=wcat1

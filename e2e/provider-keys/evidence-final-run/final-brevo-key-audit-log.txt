@@ -1,0 +1,6 @@
+Brevo outbound sends captured by the stub: 4
+  subject='Your DE-CHIMEX password was changed'                            api-key prefix='xkeysib-' len=89 matches_configured=True
+  subject='Verify your DE-CHIMEX email'                                    api-key prefix='xkeysib-' len=89 matches_configured=True
+  subject='Welcome to DE-CHIMEX PRINT HUB'                                 api-key prefix='xkeysib-' len=89 matches_configured=True
+  subject='We received your order request DCX-2026-000001'                 api-key prefix='xkeysib-' len=89 matches_configured=True
+RESULT: 4/4 sends carried the configured Brevo key (values hidden)

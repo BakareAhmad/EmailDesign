@@ -1,0 +1,48 @@
+@model IReadOnlyList<DeChimex.Contracts.Inventory.InventoryDto>
+@{
+    Layout = "_AdminLayout";
+}
+<div class="toolbar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <form method="get" class="flex items-center gap-2">
+        <input class="input" type="search" name="search" value="@(ViewBag.Search)" placeholder="Search product..." style="min-width:220px">
+        <button class="btn btn-secondary" type="submit">Search</button>
+    </form>
+    <a class="btn btn-outline" asp-action="LowStock">Low stock</a>
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead><tr><th>Product</th><th>On hand</th><th>Reserved</th><th>Available</th><th>Threshold</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="7" class="text-muted">No inventory records.</td></tr>
+            }
+            @foreach (var i in Model)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-productId="@i.ProductId" class="font-semibold">@i.ProductName</a></td>
+                    <td>@i.QuantityOnHand</td>
+                    <td>@i.QuantityReserved</td>
+                    <td>@i.Available</td>
+                    <td>@i.LowStockThreshold</td>
+                    <td>
+                        @if (i.IsOutOfStock) { <span class="badge badge-error">Out of stock</span> }
+                        else if (i.IsLowStock) { <span class="badge badge-warning">Low stock</span> }
+                        else { <span class="badge badge-success">Healthy</span> }
+                    </td>
+                    <td style="text-align:right"><a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-productId="@i.ProductId">Manage</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.HasPrevious) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)" asp-route-search="@(ViewBag.Search)">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.HasNext) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)" asp-route-search="@(ViewBag.Search)">Next</a> }
+    </div>
+}

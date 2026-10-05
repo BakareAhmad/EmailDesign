@@ -1,0 +1,156 @@
+@model DeChimex.Host.Models.Store.CheckoutFormViewModel
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Checkout";
+    ViewData["ActiveNav"] = "cart";
+    var cart = ViewBag.Cart as DeChimex.Contracts.Cart.CartDto;
+    var deliveryFee = ViewBag.DeliveryFee is decimal fee ? fee : 1500m;
+    var paystackCharge = ViewBag.PaystackCharge is decimal pc ? pc : 0m;
+    var paystackChargePickup = ViewBag.PaystackChargePickup is decimal pcp ? pcp : 0m;
+    var customerPayable = ViewBag.CustomerPayable is decimal cp ? cp : ((cart?.Subtotal ?? 0m) + deliveryFee + paystackCharge);
+    var isCustomer = User.Identity?.IsAuthenticated == true && User.IsInRole(DeChimex.Shared.Constants.RoleNames.Customer);
+    var shopBase = isCustomer ? "/portal/shop" : "/products";
+    var biz = ViewBag.Business as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var pickupAddress = biz.TryGetValue("business.pickup_address", out var pa) && !string.IsNullOrWhiteSpace(pa) ? pa : "our Lagos pickup point";
+    var hasItems = cart is not null && cart.Items.Count > 0;
+    var isDelivery = Model.Fulfilment != "pickup";
+    if (hasItems) { ViewData["BodyClass"] = "has-ck-sticky"; }
+}
+
+<div class="cs-wrap">
+    <div class="cs-page-head"><h1>Checkout</h1></div>
+
+    @if (!hasItems)
+    {
+        <div class="cs-card">
+            @{ var es = new EmptyState(EmptyIcons.Cart, "Nothing to check out", "Your cart is empty. Add something you like first.", CtaHref: shopBase, CtaText: "Browse products"); }
+            <partial name="_EmptyState" model="es" />
+        </div>
+    }
+    else
+    {
+        <div class="ck-steps" aria-label="Checkout progress">
+            <a class="is-done" href="/cart"><i>✓</i> Cart</a>@Html.Raw(CustomerIcons.Svg("chev-right", 12))
+            <span class="is-on"><i>2</i> Delivery</span>@Html.Raw(CustomerIcons.Svg("chev-right", 12))
+            <span><i>3</i> Payment</span>
+        </div>
+
+        <form asp-action="PlaceOrder" method="post" id="checkoutForm" novalidate>
+            <div class="ck-layout">
+                <div class="cs-stack">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-error" role="alert"></div>
+
+                    <section class="cs-card cs-card-pad" aria-labelledby="fulfilHeading">
+                        <h2 id="fulfilHeading" class="cs-card-title">How would you like to receive it?</h2>
+                        <div class="ck-choice" style="margin-top:12px">
+                            <label>
+                                <input type="radio" name="Fulfilment" value="delivery" checked="@isDelivery">
+                                <div><strong>Deliver to me</strong><span>Nationwide delivery to your address.</span></div>
+                                <span class="ck-choice-price">@CustomerPresentation.Money(deliveryFee)</span>
+                            </label>
+                            <label>
+                                <input type="radio" name="Fulfilment" value="pickup" checked="@(!isDelivery)">
+                                <div><strong>Pick up</strong><span>@pickupAddress</span></div>
+                                <span class="ck-choice-price">Free</span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="cs-card cs-card-pad" id="deliveryAddressCard" aria-labelledby="addrHeading">
+                        <h2 id="addrHeading" class="cs-card-title">Delivery address</h2>
+                        <div class="ck-form-grid" style="margin-top:12px">
+                            <div class="field is-full">
+                                <label class="label" for="Street">Street address <span class="req">*</span></label>
+                                <input class="input" id="Street" name="Street" value="@Model.Street" placeholder="House number, street, area" autocomplete="street-address">
+                                <span asp-validation-for="Street" class="field-error"></span>
+                            </div>
+                            <div class="field">
+                                <label class="label" for="City">City <span class="req">*</span></label>
+                                <input class="input" id="City" name="City" value="@Model.City" autocomplete="address-level2">
+                                <span asp-validation-for="City" class="field-error"></span>
+                            </div>
+                            <div class="field">
+                                <label class="label" for="State">State <span class="req">*</span></label>
+                                <input class="input" id="State" name="State" value="@Model.State" autocomplete="address-level1">
+                                <span asp-validation-for="State" class="field-error"></span>
+                            </div>
+                            <div class="field">
+                                <label class="label" for="Country">Country <span class="req">*</span></label>
+                                <input class="input" id="Country" name="Country" value="@(string.IsNullOrWhiteSpace(Model.Country) ? "Nigeria" : Model.Country)" autocomplete="country-name">
+                                <span asp-validation-for="Country" class="field-error"></span>
+                            </div>
+                            <div class="field">
+                                <label class="label" for="PostalCode">Postal code <span class="cs-muted">(optional)</span></label>
+                                <input class="input" id="PostalCode" name="PostalCode" value="@Model.PostalCode" autocomplete="postal-code">
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="cs-card cs-card-pad" aria-labelledby="notesHeading">
+                        <h2 id="notesHeading" class="cs-card-title">Anything we should know? <span class="cs-muted" style="font-weight:600;font-size:13px">(optional)</span></h2>
+                        <textarea class="input" name="Notes" rows="2" placeholder="Deadlines, branding files, delivery instructions…" style="margin-top:10px">@Model.Notes</textarea>
+                    </section>
+                </div>
+
+                <aside class="ck-summary cs-card cs-card-pad" aria-labelledby="orderHeading">
+                    <h2 id="orderHeading" class="cs-card-title">Your order</h2>
+                    <div class="ck-mini-lines" style="margin-top:10px">
+                        @foreach (var item in cart!.Items)
+                        {
+                            <div class="ck-mini">
+                                <span class="ck-thumb">@if (!string.IsNullOrWhiteSpace(item.ImageUrl)) { <img src="@item.ImageUrl" alt="" loading="lazy" width="48" height="48"> } else { <span class="pc-noimg">@Html.Raw(CustomerIcons.Svg("image", 18, null, 1.5))</span> }</span>
+                                <span><span class="ck-mini-name">@item.Name</span><br><span class="ck-mini-qty">Qty @item.Quantity × @CustomerPresentation.Money(item.UnitPrice)</span></span>
+                                <span class="ck-mini-total">@CustomerPresentation.Money(item.LineTotal)</span>
+                            </div>
+                        }
+                    </div>
+                    <a class="cs-link cs-small" href="/cart">Edit cart</a>
+                    <div class="ck-sum-row" style="margin-top:8px"><span>Subtotal</span><span>@CustomerPresentation.Money(cart.Subtotal)</span></div>
+                    <div class="ck-sum-row" id="deliveryFeeRow"><span>Delivery</span><span>@CustomerPresentation.Money(deliveryFee)</span></div>
+                    <div class="ck-sum-row is-total"><span>Order total</span><span id="checkoutTotal">@CustomerPresentation.Money(cart.Subtotal + deliveryFee)</span></div>
+                    <div class="ck-sum-row" id="paystackChargeRow"><span>Payment service fee <span class="cs-xs">(card/transfer processing)</span></span><span id="checkoutCharge">@CustomerPresentation.Money(paystackCharge)</span></div>
+                    <div class="ck-sum-row is-pay"><span>You will pay</span><span id="checkoutPayable">@CustomerPresentation.Money(customerPayable)</span></div>
+                    <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top:14px">Place order</button>
+                    <p class="ck-sum-hint">You'll pay on the next screen. Nothing goes into production until your payment is confirmed.</p>
+                    <div class="ck-secure">@Html.Raw(CustomerIcons.Svg("lock", 14)) Payments secured by Paystack</div>
+                </aside>
+            </div>
+
+            <div class="ck-sticky">
+                <div class="ck-sticky-total"><small>You will pay</small><b id="checkoutPayableSticky">@CustomerPresentation.Money(customerPayable)</b></div>
+                <button type="submit" class="btn btn-primary">Place order</button>
+            </div>
+        </form>
+    }
+</div>
+
+@section Scripts {
+<script>
+(function(){
+    var radios = document.querySelectorAll('input[name="Fulfilment"]');
+    var card = document.getElementById('deliveryAddressCard');
+    var feeRow = document.getElementById('deliveryFeeRow');
+    var total = document.getElementById('checkoutTotal');
+    var chargeEl = document.getElementById('checkoutCharge');
+    var payableEl = document.getElementById('checkoutPayable');
+    var payableSticky = document.getElementById('checkoutPayableSticky');
+    var fee = @deliveryFee, subtotal = @cart!.Subtotal, chargeDelivery = @paystackCharge, chargePickup = @paystackChargePickup;
+    function ngn(v){ return '\u20A6' + v.toLocaleString('en-NG', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+    function refresh(){
+        var delivery = (document.querySelector('input[name="Fulfilment"]:checked') || {}).value !== 'pickup';
+        if (card) { card.hidden = !delivery; card.querySelectorAll('input').forEach(function(i){ i.disabled = !delivery; }); }
+        if (feeRow) feeRow.hidden = !delivery;
+        var charge = delivery ? chargeDelivery : chargePickup;
+        var orderTotal = subtotal + (delivery ? fee : 0);
+        if (total) total.textContent = ngn(orderTotal);
+        if (chargeEl) chargeEl.textContent = ngn(charge);
+        var pay = ngn(orderTotal + charge);
+        if (payableEl) payableEl.textContent = pay;
+        if (payableSticky) payableSticky.textContent = pay;
+    }
+    radios.forEach(function(r){ r.addEventListener('change', refresh); });
+    refresh();
+})();
+</script>
+}

@@ -1,0 +1,248 @@
+@{
+    Layout = "_AdminLayout";
+    var kpis = ViewBag.Kpis as DeChimex.Contracts.Dashboard.DashboardKpiDto;
+    var byCategory = ViewBag.SalesByCategory as IReadOnlyList<DeChimex.Contracts.Dashboard.CategorySalesDto> ?? new List<DeChimex.Contracts.Dashboard.CategorySalesDto>();
+    var trend = ViewBag.RevenueTrend as IReadOnlyList<DeChimex.Contracts.Dashboard.RevenuePointDto> ?? new List<DeChimex.Contracts.Dashboard.RevenuePointDto>();
+    var lowStock = ViewBag.LowStock as IReadOnlyList<DeChimex.Contracts.Inventory.InventoryDto> ?? new List<DeChimex.Contracts.Inventory.InventoryDto>();
+    var recentOrders = ViewBag.RecentOrders as IReadOnlyList<DeChimex.Contracts.Orders.OrderSummaryDto> ?? new List<DeChimex.Contracts.Orders.OrderSummaryDto>();
+
+    var maxTrend = trend.Count > 0 ? trend.Max(t => t.Value) : 0m;
+    var hasRevenue = trend.Count > 0 && trend.Any(t => t.Value > 0);
+
+    static string Ic(string d, int s = 18)
+    {
+        var paths = string.Join("", d.Split('|').Select(p => $"<path d=\"{p}\"/>"));
+        return $"<svg width=\"{s}\" height=\"{s}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\">{paths}</svg>";
+    }
+}
+@if (User.HasClaim("permission", "orders.create") || User.HasClaim("permission", "products.create"))
+{
+    <div class="toolbar" style="margin-bottom:20px">
+        <span class="text-sm text-muted">Quick actions</span>
+        <span style="flex:1"></span>
+        @if (User.HasClaim("permission", "orders.create"))
+        {
+            <a class="btn btn-primary" asp-controller="AdminOrders" asp-action="New">@Html.Raw(Ic("M12 5v14M5 12h14", 15)) New order</a>
+        }
+        @if (User.HasClaim("permission", "products.create"))
+        {
+            <a class="btn btn-secondary" asp-controller="AdminProducts" asp-action="Create">@Html.Raw(Ic("M12 5v14M5 12h14", 15)) Add product</a>
+        }
+        @if (User.HasClaim("permission", "reports.view"))
+        {
+            <a class="btn btn-secondary" asp-controller="AdminReports" asp-action="Index">Reports</a>
+        }
+    </div>
+}
+
+@if (kpis is not null)
+{
+    <div class="kpi-grid" style="margin-bottom:20px">
+        <div class="card kpi">
+            <div class="kpi-top">
+                <span class="kpi-label">Revenue this month</span>
+                <span class="kpi-ico">@Html.Raw(Ic("M20 12V8H6a2 2 0 0 1 0-4h12v4|M4 6v12a2 2 0 0 0 2 2h14v-4|M18 12a2 2 0 0 0 0 4h4v-4z"))</span>
+            </div>
+            <div class="kpi-val">&#8358;@kpis.RevenueThisMonth.ToString("N2")</div>
+            <div class="kpi-sub">Paid orders in the current month</div>
+        </div>
+        <div class="card kpi">
+            <div class="kpi-top">
+                <span class="kpi-label">Total orders</span>
+                <span class="kpi-ico">@Html.Raw(Ic("M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"))</span>
+            </div>
+            <div class="kpi-val">@kpis.TotalOrders</div>
+            <div class="kpi-sub">@kpis.CompletedOrders completed</div>
+        </div>
+        <div class="card kpi">
+            <div class="kpi-top">
+                <span class="kpi-label">Pending orders</span>
+                <span class="kpi-ico">@Html.Raw(Ic("M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z|M12 6v6l4 2"))</span>
+            </div>
+            <div class="kpi-val">@kpis.PendingOrders</div>
+            <div class="kpi-sub">Awaiting payment or processing</div>
+        </div>
+        <div class="card kpi">
+            <div class="kpi-top">
+                <span class="kpi-label">Inventory value</span>
+                <span class="kpi-ico">@Html.Raw(Ic("M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8z|M3.3 7 12 12l8.7-5|M12 22V12"))</span>
+            </div>
+            <div class="kpi-val">&#8358;@kpis.InventoryValue.ToString("N2")</div>
+            <div class="kpi-sub">@kpis.LowStockCount low stock item@(kpis.LowStockCount == 1 ? "" : "s")</div>
+        </div>
+    </div>
+}
+
+@if ((int)(ViewBag.OutstandingRefunds ?? 0) > 0)
+{
+    @* AUD-018: cancelled paid orders still holding money — the refund queue. *@
+    <a class="card kpi" asp-controller="AdminOrders" asp-action="Index" asp-route-status="Cancelled"
+       style="display:block;border-color:var(--warning,#d97706);margin-bottom:20px;text-decoration:none;color:inherit">
+        <div class="kpi-top">
+            <span class="kpi-label">Outstanding refunds</span>
+            <span class="kpi-ico">@Html.Raw(Ic("M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8|M3 3v5h5|M12 7v5l4 2"))</span>
+        </div>
+        <div class="kpi-val">@ViewBag.OutstandingRefunds</div>
+        <div class="kpi-sub">Cancelled order@(ViewBag.OutstandingRefunds == 1 ? "" : "s") holding &#8358;@(((decimal)ViewBag.OutstandingRefundTotal).ToString("N2")) (refund owed)</div>
+    </a>
+}
+
+<div class="g" style="display:grid;grid-template-columns:1.25fr 1fr;gap:16px">
+    <div class="card">
+        <div class="card-head">
+            <h3>Revenue trend (8 months)</h3>
+            @if (hasRevenue)
+            {
+                <span class="text-xs text-muted">Hover a bar for the amount</span>
+            }
+        </div>
+        <div class="card-body">
+            @if (!hasRevenue)
+            {
+                <div class="empty md empty-muted">
+                    <div class="empty-ico">@Html.Raw(Ic("M3 3v18h18|M18 17V9M13 17V5M8 17v-3", 22))</div>
+                    <h4>No revenue recorded yet</h4>
+                    <p>Sales from paid orders will appear here over the last eight months.</p>
+                </div>
+            }
+            else
+            {
+                <style>
+                    .trend-grid { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:space-between; pointer-events:none; }
+                    .trend-grid span { border-top:1px dashed var(--border); }
+                    .trend-grid span:last-child { border-top:1px solid var(--border); }
+                    .trend-bar { background:linear-gradient(180deg, rgba(255,255,255,.25), rgba(255,255,255,0)), var(--primary); transition:filter .15s ease; }
+                    .trend-col:hover .trend-bar { filter:brightness(1.12); }
+                </style>
+                <div style="position:relative">
+                    <div class="trend-grid" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                    <div class="flex items-end" style="gap:8px;height:180px;align-items:flex-end;position:relative">
+                        @foreach (var t in trend)
+                        {
+                            var h = maxTrend > 0 ? (int)Math.Max(2, Math.Round(t.Value / maxTrend * 100)) : 2;
+                            <div class="flex-1 trend-col" style="text-align:center" title="@t.Label: &#8358;@t.Value.ToString("N2")">
+                                <div class="trend-bar" style="border-radius:6px 6px 2px 2px;height:@(h)%;min-height:3px;opacity:@(t.Value > 0 ? "1" : ".18")"></div>
+                                <div class="text-xs text-muted mt-1" style="font-size:10.5px">@t.Label</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><h3>Sales by category</h3></div>
+        <div class="card-body" style="padding-top:6px">
+            @if (byCategory.Count == 0)
+            {
+                <div class="empty md empty-muted">
+                    <div class="empty-ico">@Html.Raw(Ic("M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z", 22))</div>
+                    <h4>No sales recorded yet</h4>
+                    <p>Category performance shows up after the first paid order.</p>
+                </div>
+            }
+            else
+            {
+                <table class="table">
+                    <thead><tr><th>Category</th><th>Amount</th><th style="width:38%">Share</th></tr></thead>
+                    <tbody>
+                        @foreach (var c in byCategory)
+                        {
+                            <tr>
+                                <td class="cell-strong">@c.Category</td>
+                                <td>&#8358;@c.Amount.ToString("N2")</td>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:8px">
+                                        <div style="flex:1;height:6px;border-radius:999px;background:var(--n-100,#f1f5f9);overflow:hidden">
+                                            <div style="height:100%;width:@(Math.Clamp(c.Percentage, 0, 100))%;border-radius:999px;background:linear-gradient(90deg,var(--primary),color-mix(in srgb, var(--primary) 55%, #fff))"></div>
+                                        </div>
+                                        <span class="text-xs text-muted" style="min-width:44px;text-align:right">@c.Percentage.ToString("0.#")%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="g" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+    <div class="card">
+        <div class="card-head">
+            <h3>Low stock</h3>
+            @if (lowStock.Count > 0)
+            {
+                <a class="btn btn-ghost btn-sm" asp-controller="AdminInventory" asp-action="Index">View inventory &rarr;</a>
+            }
+        </div>
+        <div class="card-body" style="padding-top:6px">
+            @if (lowStock.Count == 0)
+            {
+                <div class="empty md empty-muted">
+                    <div class="empty-ico">@Html.Raw(Ic("M20 6 9 17l-5-5", 22))</div>
+                    <h4>Stock levels look healthy</h4>
+                    <p>Items that fall below their threshold will appear here.</p>
+                </div>
+            }
+            else
+            {
+                <table class="table">
+                    <thead><tr><th>Product</th><th>Available</th><th>Threshold</th></tr></thead>
+                    <tbody>
+                        @foreach (var i in lowStock.Take(8))
+                        {
+                            <tr>
+                                <td class="cell-strong">@i.ProductName</td>
+                                <td><span class="badge badge-warning">@i.Available left</span></td>
+                                <td>@i.LowStockThreshold</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head">
+            <h3>Recent orders</h3>
+            @if (recentOrders.Count > 0)
+            {
+                <a class="btn btn-ghost btn-sm" asp-controller="AdminOrders" asp-action="Index">View all &rarr;</a>
+            }
+        </div>
+        <div class="card-body" style="padding-top:6px">
+            @if (recentOrders.Count == 0)
+            {
+                <div class="empty md empty-muted">
+                    <div class="empty-ico">@Html.Raw(Ic("M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6", 22))</div>
+                    <h4>No orders yet</h4>
+                    <p>New orders from the storefront will show up here first.</p>
+                    <div class="empty-cta">
+                        <a class="btn btn-primary btn-sm" asp-controller="AdminOrders" asp-action="New">Create the first order</a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <table class="table">
+                    <thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+                    <tbody>
+                        @foreach (var o in recentOrders)
+                        {
+                            <tr>
+                                <td><a asp-controller="AdminOrders" asp-action="Details" asp-route-id="@o.Id" class="cell-strong text-primary">@o.OrderNumber</a></td>
+                                <td class="text-muted">@o.CustomerName</td>
+                                <td>&#8358;@o.GrandTotal.ToString("N2")</td>
+                                <td><span class="badge badge-neutral">@o.Status</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

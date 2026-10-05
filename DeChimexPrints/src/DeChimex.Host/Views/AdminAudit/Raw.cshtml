@@ -1,0 +1,105 @@
+@model List<DeChimex.Host.Controllers.Mvc.Admin.AdminAuditController.RawAuditRow>
+@{
+    Layout = "_AdminLayout";
+    var pageNum = (int)ViewBag.Page;
+    var totalPages = (int)ViewBag.TotalPages;
+    var total = (int)ViewBag.TotalRecords;
+    string? Q(string key, object? value) => value is null || (value is string s && string.IsNullOrWhiteSpace(s)) ? null : value.ToString();
+}
+<div class="flex items-start justify-between gap-4 mb-4">
+    <div>
+        <h2>Raw audit trail</h2>
+        <p class="text-muted mt-2">Every committed change with its before/after values (who changed what, from what, to what, when). Business-level events live in <a href="/admin/activity">Business activity</a>.</p>
+    </div>
+</div>
+<form method="get" class="card card-body mb-4">
+    <div class="flex gap-3 flex-wrap">
+        <label class="field">Entity
+            <input class="input" name="entity" value="@ViewBag.Entity" maxlength="80" placeholder="e.g. Order, Product, Invoice" />
+        </label>
+        <label class="field">Entity ID
+            <input class="input" name="entityId" value="@ViewBag.EntityId" maxlength="64" />
+        </label>
+        <label class="field">Action contains
+            <input class="input" name="action" value="@ViewBag.Action" maxlength="80" placeholder="e.g. create, update" />
+        </label>
+        <label class="field">Performed by
+            <input class="input" name="actor" value="@ViewBag.Actor" maxlength="120" placeholder="email or system" />
+        </label>
+        <label class="field">From (UTC)<input class="input" type="date" name="from" value="@(((DateTime?)ViewBag.From)?.ToString("yyyy-MM-dd"))" /></label>
+        <label class="field">Through (UTC)<input class="input" type="date" name="to" value="@(((DateTime?)ViewBag.To)?.ToString("yyyy-MM-dd"))" /></label>
+    </div>
+    <div class="flex gap-2 mt-3">
+        <button class="btn btn-primary" type="submit">Apply filters</button>
+        <a class="btn btn-secondary" href="/admin/audit/raw">Clear filters</a>
+    </div>
+</form>
+
+<p class="text-muted mb-3">@total record@(total == 1 ? "" : "s") · page @pageNum of @(Math.Max(totalPages, 1))</p>
+
+<div class="card">
+    <div class="card-body" style="padding:0">
+        @if (Model.Count == 0)
+        {
+            <partial name="_EmptyState" model='new DeChimex.Host.Models.EmptyState(string.Empty, "No audit rows match", "Adjust the filters, or the filtered entity has no captured changes in range.", Muted: true)' />
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>When (UTC)</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>By</th>
+                        <th>Changed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td style="white-space:nowrap">@r.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                            <td><span class="badge badge-neutral">@r.Action</span></td>
+                            <td>@r.EntityName@(r.EntityId == null ? "" : $" · {r.EntityId[..Math.Min(8, r.EntityId.Length)]}")</td>
+                            <td>@(string.IsNullOrWhiteSpace(r.PerformedBy) ? "system" : r.PerformedBy)</td>
+                            <td>
+                                <details>
+                                    <summary style="cursor:pointer">View diff</summary>
+                                    <div class="mt-2" style="font-size:12px">
+                                        @if (!string.IsNullOrWhiteSpace(r.OldValues))
+                                        {
+                                            <div><strong>Before:</strong><pre style="white-space:pre-wrap;margin:4px 0">@r.OldValues</pre></div>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(r.NewValues))
+                                        {
+                                            <div><strong>After:</strong><pre style="white-space:pre-wrap;margin:4px 0">@r.NewValues</pre></div>
+                                        }
+                                        @if (string.IsNullOrWhiteSpace(r.OldValues) && string.IsNullOrWhiteSpace(r.NewValues))
+                                        {
+                                            <span class="text-muted">No value snapshot recorded for this action.</span>
+                                        }
+                                    </div>
+                                </details>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@if (totalPages > 1)
+{
+    <div class="flex gap-2 mt-4">
+        @if (pageNum > 1)
+        {
+            <a class="btn btn-secondary btn-sm" href="/admin/audit/raw?entity=@Q("e", ViewBag.Entity)&entityId=@Q("id", ViewBag.EntityId)&actor=@Q("a", ViewBag.Actor)&action=@Q("ac", ViewBag.Action)&from=@Q("f", ViewBag.From)&to=@Q("t", ViewBag.To)&page=@(pageNum - 1)">Previous</a>
+        }
+        @if (pageNum < totalPages)
+        {
+            <a class="btn btn-secondary btn-sm" href="/admin/audit/raw?entity=@Q("e", ViewBag.Entity)&entityId=@Q("id", ViewBag.EntityId)&actor=@Q("a", ViewBag.Actor)&action=@Q("ac", ViewBag.Action)&from=@Q("f", ViewBag.From)&to=@Q("t", ViewBag.To)&page=@(pageNum + 1)">Next</a>
+        }
+    </div>
+}

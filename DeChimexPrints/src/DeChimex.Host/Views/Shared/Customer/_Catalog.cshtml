@@ -1,0 +1,232 @@
+@model IReadOnlyList<DeChimex.Contracts.Products.ProductSummaryDto>
+@using DeChimex.Host
+@{
+    // Shared shop body for /products (public) and /portal/shop (signed-in customer).
+    // Reads the ViewBag both controllers already populate; the only difference is
+    // ViewData["ShopBase"] (link base) and the wishlist ids for customers.
+    var shopBase = ViewData["ShopBase"] as string ?? "/products";
+    var isCustomer = ViewData["IsCustomer"] is true;
+    var majors = ViewBag.MajorCategories as IReadOnlyList<DeChimex.Contracts.Categories.MajorCategoryDto> ?? new List<DeChimex.Contracts.Categories.MajorCategoryDto>();
+    var categories = ViewBag.Categories as IReadOnlyList<DeChimex.Contracts.Categories.CategoryDto> ?? new List<DeChimex.Contracts.Categories.CategoryDto>();
+    var selectedMajor = ViewBag.SelectedMajor as DeChimex.Contracts.Categories.MajorCategoryDto;
+    Guid? majorId = ViewBag.MajorCategoryId as Guid?;
+    Guid? categoryId = ViewBag.CategoryId as Guid?;
+    var selectedCategory = categoryId is null ? null : categories.FirstOrDefault(c => c.Id == categoryId);
+    var search = ViewBag.Search as string;
+    var sort = ViewBag.Sort as string ?? "";
+    var page = (int)(ViewBag.Page ?? 1);
+    var pageSize = (int)(ViewBag.PageSize ?? 20);
+    var total = (int)(ViewBag.TotalRecords ?? Model.Count);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var hasPrev = ViewBag.HasPrevious is true;
+    var hasNext = ViewBag.HasNext is true;
+    var mismatch = ViewBag.FilterMismatch is true;
+    var wishlistIds = ViewBag.WishlistProductIds as HashSet<Guid>;
+    var hasFilters = majorId is not null || categoryId is not null || !string.IsNullOrWhiteSpace(search);
+    var subs = majorId is null ? new List<DeChimex.Contracts.Categories.CategoryDto>() : categories.Where(c => c.MajorCategoryId == majorId).ToList();
+    var orphanCats = categories.Where(c => c.MajorCategoryId is null || !majors.Any(m => m.Id == c.MajorCategoryId)).ToList();
+
+    string Q(int? pg = null, Guid? cat = null, bool keepCat = true, Guid? major = null, bool keepMajor = true, string? srt = null, bool keepSearch = true, bool keepSort = true)
+    {
+        var parts = new List<string>();
+        var c = cat ?? (keepCat ? categoryId : null);
+        var m = major ?? (keepMajor ? majorId : null);
+        var s = srt ?? (keepSort ? sort : null);
+        if (m is not null) parts.Add("majorCategoryId=" + m);
+        if (c is not null) parts.Add("categoryId=" + c);
+        if (keepSearch && !string.IsNullOrWhiteSpace(search)) parts.Add("search=" + Uri.EscapeDataString(search));
+        if (!string.IsNullOrEmpty(s)) parts.Add("sort=" + s);
+        if (pg is > 1) parts.Add("page=" + pg);
+        return shopBase + (parts.Count > 0 ? "?" + string.Join("&", parts) : "");
+    }
+    var heading = !string.IsNullOrWhiteSpace(search) ? $"Results for “{search}”"
+        : selectedCategory?.Name ?? selectedMajor?.Name ?? "Shop";
+    var sub = !string.IsNullOrWhiteSpace(search) ? (total == 0 ? "Nothing matched. Try a shorter word or browse a category." : $"{total} product{(total == 1 ? "" : "s")} found")
+        : selectedCategory?.Description ?? selectedMajor?.Description ?? "Ready-to-buy items ship fast; made-to-order items are customised with you.";
+    var first = total == 0 ? 0 : (page - 1) * pageSize + 1;
+    var last = Math.Min(page * pageSize, total);
+    ViewData["ShopBase"] = shopBase;
+    ViewData["IsCustomer"] = isCustomer;
+    ViewData["WishlistIds"] = wishlistIds;
+    ViewData["ReturnUrl"] = ViewContext.HttpContext.Request.Path + ViewContext.HttpContext.Request.QueryString;
+}
+
+<div class="cs-wrap">
+    <div class="sh-head" style="padding-top:14px">
+        <h1>@heading</h1>
+        <p>@sub</p>
+    </div>
+
+    @* Major-category chips (all breakpoints; the sidebar repeats them on desktop) *@
+    @if (majors.Count > 0 || orphanCats.Count > 0)
+    {
+        <nav class="chips cs-hide-desktop" aria-label="Browse by category">
+            <a class="chip @(majorId is null && categoryId is null && string.IsNullOrWhiteSpace(search) ? "is-active" : "")" href="@shopBase">All</a>
+            @foreach (var m in majors)
+            {
+                <a class="chip @(m.Id == majorId ? "is-active" : "")" href="@Q(major: m.Id, keepCat: false, keepSearch: false)">@m.Name</a>
+            }
+            @foreach (var c in orphanCats)
+            {
+                <a class="chip @(c.Id == categoryId ? "is-active" : "")" href="@Q(cat: c.Id, keepMajor: false, keepSearch: false)">@c.Name</a>
+            }
+        </nav>
+        @if (subs.Count > 0)
+        {
+            <nav class="chips cs-hide-desktop" aria-label="@selectedMajor?.Name subcategories">
+                <a class="chip @(categoryId is null ? "is-active" : "")" href="@Q(keepCat: false)">All @selectedMajor?.Name</a>
+                @foreach (var c in subs)
+                {
+                    <a class="chip @(c.Id == categoryId ? "is-active" : "")" href="@Q(cat: c.Id)">@c.Name <span class="chip-n">@c.ProductCount</span></a>
+                }
+            </nav>
+        }
+    }
+
+    <div class="sh-layout">
+        <aside class="sh-side" aria-label="Categories">
+            <h3>Categories</h3>
+            <ul class="sh-cats">
+                <li><a class="@(!hasFilters ? "is-active" : "")" href="@shopBase">All products</a></li>
+                @foreach (var m in majors)
+                {
+                    var open = m.Id == majorId;
+                    <li>
+                        <a class="sh-major @(open && categoryId is null ? "is-active" : "")" href="@Q(major: m.Id, keepCat: false, keepSearch: false)">
+                            <span>@m.Name</span>@Html.Raw(CustomerIcons.Svg(open ? "chev-down" : "chev-right", 16))
+                        </a>
+                        @if (open)
+                        {
+                            <ul class="sh-cats sh-sub">
+                                @foreach (var c in subs)
+                                {
+                                    <li><a class="@(c.Id == categoryId ? "is-active" : "")" href="@Q(cat: c.Id)"><span>@c.Name</span><span class="chip-n">@c.ProductCount</span></a></li>
+                                }
+                            </ul>
+                        }
+                    </li>
+                }
+                @foreach (var c in orphanCats)
+                {
+                    <li><a class="@(c.Id == categoryId ? "is-active" : "")" href="@Q(cat: c.Id, keepMajor: false)"><span>@c.Name</span><span class="chip-n">@c.ProductCount</span></a></li>
+                }
+            </ul>
+            <a class="hm-path is-custom" href="/services" style="padding:16px;gap:6px">
+                <span class="hm-path-ic" style="width:38px;height:38px">@Html.Raw(CustomerIcons.Svg("brush", 20))</span>
+                <h3 style="font-size:15px">Need something custom?</h3>
+                <p style="font-size:13px">Tell us the job. We quote, design and print.</p>
+            </a>
+        </aside>
+
+        <section aria-label="Products">
+            <div class="sh-toolbar">
+                <span class="sh-result">@if (total > 0) { <text>Showing <strong>@first-@last</strong> of @total</text> }</span>
+                <button type="button" class="sh-filter-btn" data-sheet-open="shFilterSheet" aria-haspopup="dialog">
+                    @Html.Raw(CustomerIcons.Svg("filter", 16)) Filter @if (hasFilters || !string.IsNullOrEmpty(sort)) { <span class="sh-dot" aria-hidden="true"></span> }
+                </button>
+                <form method="get" action="@shopBase" class="sh-sort cs-hide-mobile">
+                    @if (majorId is not null) { <input type="hidden" name="majorCategoryId" value="@majorId"> }
+                    @if (categoryId is not null) { <input type="hidden" name="categoryId" value="@categoryId"> }
+                    @if (!string.IsNullOrWhiteSpace(search)) { <input type="hidden" name="search" value="@search"> }
+                    <label for="shSort" class="cs-muted cs-small">Sort</label>
+                    <select id="shSort" name="sort" data-autosubmit>
+                        <option value="" selected="@(sort == "")">Featured</option>
+                        <option value="low" selected="@(sort == "low")">Price: low to high</option>
+                        <option value="high" selected="@(sort == "high")">Price: high to low</option>
+                    </select>
+                </form>
+            </div>
+
+            @if (hasFilters)
+            {
+                <div class="sh-active" aria-label="Active filters">
+                    @if (!string.IsNullOrWhiteSpace(search)) { <a href="@Q(keepSearch: false)">“@search” @Html.Raw(CustomerIcons.Svg("close", 12))</a> }
+                    @if (selectedMajor is not null) { <a href="@Q(keepMajor: false, keepCat: false)">@selectedMajor.Name @Html.Raw(CustomerIcons.Svg("close", 12))</a> }
+                    @if (selectedCategory is not null) { <a href="@Q(keepCat: false)">@selectedCategory.Name @Html.Raw(CustomerIcons.Svg("close", 12))</a> }
+                    <a href="@shopBase">Clear all</a>
+                </div>
+            }
+
+            @if (mismatch)
+            {
+                <div class="cs-callout is-warn" style="margin-bottom:14px">@Html.Raw(CustomerIcons.Svg("info", 18))<div>That subcategory is not part of @selectedMajor?.Name. <a class="cs-link" href="@Q(keepCat: false)">Show all @selectedMajor?.Name</a></div></div>
+            }
+
+            @if (Model.Count == 0)
+            {
+                <div class="cs-card">
+                    @{ var es = new EmptyState(EmptyIcons.Box, string.IsNullOrWhiteSpace(search) ? "No products here yet" : "No matches", string.IsNullOrWhiteSpace(search) ? "Check back soon or browse another category." : "Try a different word, or browse by category.", CtaHref: shopBase, CtaText: "Browse all products"); }
+                    <partial name="_EmptyState" model="es" />
+                </div>
+            }
+            else
+            {
+                <div class="pgrid pgrid-5" role="list">
+                    @foreach (var p in Model)
+                    {
+                        <partial name="Customer/_ProductCard" model="p" view-data="ViewData" />
+                    }
+                </div>
+            }
+
+            @if (totalPages > 1)
+            {
+                <nav class="sh-pager" aria-label="Pagination">
+                    @if (hasPrev) { <a class="btn btn-outline" href="@Q(pg: page - 1)" rel="prev">@Html.Raw(CustomerIcons.Svg("arrow-left", 16)) Previous</a> }
+                    <span class="sh-page">Page @(page) of @(totalPages)</span>
+                    @if (hasNext) { <a class="btn btn-outline" href="@Q(pg: page + 1)" rel="next">Next @Html.Raw(CustomerIcons.Svg("arrow-right", 16))</a> }
+                </nav>
+            }
+        </section>
+    </div>
+</div>
+
+@* Mobile filter sheet: categories + sort in one place *@
+<div class="sh-sheet" id="shFilterSheet" role="dialog" aria-modal="true" aria-labelledby="shSheetTitle">
+    <div class="sh-sheet-bg"></div>
+    <form class="sh-sheet-panel" method="get" action="@shopBase">
+        @if (!string.IsNullOrWhiteSpace(search)) { <input type="hidden" name="search" value="@search"> }
+        <div class="sh-sheet-head">
+            <h3 id="shSheetTitle">Filter &amp; sort</h3>
+            <button type="button" class="cs-iconbtn" data-sheet-close aria-label="Close">@Html.Raw(CustomerIcons.Svg("close", 20))</button>
+        </div>
+        <div class="sh-sheet-body">
+            <h4>Sort by</h4>
+            <div class="sh-radios">
+                <label><input type="radio" name="sort" value="" checked="@(sort == "")"> Featured</label>
+                <label><input type="radio" name="sort" value="low" checked="@(sort == "low")"> Price: low to high</label>
+                <label><input type="radio" name="sort" value="high" checked="@(sort == "high")"> Price: high to low</label>
+            </div>
+            @if (majors.Count > 0)
+            {
+                <h4>Category</h4>
+                <div class="sh-radios">
+                    <label><input type="radio" name="majorCategoryId" value="" checked="@(majorId is null)"> All products</label>
+                    @foreach (var m in majors)
+                    {
+                        <label><input type="radio" name="majorCategoryId" value="@m.Id" checked="@(m.Id == majorId)"> @m.Name</label>
+                    }
+                </div>
+            }
+            @if (subs.Count > 0 || orphanCats.Count > 0)
+            {
+                <h4>@(subs.Count > 0 ? selectedMajor?.Name : "Category")</h4>
+                <div class="sh-radios">
+                    <label><input type="radio" name="categoryId" value="" checked="@(categoryId is null)"> @(subs.Count > 0 ? $"All {selectedMajor?.Name}" : "All products")</label>
+                    @foreach (var c in subs)
+                    {
+                        <label><input type="radio" name="categoryId" value="@c.Id" checked="@(c.Id == categoryId)"> @c.Name</label>
+                    }
+                    @foreach (var c in orphanCats)
+                    {
+                        <label><input type="radio" name="categoryId" value="@c.Id" checked="@(c.Id == categoryId)"> @c.Name</label>
+                    }
+                </div>
+            }
+        </div>
+        <div class="sh-sheet-foot">
+            <a class="btn btn-outline" href="@shopBase">Reset</a>
+            <button type="submit" class="btn btn-primary">Show results</button>
+        </div>
+    </form>
+</div>

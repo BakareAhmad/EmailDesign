@@ -1,0 +1,20 @@
+@model IReadOnlyList<DeChimex.Host.Models.Admin.SalesReportRow>
+@{
+    Layout = "_AdminLayout";
+}
+<div class="card">
+    <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h3>Sales report</h3>
+        <a class="btn btn-secondary btn-sm" href="?period=@Context.Request.Query["period"]&from=@Context.Request.Query["from"]&to=@Context.Request.Query["to"]&format=csv" title="Download as CSV">Export CSV</a></div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>Period</th><th>Orders</th><th>Revenue</th></tr></thead>
+            <tbody>
+                @if (Model.Count == 0) { <tr><td colspan="3" class="text-muted">No sales in range.</td></tr> }
+                @foreach (var r in Model)
+                {
+                    <tr><td>@r.Period</td><td>@r.Orders</td><td>₦@r.Revenue.ToString("N2")</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

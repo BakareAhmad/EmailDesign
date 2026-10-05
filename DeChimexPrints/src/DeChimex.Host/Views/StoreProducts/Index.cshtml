@@ -1,0 +1,11 @@
+@model IReadOnlyList<DeChimex.Contracts.Products.ProductSummaryDto>
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = string.IsNullOrWhiteSpace(ViewBag.Search as string) ? "Shop" : $"Search: {ViewBag.Search}";
+    ViewData["ActiveNav"] = "shop";
+    ViewData["MobileSearch"] = true;
+    ViewData["MetaDescription"] = "Shop ready-to-buy print products and made-to-order branded merchandise from DE-CHIMEX PRINT HUB.";
+    ViewData["ShopBase"] = "/products";
+    ViewData["IsCustomer"] = false;
+}
+<partial name="Customer/_Catalog" model="Model" view-data="ViewData" />

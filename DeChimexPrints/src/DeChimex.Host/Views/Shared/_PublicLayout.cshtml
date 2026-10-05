@@ -1,0 +1,9 @@
+@{
+    // Storefront pages now render inside the unified customer shell.
+    // Kept as a pass-through so existing views that declare Layout = "_PublicLayout"
+    // keep working without edits (see _CustomerLayout.cshtml).
+    Layout = "_CustomerLayout";
+}
+@RenderBody()
+@section Styles { @await RenderSectionAsync("Styles", required: false) }
+@section Scripts { @await RenderSectionAsync("Scripts", required: false) }

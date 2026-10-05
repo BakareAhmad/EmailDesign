@@ -1,0 +1,68 @@
+@model RegisterViewModel
+@using DeChimex.Host
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Create account";
+}
+<h1>Create your account</h1>
+<p class="au-sub">Order prints and branded items, track every job live and approve designs from your phone.</p>
+
+<form asp-controller="Account" asp-action="Register" method="post" novalidate>
+    <input type="hidden" asp-for="ReturnUrl" value="@(ViewData["ReturnUrl"] ?? Model?.ReturnUrl)" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+    <div class="au-grid-2">
+        @* AUD-024 honeypot: visually hidden, tabbable-off, aria-hidden. Bots that fill
+           every input reveal themselves; humans never see or reach this field. *@
+        <div class="field mb-4" style="position:absolute;left:-9999px;height:0;overflow:hidden" aria-hidden="true">
+            <label asp-for="CompanyWebsite" class="label">Company website</label>
+            <input class="input" asp-for="CompanyWebsite" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+       <div class="field mb-4">
+            <label class="label" asp-for="FirstName">First name <span class="req" aria-hidden="true">*</span></label>
+            <input class="input" asp-for="FirstName" autocomplete="given-name" placeholder="Jane" />
+            <span asp-validation-for="FirstName" class="field-error"></span>
+        </div>
+        <div class="field mb-4">
+            <label class="label" asp-for="LastName">Last name <span class="req" aria-hidden="true">*</span></label>
+            <input class="input" asp-for="LastName" autocomplete="family-name" placeholder="Doe" />
+            <span asp-validation-for="LastName" class="field-error"></span>
+        </div>
+    </div>
+
+    <div class="field mb-4">
+        <label class="label" asp-for="Email">Email address <span class="req" aria-hidden="true">*</span></label>
+        <input class="input" asp-for="Email" type="email" autocomplete="email" inputmode="email" placeholder="you@example.com" />
+        <span asp-validation-for="Email" class="field-error"></span>
+    </div>
+
+    <div class="field mb-4">
+        <label class="label" asp-for="Phone">Phone number <span class="req" aria-hidden="true">*</span></label>
+        <input class="input" asp-for="Phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+234…" />
+        <span asp-validation-for="Phone" class="field-error"></span>
+    </div>
+
+    <div class="field mb-4">
+        <label class="label" asp-for="Password">Password <span class="req" aria-hidden="true">*</span></label>
+        <div class="au-pw">
+            <input class="input" asp-for="Password" type="password" autocomplete="new-password" placeholder="At least 8 characters, incl. A-Z, a-z &amp; 0-9" />
+            <button type="button" data-pw-toggle aria-label="Show password">Show</button>
+        </div>
+        <span asp-validation-for="Password" class="field-error"></span>
+    </div>
+    <div class="field mb-4">
+        <label class="label" asp-for="ConfirmPassword">Confirm password <span class="req" aria-hidden="true">*</span></label>
+        <input class="input" asp-for="ConfirmPassword" type="password" autocomplete="new-password" placeholder="Re-enter password" />
+        <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg btn-block">Create account</button>
+</form>
+
+<ul class="au-perks" aria-label="What you get">
+    <li>@Html.Raw(CustomerIcons.Svg("check-circle", 16)) Live order tracking and notifications</li>
+    <li>@Html.Raw(CustomerIcons.Svg("check-circle", 16)) Chat with your sales specialist and approve designs</li>
+    <li>@Html.Raw(CustomerIcons.Svg("check-circle", 16)) Saved addresses, invoices and payment history</li>
+</ul>
+
+<p class="au-foot">Already have an account? <a href="/Account/Login">Sign in</a></p>

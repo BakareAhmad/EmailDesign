@@ -1,0 +1,16 @@
+@model DeChimex.Host.Models.Admin.CustomerFormViewModel
+@{
+    Layout = "_AdminLayout";
+}
+<div class="card" style="max-width:560px">
+    <div class="card-head"><h3>New customer</h3></div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @await Html.PartialAsync("_CustomerForm", Model)
+            <div class="flex items-center gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">Create customer</button>
+                <a class="btn btn-outline" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

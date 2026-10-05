@@ -1,0 +1,195 @@
+@model DeChimex.Contracts.Products.ProductDto
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = $"Customise {Model.Name}";
+    ViewData["ActiveNav"] = "shop";
+    var options = ViewBag.Options as IReadOnlyList<DeChimex.Contracts.Orders.CategoryOptionDto> ?? new List<DeChimex.Contracts.Orders.CategoryOptionDto>();
+    var draft = ViewBag.Draft as DeChimex.Host.Models.Store.OrderFormDraft;
+    var img = Model.Images.Where(im => im.IsPrimary).Select(im => im.Url).FirstOrDefault() ?? Model.Images.Select(im => im.Url).FirstOrDefault();
+    var productUrl = Url.Action("Product", "PortalShop", new { id = Model.Id });
+
+    string TextVal(DeChimex.Contracts.Orders.CategoryOptionDto opt)
+        => draft is not null && draft.Responses.TryGetValue(opt.Id.ToString(), out var vals) && vals.Length > 0 ? vals[0] : string.Empty;
+
+    bool Checked(DeChimex.Contracts.Orders.CategoryOptionDto opt, string value)
+        => draft is not null && draft.Responses.TryGetValue(opt.Id.ToString(), out var vals) && vals.Any(v => v == value);
+}
+
+<div class="cs-wrap cs-wrap-md">
+    <a class="cs-back" href="@productUrl" style="margin-top:12px">@Html.Raw(CustomerIcons.Svg("arrow-left", 18)) Back to @Model.Name</a>
+
+    <div class="cs-page-head">
+        <h1>Tell us what you need</h1>
+        <p class="cs-muted">Answer a few questions and attach your files. We'll confirm the details and price with you, then you approve the design and pay.</p>
+    </div>
+
+    <div class="of-intro">
+        <span class="ck-thumb">@if (!string.IsNullOrWhiteSpace(img)) { <img src="@img" alt="" width="72" height="72"> } else { <span class="pc-noimg">@Html.Raw(CustomerIcons.Svg("image", 22, null, 1.5))</span> }</span>
+        <div><strong>@Model.Name</strong><span>From @CustomerPresentation.Money(Model.SellingPrice) · final price confirmed after review</span></div>
+    </div>
+
+    <ol class="of-how" aria-label="How it works">
+        <li><i>1</i><b>Send request</b>You're here</li>
+        <li><i>2</i><b>We confirm</b>Details &amp; price</li>
+        <li><i>3</i><b>Approve &amp; pay</b>Then we produce</li>
+    </ol>
+
+    <form asp-action="SubmitOrder" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" id="orderForm" class="of-steps" style="margin-top:16px">
+        <input type="hidden" name="ProductId" value="@Model.Id" />
+
+        <div class="of-block">
+            <label class="label" for="quantity">How many do you need?</label>
+            <div class="pd-qty" style="max-width:180px">
+                <button type="button" data-qty="-" aria-label="Decrease quantity">−</button>
+                <input class="input" type="number" id="quantity" name="quantity" value="@(draft?.Quantity ?? 1)" min="1" max="10000" inputmode="numeric" required />
+                <button type="button" data-qty="+" aria-label="Increase quantity">+</button>
+            </div>
+        </div>
+
+        @foreach (var opt in options)
+        {
+            var hidden = opt.ParentOptionId is not null ? "data-conditional" : null;
+            <div class="opt-block of-block" data-type="@opt.Type" data-required="@(opt.IsRequired ? "true" : "false")" @(hidden is null ? Html.Raw("") : Html.Raw($"data-parent=\"{opt.ParentOptionId}\" data-when=\"{System.Net.WebUtility.HtmlEncode(opt.ShowWhenValue)}\""))>
+                <label class="label">@opt.Question @if (!opt.IsRequired) { <small>Optional</small> }</label>
+
+                @switch (opt.Type)
+                {
+                    case "SingleChoice":
+                        <div class="opt-choices of-choices">
+                            @foreach (var c in opt.Choices)
+                            {
+                                <label>
+                                    <input type="radio" name="opt_@opt.Id" value="@c.Label" class="opt-input" required="@opt.IsRequired" checked="@Checked(opt, c.Label)" />
+                                    <span>@c.Label</span>
+                                </label>
+                            }
+                        </div>
+                        break;
+
+                    case "MultipleChoice":
+                        <div class="opt-choices of-choices">
+                            @foreach (var c in opt.Choices)
+                            {
+                                <label>
+                                    <input type="checkbox" name="opt_@opt.Id" value="@c.Label" class="opt-input" checked="@Checked(opt, c.Label)" />
+                                    <span>@c.Label</span>
+                                </label>
+                            }
+                        </div>
+                        break;
+
+                    case "LongText":
+                        <textarea class="input" name="opt_@opt.Id" rows="4" placeholder="Type your answer here…" required="@opt.IsRequired">@TextVal(opt)</textarea>
+                        break;
+
+                    case "FileUpload":
+                        <div class="of-file">
+                            @Html.Raw(CustomerIcons.Svg("image", 18)) Upload your design, logo or reference file (image or document).
+                            <input type="file" name="opt_@opt.Id" multiple required="@opt.IsRequired" />
+                        </div>
+                        break;
+
+                    default:
+                        <input type="text" class="input" name="opt_@opt.Id" placeholder="Type your answer here…" value="@TextVal(opt)" required="@opt.IsRequired" />
+                        break;
+                }
+            </div>
+        }
+
+        <div class="of-block">
+            <label class="label" for="extraFiles">Attach extra files <small>Optional</small></label>
+            <div class="of-file">
+                @Html.Raw(CustomerIcons.Svg("file", 18)) Images (JPG, PNG, WebP, GIF) or documents (PDF, DOC, DOCX), up to 10 MB each.
+                <input type="file" id="extraFiles" name="files" multiple />
+            </div>
+        </div>
+
+        <div class="of-block">
+            <label class="label" for="notes">Anything else we should know? <small>Optional</small></label>
+            <textarea class="input" id="notes" name="notes" rows="3" placeholder="Deadlines, sizes, quantities per colour, etc.">@(draft?.Notes)</textarea>
+        </div>
+
+        <div id="formError" class="field-error" role="alert" style="display:none"></div>
+        <div class="of-actions">
+            <button type="submit" class="btn btn-primary btn-lg">Submit order request</button>
+            <a href="@productUrl" class="btn btn-ghost">Cancel</a>
+        </div>
+        <p class="cs-xs cs-muted">No payment is taken now. You'll only pay after we confirm the requirements and you approve the design.</p>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+  'use strict';
+  // Conditional visibility: reveal a child option only when its parent is visible
+  // AND the parent's selected value matches the child's "equals value". Visibility
+  // is computed along the whole parent chain, so hiding a grandparent also hides
+  // its grandchildren (multi-level conditions).
+  var allBlocks = Array.prototype.slice.call(document.querySelectorAll('.opt-block'));
+
+  function blockFor(optionId) {
+    for (var i = 0; i < allBlocks.length; i++) {
+      var inputs = allBlocks[i].querySelectorAll('input');
+      for (var j = 0; j < inputs.length; j++) {
+        if (inputs[j].name === 'opt_' + optionId) return allBlocks[i];
+      }
+    }
+    return null;
+  }
+
+  function parentValues(optionId) {
+    var out = [];
+    document.querySelectorAll('input[name="opt_' + optionId + '"]').forEach(function (i) {
+      if (i.checked) out.push(i.value);
+    });
+    return out;
+  }
+
+  function isVisible(b) {
+    var parentId = b.getAttribute('data-parent');
+    if (!parentId) return true;
+    var parent = blockFor(parentId);
+    if (!parent || !isVisible(parent)) return false;
+    var when = b.getAttribute('data-when');
+    return parentValues(parentId).indexOf(when) !== -1;
+  }
+
+  function refresh() {
+    allBlocks.forEach(function (b) {
+      var show = isVisible(b);
+      b.style.display = show ? '' : 'none';
+      // Required inputs that are hidden must not block submission.
+      b.querySelectorAll('input,textarea').forEach(function (i) {
+        i.disabled = !show;
+      });
+    });
+  }
+  document.getElementById('orderForm').addEventListener('change', refresh);
+  refresh();
+
+  // Enforce required MultipleChoice groups client-side (browsers cannot mark a checkbox
+  // group required natively). Mirrors the server-side check.
+  document.getElementById('orderForm').addEventListener('submit', function (e) {
+    var errBox = document.getElementById('formError');
+    var missing = [];
+    document.querySelectorAll('.opt-block[data-required="true"]').forEach(function (b) {
+      if (b.style.display === 'none') return;
+      var type = b.getAttribute('data-type');
+      if (type === 'MultipleChoice') {
+        var any = Array.prototype.slice.call(b.querySelectorAll('input[type=checkbox]')).some(function (i) { return i.checked; });
+        if (!any) missing.push((b.querySelector('.label') || {}).innerText || 'a required question');
+      }
+    });
+    if (missing.length) {
+      e.preventDefault();
+      errBox.textContent = 'Please answer: ' + missing.join(', ');
+      errBox.style.display = 'block';
+      return false;
+    }
+    errBox.style.display = 'none';
+  });
+})();
+</script>
+}

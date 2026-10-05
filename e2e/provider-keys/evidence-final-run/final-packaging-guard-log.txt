@@ -1,0 +1,15 @@
+PASS 01: matching supplied keys accepted
+PASS 02: appsettings.json Brevo.ApiKey empty rejected
+PASS 03: appsettings.json Brevo.ApiKey malformed rejected
+PASS 04: appsettings.json Paystack.SecretKey empty rejected
+PASS 05: appsettings.json Paystack.SecretKey malformed rejected
+PASS 06: appsettings.json Paystack.PublicKey empty rejected
+PASS 07: appsettings.json Paystack.PublicKey malformed rejected
+PASS 08: appsettings.Development.json Brevo.ApiKey empty rejected
+PASS 09: appsettings.Development.json Brevo.ApiKey malformed rejected
+PASS 10: appsettings.Development.json Paystack.SecretKey empty rejected
+PASS 11: appsettings.Development.json Paystack.SecretKey malformed rejected
+PASS 12: appsettings.Development.json Paystack.PublicKey empty rejected
+PASS 13: appsettings.Development.json Paystack.PublicKey malformed rejected
+PASS 14: well-formed but conflicting keys rejected
+ALL 14 PACKAGING VALIDATIONS PASSED; no values logged

@@ -1,0 +1,49 @@
+@model IReadOnlyList<DeChimex.Contracts.Procurement.ProcurementDto>
+@{
+    Layout = "_AdminLayout";
+    var canApprove = User.HasClaim("permission", Permissions.Procurement.Approve);
+}
+<div class="flex justify-end mb-3">
+    @if (canApprove)
+    {
+        <a class="btn btn-primary" asp-action="Create">New procurement</a>
+    }
+</div>
+<div class="table-wrap">
+    <table class="table">
+        <thead><tr><th>Reference</th><th>Supplier</th><th>Status</th><th>Items</th><th></th></tr></thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="5" class="text-muted">No procurement orders.</td></tr>
+            }
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@p.Id" class="font-semibold">@p.Reference</a></td>
+                    <td class="text-muted">@(p.SupplierName ?? "-")</td>
+                    <td><span class="badge badge-neutral">@p.Status</span></td>
+                    <td>@p.Items.Count</td>
+                    <td style="text-align:right;white-space:nowrap">
+                        <a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@p.Id">View</a>
+                        @if (ViewBag.CanApprove is true && p.Status.ToString() is "Requested" or "Approved")
+                        {
+                            <form asp-action="Delete" asp-route-id="@p.Id" method="post" style="display:inline" onsubmit="return confirm('Delete this procurement?');">
+                                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger)">Delete</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.HasPrevious) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.HasNext) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)">Next</a> }
+    </div>
+}

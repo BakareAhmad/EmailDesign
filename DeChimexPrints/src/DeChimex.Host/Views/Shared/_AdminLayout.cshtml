@@ -1,0 +1,293 @@
+@using Microsoft.EntityFrameworkCore
+@inject DeChimex.Persistence.Context.DeChimexDbContext ActivityDb
+@inject DeChimex.Application.Common.Interfaces.ICurrentUser ActivityUser
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    Layout = null;
+    var canViewActivity = ActivityUser.UserId is Guid activityUserId &&
+        await DeChimex.Host.Realtime.ActivityAccess.AuthorizedUsers(ActivityDb).ContainsAsync(activityUserId);
+    var active = ViewData["ActiveNav"] as string ?? "";
+    string Nav(string key) => key == active ? "active" : "";
+    bool Can(string perm) => User.HasClaim("permission", perm);
+    string UserName() => User.FindFirst("name")?.Value ?? User.Identity?.Name ?? "";
+    string Initials()
+    {
+        var n = UserName();
+        if (string.IsNullOrWhiteSpace(n)) return "?";
+        var parts = n.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? parts[0][0].ToString() + parts[1][0].ToString() : n[..Math.Min(2, n.Length)];
+    }
+    static string Ic(string d, int s = 18)
+    {
+        var paths = string.Join("", d.Split('|').Select(p => $"<path d=\"{p}\"/>"));
+        return $"<svg width=\"{s}\" height=\"{s}\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\">{paths}</svg>";
+    }
+    // Auto breadcrumbs from route: /admin/orders/edit/{id} -> Admin / Orders / Edit
+    var path = (Context.Request.Path.Value ?? "/").TrimStart('/');
+    var segs = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+    var labels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    {
+        ["dashboard"] = "Dashboard", ["analytics"] = "Analytics", ["reports"] = "Reports",
+        ["notifications"] = "Notifications", ["orders"] = "Orders", ["sales"] = "Sales Inbox",
+        ["invoices"] = "Invoices", ["receipts"] = "Receipts", ["customers"] = "Customers", ["products"] = "Products",
+        ["categories"] = "Categories", ["services"] = "Services", ["gallery"] = "Gallery", ["marketing"] = "Marketing",
+        ["inventory"] = "Inventory", ["suppliers"] = "Suppliers", ["procurement"] = "Procurement",
+        ["users"] = "Users", ["roles"] = "Roles", ["settings"] = "Settings", ["security"] = "Security",
+        ["track"] = "Track", ["addresses"] = "Addresses", ["profile"] = "Profile",
+        ["payments"] = "Payments", ["wishlist"] = "Wishlist", ["password"] = "Password",
+        ["new"] = "New", ["edit"] = "Edit", ["create"] = "New", ["add"] = "Add", ["import"] = "Import",
+        ["export"] = "Export", ["print"] = "Print", ["send"] = "Send",
+    };
+    var crumbs = new List<(string Label, string? Href)>();
+    if (segs.Length > 0)
+    {
+        var root = segs[0].ToLowerInvariant();
+        if (root == "admin")
+        {
+            crumbs.Add(("Admin", null));
+            for (var i = 1; i < segs.Length && i <= 3; i++)
+            {
+                var s = segs[i];
+                if (s.Length == 36 || int.TryParse(s, out _)) continue;
+                var label = labels.TryGetValue(s, out var v) ? v : s;
+                label = label[0].ToString().ToUpperInvariant() + label[1..];
+                if (i == Math.Min(segs.Length - 1, 3)) { crumbs.Add((label, null)); break; }
+                var href = "/" + string.Join('/', segs.Take(i + 1));
+                crumbs.Add((label, href));
+            }
+        }
+        else if (root == "portal" && segs.Length > 1)
+        {
+            crumbs.Add(("My account", "/portal"));
+            for (var i = 1; i < segs.Length && i <= 2; i++)
+            {
+                var s = segs[i];
+                if (s.Length == 36 || int.TryParse(s, out _)) continue;
+                var label = labels.TryGetValue(s, out var v) ? v : s;
+                label = label[0].ToString().ToUpperInvariant() + label[1..];
+                if (i == Math.Min(segs.Length - 1, 2)) { crumbs.Add((label, null)); break; }
+                var href = "/" + string.Join('/', segs.Take(i + 1));
+                crumbs.Add((label, href));
+            }
+        }
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@(ViewData["Title"] ?? "Admin") &middot; DE-CHIMEX PRINT HUB</title>
+    <partial name="_BrandHead" />
+    <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken">
+    @* Fonts load ASYNC (non render-blocking): a slow/unreachable font CDN must never
+       hold first paint hostage (symptom: full-white page on navigation that "returns"
+       seconds later). System-font fallback renders immediately. *@
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="stylesheet" href="~/css/app.css">
+    <link rel="stylesheet" href="~/css/tailwind.build.css">
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body style="margin:0;background:var(--canvas)">
+    <a class="skip-link" href="#admin-main">Skip to content</a>
+    <div class="app-shell">
+        <aside class="sidebar" id="appSidebar" aria-label="Main navigation">
+            <a class="sidebar-brand" href="/admin/dashboard" style="text-decoration:none;color:inherit">
+                <span class="brand-logo brand-logo-img" style="width:38px;height:38px;background:#fff!important;border-radius:10px;display:grid;place-items:center;padding:4px;box-shadow:0 4px 12px rgba(0,0,0,.25);flex-shrink:0">
+                    <img src="~/img/logo.png" alt="DE-CHIMEX PRINT HUB logo" style="border-radius:6px" onerror="this.parentElement.textContent='DC';this.parentElement.style.color='var(--primary)'">
+                </span>
+                <span style="min-width:0">
+                    <span class="brand-name" style="display:block">DE-CHIMEX</span>
+                    <span class="brand-sub" style="display:block">PRINT HUB</span>
+                </span>
+            </a>
+            <div class="side-scroll">
+                <nav aria-label="Sections">
+                    @if (Can("reports.view"))
+                    {
+                        <div class="side-group-label">Overview</div>
+                        <a class="side-link @(Nav("dashboard"))" href="/admin/dashboard">@Html.Raw(Ic("M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"))<span>Dashboard</span></a>
+                        <a class="side-link @(Nav("analytics"))" href="/admin/analytics">@Html.Raw(Ic("M3 3v18h18|M18 17V9M13 17V5M8 17v-3"))<span>Analytics</span></a>
+                        <a class="side-link @(Nav("reports"))" href="/admin/reports">@Html.Raw(Ic("M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"))<span>Reports</span></a>
+                    }
+                    @if(canViewActivity) { <a class="side-link @(Nav("activity"))" href="/admin/activity">@Html.Raw(Ic("M9 5h12M9 12h12M9 19h12|M3 5h1M3 12h1M3 19h1"))<span>Business activity</span></a> }
+                    @if(canViewActivity) { <a class="side-link @(Nav("auditraw"))" href="/admin/audit/raw">@Html.Raw(Ic("M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z|M14 2v6h6|M16 13H8|M16 17H8|M10 9H8"))<span>Raw audit trail</span></a> }
+                    <a class="side-link @(Nav("notifications"))" href="/admin/notifications">@Html.Raw(Ic("M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9|M13.7 21a2 2 0 0 1-3.4 0"))<span>Notifications</span><span class="notif-badge" id="notifBadge" hidden>0</span></a>
+                    @if (Can("orders.view") || Can("products.view") || Can("customers.view") || Can("marketing.view"))
+                    {
+                        <div class="side-group-label">Sell</div>
+                        @if (Can("orders.view"))
+                        {
+                            <a class="side-link @(Nav("sales"))" href="/admin/sales">@Html.Raw(Ic("M22 12h-6l-2 3h-4l-2-3H2|M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"))<span>Sales Inbox</span></a>
+                            <a class="side-link @(Nav("orders"))" href="/admin/orders">@Html.Raw(Ic("M9 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM20 22a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"))<span>Orders</span></a>
+                            <a class="side-link @(Nav("invoices"))" href="/admin/invoices">@Html.Raw(Ic("M4 2h16v20l-3-2-2 2-2-2-2 2-2-2-3 2zM8 7h8M8 11h8M8 15h5"))<span>Invoices</span></a>
+                            <a class="side-link @(Nav("receipts"))" href="/admin/receipts">@Html.Raw(Ic("M4 2h16v20H4zM8 7h8M8 11h8M8 15h5M14 19l2 2 4-4"))<span>Receipts</span></a>
+                        }
+                        @if (Can("customers.view"))
+                        {
+                            <a class="side-link @(Nav("customers"))" href="/admin/customers">@Html.Raw(Ic("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2|M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8|M23 21v-2a4 4 0 0 0-3-3.9|M16 3.1a4 4 0 0 1 0 7.8"))<span>Customers</span></a>
+                        }
+                        @if (Can("messages.view"))
+                        {
+                            <a class="side-link @(Nav("messages"))" href="/admin/messages">@Html.Raw(Ic("M22 12h-6l-2 3h-4l-2-3H2|M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"))<span>Messages</span></a>
+                        }
+                        @if (Can("marketing.view"))
+                        {
+                            <a class="side-link @(Nav("marketing"))" href="/admin/marketing">@Html.Raw(Ic("M22 2L11 13|M22 2l-7 20-4-9-9-4 20-7z"))<span>Marketing</span></a>
+                        }
+                        @if (Can("products.view"))
+                        {
+                            <a class="side-link @(Nav("products"))" href="/admin/products">@Html.Raw(Ic("M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8z|M3.3 7 12 12l8.7-5|M12 22V12"))<span>Products</span></a>
+                        }
+                        @if (Can("categories.view"))
+                        {
+                            <a class="side-link @(Nav("major-categories"))" href="/admin/major-categories"><span>Major categories</span></a>
+                            <a class="side-link @(Nav("categories"))" href="/admin/categories">@Html.Raw(Ic("M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"))<span>Categories</span></a>
+                        }
+                        @if (Can("services.view"))
+                        {
+                            <a class="side-link @(Nav("services"))" href="/admin/services">@Html.Raw(Ic("M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"))<span>Services</span></a>
+                        }
+                        @if (Can("gallery.view"))
+                        {
+                            <a class="side-link @(Nav("gallery"))" href="/admin/gallery">@Html.Raw(Ic("M3 3h18v18H3zM8.5 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M21 15l-5-5L5 21"))<span>Gallery</span></a>
+                        }
+                    }
+                    @if (Can("inventory.view") || Can("procurement.view"))
+                    {
+                        <div class="side-group-label">Operations</div>
+                        @if (Can("inventory.view"))
+                        {
+                            <a class="side-link @(Nav("inventory"))" href="/admin/inventory">@Html.Raw(Ic("M21 8v13H3V8|M1 3h22v5H1z|M10 12h4"))<span>Inventory</span></a>
+                        }
+                        @if (Can("procurement.view"))
+                        {
+                            <a class="side-link @(Nav("suppliers"))" href="/admin/suppliers">@Html.Raw(Ic("M1 3h15v13H1zM16 8h4l3 3v5h-7|M5.5 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM18.5 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"))<span>Suppliers</span></a>
+                            <a class="side-link @(Nav("procurement"))" href="/admin/procurement">@Html.Raw(Ic("M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2|M9 2h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z|M9 12h6|M9 16h4"))<span>Procurement</span></a>
+                        }
+                    }
+                    @if (Can("users.view") || Can("settings.view"))
+                    {
+                        <div class="side-group-label">System</div>
+                        @if (Can("users.view"))
+                        {
+                            <a class="side-link @(Nav("users"))" href="/admin/users">@Html.Raw(Ic("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2|M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8|M16 3.1a4 4 0 0 1 0 7.8"))<span>Users</span></a>
+                        }
+                        @if (Can("settings.view"))
+                        {
+                            <a class="side-link @(Nav("settings"))" href="/admin/settings">@Html.Raw(Ic("M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z|M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 13.4H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.6 6.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 3.6V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.4 1.8z"))<span>Settings</span></a>
+                        }
+                    }
+                    @* Developer Portal link: only for staff explicitly granted the Developer role
+                       (dev.portal.view claim). Never shown to normal staff. *@
+                    @if (Can(DeChimex.Shared.Constants.Permissions.Developer.PortalView))
+                    {
+                        <div class="side-group-label">Technical</div>
+                        <a class="side-link" href="/dev">@Html.Raw(Ic("M16 18l6-6-6-6|M8 6l-6 6 6 6"))<span>Developer Portal</span></a>
+                    }
+                </nav>
+            </div>
+            <div class="side-foot">
+                <a class="side-link" href="/admin/security/password" style="margin-bottom:4px">@Html.Raw(Ic("M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"))<span>Change password</span></a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="side-user">
+                        <span class="avatar sm">@Initials()</span>
+                        <div style="min-width:0">
+                            <div style="color:#fff;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">@UserName()</div>
+                            <div style="font-size:10.5px;color:#8b93a7">Staff workspace</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </aside>
+        <div class="side-backdrop" id="sideBackdrop" aria-hidden="true"></div>
+        <div class="main-col">
+            <header class="topbar">
+                <button class="menu-toggle" id="menuToggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="appSidebar">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+                </button>
+                <a class="topbar-brand" href="/admin/dashboard" aria-label="DE-CHIMEX admin home">
+                    <span style="width:32px;height:32px;border-radius:9px;background:#fff;display:grid;place-items:center;padding:3px;box-shadow:var(--shadow-xs);flex-shrink:0">
+                        <img src="~/img/logo.png" alt="" onerror="this.remove()">
+                    </span>
+                    <span style="min-width:0">
+                        <span class="brand-name" style="display:block">DE-CHIMEX</span>
+                        <span class="brand-sub" style="display:block">PRINT HUB</span>
+                    </span>
+                </a>
+                <div class="topbar-nav">
+                    @if (crumbs.Count > 0)
+                    {
+                        <nav class="topbar-crumbs" aria-label="Breadcrumb">
+                            @for (var ci = 0; ci < crumbs.Count; ci++)
+                            {
+                                var c = crumbs[ci];
+                                var isLast = ci == crumbs.Count - 1;
+                                if (c.Href is null)
+                                {
+                                <span class="cur" aria-current="page">@c.Label</span>
+                                }
+                                else if (isLast)
+                                {
+                                <a href="@c.Href">@c.Label</a>
+                                }
+                                else
+                                {
+                                <a href="@c.Href">@c.Label</a><span class="sep" aria-hidden="true">/</span>
+                                }
+                            }
+                        </nav>
+                    }
+                    <h1 class="topbar-title">@(ViewData["Heading"] ?? ViewData["Title"] ?? "Admin")</h1>
+                </div>
+                <div class="topbar-actions">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <span class="topbar-user">
+                            <span class="avatar sm">@Initials()</span>
+                            <span class="topbar-name">@UserName()</span>
+                        </span>
+                        <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0">
+                            <button type="submit" class="btn btn-outline btn-sm">Sign out</button>
+                        </form>
+                    }
+                </div>
+            </header>
+            <main class="content" id="admin-main">
+                @if (TempData["Success"] is string successMsg)
+                {
+                    <div class="flash flash-success" role="status">@Html.Raw(Ic("M20 6 9 17l-5-5", 17))<span>@successMsg</span></div>
+                }
+                @if (TempData["Error"] is string errorMsg)
+                {
+                    <div class="flash flash-error" role="alert">@Html.Raw(Ic("M12 8v5|M12 16h.01", 17))<span>@errorMsg</span></div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+    <script>
+    (function(){
+      var t=document.getElementById('menuToggle'), s=document.getElementById('appSidebar'), b=document.getElementById('sideBackdrop');
+      if(!t||!s) return;
+      function close(){ s.classList.remove('open'); if(b){b.classList.remove('open');} t.setAttribute('aria-expanded','false'); }
+      t.addEventListener('click',function(){
+        var open=s.classList.toggle('open');
+        if(b){ b.classList.toggle('open',open); }
+        t.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      if(b){ b.addEventListener('click', close); }
+      document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ close(); } });
+      if(s){ s.querySelectorAll('a').forEach(function(a){ a.addEventListener('click',function(){ if(window.innerWidth<=1024){ close(); } }); }); }
+    })();
+    </script>
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/js/dcx-toast.js"></script>
+    <script src="~/js/notifications.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

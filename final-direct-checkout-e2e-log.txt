@@ -1,0 +1,122 @@
+
+===== STAGE 0: setup =====
+ok 01 - owner logged in
+PASS 01: category created: DC Direct direct-092
+PASS 01: product created (direct): DC Everyday Mug direct-092
+PASS 02: category created: DC Custom direct-092
+PASS 02: product created (custom): DC Signature Tee direct-092
+ok 02 - register buyer -> verify page
+ok 03 - verification token captured for buyer
+ok 04 - brevo api-key header present (key loaded at runtime)
+ok 05 - customer buyer signed in
+PASS 03: buyer registered + verified + signed in
+ok 06 - register stranger -> verify page
+ok 07 - verification token captured for stranger
+ok 08 - brevo api-key header present (key loaded at runtime)
+ok 09 - customer stranger signed in
+PASS 04: second customer registered
+
+===== 1: browsing & filtering =====
+PASS 05: public catalog lists direct product
+PASS 06: search filter finds the product
+SHOT  01-catalog-filter.png
+PASS 07: external product link renders for anonymous visitor (shareable)
+
+===== 2: direct product =====
+PASS 08: direct product shows Add to cart
+PASS 09: direct product shows checkout microcopy (no quote needed)
+PASS 10: direct product has NO Order / Customize CTA
+SHOT  02-direct-product-buy-actions.png
+
+===== 3: custom product =====
+PASS 11: custom product shows Order / Customize
+PASS 12: custom product explains what the request needs
+PASS 13: custom product hides Add to cart
+SHOT  03-custom-product-actions.png
+PASS 14: add-to-cart for custom product refused (no cart line)
+SHOT  04-cart-guard-rejects-custom.png
+
+===== 4: direct checkout & amounts =====
+PASS 15: cart shows the direct line
+PASS 16: cart amount visibility (line math)
+PASS 17: checkout amount visibility (subtotal/fees/total)
+SHOT  05-checkout-amounts.png
+PASS 18: checkout amount visibility (You will pay)
+PASS 19: lands on /checkout/complete/{order}
+PASS 20: order A created on complete page
+SHOT  06-direct-order-placed.png
+
+===== 5: payment (Paystack stub) =====
+PASS 21: paystack stub checkout opened (order 6763dacf)
+PASS 22: webhook for A accepted (200 + ignored/processed)
+PASS 23: payment verified on return
+SHOT  07-direct-paid.png
+PASS 24: order A shows production status
+PASS 25: direct workspace hides design cards (display:none)
+SHOT  08-direct-workspace-no-design-steps.png
+
+===== 6: admin views =====
+PASS 26: admin order badge says Direct purchase
+SHOT  09-direct-admin-badge.png
+PASS 27: real-time status feed labels order
+PASS 28: activity: Direct product order created
+PASS 29: activity: Direct order payment received
+SHOT  10-direct-activity-log.png
+PASS 30: lifetime spending = 9,500 after order A
+SHOT  11-direct-lifetime-spending.png
+
+===== 7: review rules =====
+PASS 31: purchaser sees review form
+SHOT  12-review-unlocked-after-purchase.png
+PASS 32: non-purchaser review locked with clear copy
+SHOT  13-review-locked-unpurchased.png
+PASS 33: review submitted by verified purchaser
+
+===== 8: failed payment & retry =====
+PASS 34: checkout amount visibility (You will pay)
+PASS 35: lands on /checkout/complete/{order}
+PASS 36: paystack stub checkout opened (order 62150a89)
+PASS 37: declined shows Payment failed copy
+SHOT  14-direct-payment-failed.png
+PASS 38: complete page offers retry after decline
+PASS 39: paystack stub checkout opened (order 62150a89)
+PASS 40: webhook for B accepted
+PASS 41: order B paid after retry on the SAME order
+SHOT  15-direct-retry-paid.png
+
+===== 9: direct cancellation =====
+PASS 42: checkout amount visibility (You will pay)
+PASS 43: lands on /checkout/complete/{order}
+PASS 44: admin cancels direct order
+SHOT  16-direct-cancelled.png
+
+===== 10: refund =====
+PASS 45: order B refunded
+SHOT  17-direct-refunded.png
+PASS 46: spending after refund = 9,500 (A kept, B reversed, C never paid)
+
+===== 11: custom request & workspace =====
+PASS 03: category ordering question retained
+PASS 04: order completed through persisted workspace
+PASS 47: custom request completed through persisted workspace
+PASS 48: workspace stage Order Received
+PASS 49: sales contact assigned
+PASS 50: customer conversation visible
+SHOT  18-custom-workspace-assigned.png
+PASS 51: admin sees Custom order badge
+SHOT  19-custom-admin-badge.png
+PASS 52: workbench shows the request details
+PASS 53: admin sees the personalisation answer
+PASS 54: custom order reaches payment stage after finalize
+PASS 55: custom order reaches checkout
+PASS 56: paystack stub checkout opened (order 706c85b2)
+PASS 57: webhook for D accepted
+PASS 58: custom order paid (path intact)
+SHOT  20-custom-paid.png
+
+===== 12: my orders coherence =====
+PASS 59: my orders lists all four coherently
+SHOT  21-my-orders-coherent.png
+PASS 60: stranger cannot review the product
+
+===== RESULT: 60 passed, 0 failed =====

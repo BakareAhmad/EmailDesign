@@ -1,0 +1,43 @@
+@model DeChimex.Host.Controllers.Mvc.Admin.ServiceFeeChangeModel
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Change Service Fee?";
+    ViewData["Heading"] = "Settings";
+    ViewData["ActiveNav"] = "settings";
+}
+
+<div class="g g-12" style="align-items:flex-start">
+    <div class="col-7">
+        <div class="card">
+            <div class="card-head">
+                <div>
+                    <h3 style="font-size:16px;font-weight:700">Change Service Fee?</h3>
+                    <p class="text-sm text-muted mt-1">This is a financially significant business decision. Please review before continuing.</p>
+                </div>
+            </div>
+            <div class="card-body" style="padding:24px">
+                <div style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
+                    <div class="flex justify-between py-1">
+                        <span class="text-muted">Current service fee</span>
+                        <span class="font-bold">@Model.CurrentPercent%</span>
+                    </div>
+                    <div class="flex justify-between py-1" style="border-top:1px solid var(--border)">
+                        <span class="text-muted">New service fee</span>
+                        <span class="font-bold text-primary">@Model.RequestedPercent%</span>
+                    </div>
+                </div>
+                <p class="mb-2">This will affect future transactions.</p>
+                <p class="mb-2">Existing orders and completed transactions will not be recalculated.</p>
+                <p class="mb-4 font-semibold">Are you sure you want to continue?</p>
+                <form asp-action="ServiceFeeConfirm" asp-controller="AdminSettings" method="post">
+                    <input type="hidden" name="CurrentPercent" value="@Model.CurrentPercent" />
+                    <input type="hidden" name="RequestedPercent" value="@Model.RequestedPercent" />
+                    <div class="flex" style="gap:10px">
+                        <button type="submit" class="btn btn-primary">Confirm change</button>
+                        <a class="btn" asp-action="Index" asp-controller="AdminSettings">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

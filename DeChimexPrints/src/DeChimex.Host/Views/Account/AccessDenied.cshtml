@@ -1,0 +1,11 @@
+@using DeChimex.Host
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Access denied";
+}
+<div class="pay-result">
+    <div class="pay-ic is-warn">@Html.Raw(CustomerIcons.Svg("lock", 32, null, 2))</div>
+    <h1>Access denied</h1>
+    <p>You don't have permission to view that page. If you think this is a mistake, sign in with a different account or contact us.</p>
+    <div class="pay-actions"><a href="/" class="btn btn-primary btn-lg">Back to store</a><a href="/Account/Login" class="btn btn-outline btn-lg">Sign in</a></div>
+</div>

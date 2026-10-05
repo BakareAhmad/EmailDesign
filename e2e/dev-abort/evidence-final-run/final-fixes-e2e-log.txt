@@ -1,0 +1,55 @@
+ok 01 - owner logged in
+ok 02 - customizable product created
+ok 03 - register fx -> verify page
+ok 04 - verification token captured for fx
+ok 05 - brevo api-key header present (key loaded at runtime)
+ok 06 - customer fx signed in
+ok 07 - customer live hub listener connected
+ok 08 - owner live hub listener connected
+ok 09 - custom order request submitted
+ok 10 - staff still receive staff notifications LIVE (New order request)
+ok 11 - server card: 'Waiting for the team to review'
+ok 12 - server waiting line carries .design-review-waiting
+shot 01-customer-design-review-waiting-server-card.png
+ok 13 - live card (other tab): same wording
+ok 14 - old live wording 'Awaiting staff review' is gone
+shot 02-customer-second-tab-live-card-same-wording.png
+ok 15 - approval flips the customer's SERVER card live
+ok 16 - waiting line removed live from the server-rendered card
+shot 03-customer-server-card-approved-live-waiting-line-removed.png
+ok 17 - customer receives their own notification LIVE
+ok 18 - staff tab 2: server-rendered pending v2 has Approve/Reject (.design-review-actions)
+shot 04-staff-second-tab-pending-v2-server-card-with-actions.png
+ok 19 - validation: reject requires a reason
+shot 05-reject-requires-reason-validation.png
+ok 20 - staff tab 2: stale Approve/Reject removed live after the rejection
+ok 21 - staff tab 2: no duplicate reason line
+shot 06-staff-second-tab-actions-removed-live.png
+ok 22 - customer live card: 'Changes requested:' + reason
+ok 23 - customer server card after reload: same 'Changes requested:' label
+shot 07-customer-rejection-same-label-after-reload.png
+customer live pushes: ['Design review approved', 'Design review rejected'] | staff live pushes: ['New order request', 'Design review uploaded', 'Design review uploaded']
+ok 24 - customer live pushes contain NO staff notifications
+ok 25 - customer live pushes = only their own
+ok 26 - staff live pushes include the staff notifications
+ok 27 - customer bell feed: only own notifications
+ok 28 - bell dropdown shows the customer's notifications, none of staff
+shot 08-customer-bell-only-own-notifications.png
+ok 29 - staff notifications page still lists staff notifications
+shot 09-staff-notifications-list-unchanged.png
+ok 30 - customer 400 (invalid upload) page reached
+ok 31 - customer 400 page links to 'My account' (/portal)
+ok 32 - customer 400 page has no 'Admin dashboard'
+shot 10-customer-400-error-page-my-account-link.png
+ok 33 - customer 404 page links to 'My account'
+ok 34 - customer 404 page has no 'Admin dashboard'
+shot 11-customer-404-error-page-my-account-link.png
+ok 35 - staff 404 page still links to 'Admin dashboard'
+shot 12-staff-404-error-page-admin-dashboard-link.png
+ok 36 - developer signed in (lands in /dev)
+ok 37 - developer 404 page links to 'Developer Portal' (/dev)
+ok 38 - developer 404 page has no 'Admin dashboard'
+shot 13-developer-404-error-page-developer-portal-link.png
+ok 39 - anonymous 404 page shows no account link
+
+RESULT: 39 passed, 0 failed (TAG=finalfx)

@@ -1,0 +1,40 @@
+@model PaymentDiagnostics
+<partial name="~/Views/Dev/_RangePicker.cshtml" model="Model.Range" />
+<div class="dv-grid dv-g4">
+    <div class="dv-card"><div class="dv-kpi">@Model.Duplicates<small>Duplicate webhooks (safely ignored)</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@Model.Mismatches<small>Amount / currency mismatches</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@Model.InvalidSignatures<small>Rejected webhooks (bad signature)</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@Model.StaleInitialized.Count<small>Stuck Initialized/Pending (&gt; 1 h)</small></div></div>
+</div>
+<div class="dv-grid dv-g4" style="margin-top:12px">
+    <section class="dv-card"><h2>Initialize</h2><partial name="~/Views/Dev/_Counts.cshtml" model="Model.Initialize" /></section>
+    <section class="dv-card"><h2>Verify</h2><partial name="~/Views/Dev/_Counts.cshtml" model="Model.Verify" /></section>
+    <section class="dv-card"><h2>Webhooks</h2><partial name="~/Views/Dev/_Counts.cshtml" model="Model.Webhooks" /></section>
+    <section class="dv-card"><h2>Refunds</h2><partial name="~/Views/Dev/_Counts.cshtml" model="Model.Refunds" /></section>
+</div>
+<div class="dv-grid dv-g2" style="margin-top:12px">
+    <section class="dv-card">
+        <h2>Payment records created in range</h2>
+        <partial name="~/Views/Dev/_Counts.cshtml" model="Model.PaymentStatuses" />
+        <p class="dv-small dv-muted">@Model.FailedPayments failed · @Model.RefundedPayments refunded (by refund date).</p>
+    </section>
+    <section class="dv-card">
+        <h2>Stuck payments</h2>
+        @if (Model.StaleInitialized.Count == 0) { <p class="dv-muted dv-small">No Paystack payment has been waiting for more than an hour.</p> }
+        else
+        {
+            <div class="dv-table-wrap"><table class="dv-table"><thead><tr><th>Reference</th><th>Status</th><th>Created</th><th class="num">Amount</th></tr></thead><tbody>
+            @foreach (var s in Model.StaleInitialized)
+            {
+                <tr><td class="dv-mono dv-small">@s.Reference</td><td>@DevUi.Status(s.Status)</td><td class="dv-small">@DevUi.Ago(s.CreatedUtc)</td><td class="num">@DevUi.Naira(s.Amount)</td></tr>
+            }
+            </tbody></table></div>
+            <p class="dv-small dv-muted">Abandoned checkouts stay Initialized until the customer returns or a webhook arrives. A developer with maintenance rights can <a href="/dev/maintenance">re-verify one reference</a> with Paystack (idempotent).</p>
+        }
+    </section>
+</div>
+<section class="dv-card" style="margin-top:12px">
+    <h2>Recent problems</h2>
+    <partial name="~/Views/Dev/_Calls.cshtml" model="Model.RecentProblems" />
+</section>
+<p class="dv-muted dv-small">Raw Paystack payloads and customer contact details are never shown here. References link payments to the service-fee ledger.</p>

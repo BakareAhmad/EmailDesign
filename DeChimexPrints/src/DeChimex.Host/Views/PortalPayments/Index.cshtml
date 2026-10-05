@@ -1,0 +1,47 @@
+@model IReadOnlyList<DeChimex.Contracts.Payments.PaymentDto>
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Payments";
+    ViewData["ActiveNav"] = "payments";
+}
+<div class="cs-wrap cs-wrap-md">
+    <partial name="Customer/_AccountTabs" model="@("payments")" />
+    <div class="cs-page-head"><h1>Payments</h1></div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="cs-card">
+            @{ var es = new EmptyState(EmptyIcons.Card, "No payments yet", "Payments for your orders will appear here."); }
+            <partial name="_EmptyState" model="es" />
+        </div>
+    }
+    else
+    {
+        <div class="ac-list">
+            @foreach (var p in Model)
+            {
+                var pendingPay = p.Status is "Initialized" or "Pending";
+                <div class="ac-item">
+                    <div class="ac-item-main">
+                        <div class="ac-item-title">@CustomerPresentation.Money(p.Amount) <span class="cs-status @CustomerPresentation.PaymentTone(p.Status)" style="margin-left:6px">@CustomerPresentation.PaymentLabel(p.Status)</span></div>
+                        <div class="ac-item-sub">
+                            @p.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy, HH:mm") · @p.Method · Ref @p.Reference
+                            @if (p.ServiceFeeAmount != 0) { <span> · includes @CustomerPresentation.Money(p.ServiceFeeAmount) payment service fee</span> }
+                        </div>
+                    </div>
+                    @if (pendingPay)
+                    {
+                        <form asp-controller="Checkout" asp-action="Pay" asp-route-orderId="@p.OrderId" method="post">
+                            <button type="submit" class="btn btn-primary btn-sm">Complete payment</button>
+                        </form>
+                    }
+                    else if (p.OrderId != Guid.Empty)
+                    {
+                        <a class="btn btn-outline btn-sm" href="/portal/orders/@p.OrderId">View order</a>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

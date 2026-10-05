@@ -1,0 +1,55 @@
+@model DeChimex.Contracts.Invoices.InvoiceDocumentDto
+@inject DeChimex.Application.Common.Interfaces.IAppUrlProvider AppUrls
+@{
+    Layout = "_AdminLayout";
+    var shareUrl = string.IsNullOrEmpty(Model.ShareToken)
+        ? null
+        : AppUrls.BuildPublicInvoiceLink(Model.ShareToken);
+}
+<div style="max-width:880px">
+    <div class="toolbar mb-4" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <a class="btn btn-outline btn-sm" asp-action="Index">&larr; Invoices</a>
+        @if (Model.IsQuote)
+        {
+            <span class="badge badge-primary">Quote, no order yet</span>
+            <a class="btn btn-primary btn-sm" href="/admin/orders/new?invoice=@Model.Id">Create order from this quote</a>
+        }
+        @if (!string.IsNullOrEmpty(Model.OrderNumber) && Model.OrderId is not null)
+        {
+            <a class="btn btn-outline btn-sm" href="/admin/orders/@Model.OrderId">View order</a>
+        }
+        <span style="flex:1"></span>
+        @if (shareUrl is null)
+        {
+            <form method="post" asp-action="Share" asp-route-id="@Model.Id" style="margin:0">
+                <button class="btn btn-primary btn-sm" type="submit">Generate share link</button>
+            </form>
+        }
+        else
+        {
+            <input class="input" style="width:320px;max-width:44vw;font-size:12px" readonly value="@shareUrl" id="shareLinkInput" onclick="this.select()" />
+            <button class="btn btn-outline btn-sm" type="button" id="copyShareBtn">Copy</button>
+            <a class="btn btn-outline btn-sm" href="@shareUrl" target="_blank">Open</a>
+            <a class="btn btn-outline btn-sm" href="@shareUrl/pdf" download>Download PDF</a>
+        }
+        <button class="btn btn-primary btn-sm" type="button" onclick="window.print()">Print</button>
+    </div>
+
+    <partial name="_InvoiceDocument" model="Model" />
+</div>
+
+@section Scripts {
+<script>
+(function(){
+    const btn = document.getElementById('copyShareBtn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        const input = document.getElementById('shareLinkInput');
+        input.select();
+        navigator.clipboard?.writeText(input.value).catch(() => {});
+        btn.textContent = 'Copied';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+    });
+})();
+</script>
+}

@@ -1,0 +1,205 @@
+@model DeChimex.Contracts.Orders.OrderDto
+@{
+    Layout = "_AdminLayout";
+    var canUpdateStatus = ViewBag.CanUpdateStatus is true;
+    var canCancel = ViewBag.CanCancel is true;
+    var canRefund = ViewBag.CanRefund is true;
+    var actions = ViewBag.AllowedActions as string[] ?? Array.Empty<string>();
+    string ActionStatus(string action) => action switch
+    {
+        "StartProduction" => "InProduction",
+        "FlagProcurement" => "AwaitingProcurement",
+        "StartQualityCheck" => "QualityCheck",
+        "MarkReady" => "Ready",
+        "Dispatch" => "OutForDelivery",
+        "MarkCompleted" => "Completed",
+        "MarkDelivered" => "Delivered",
+        _ => action
+    };
+    string ActionLabel(string action) => action switch
+    {
+        "MarkPaid" => "Mark as paid",
+        "StartProduction" => "Start production",
+        "FlagProcurement" => "Flag procurement",
+        "StartQualityCheck" => "Quality check",
+        "MarkReady" => "Mark ready",
+        "Dispatch" => "Dispatch",
+        "MarkCompleted" => "Mark completed",
+        "MarkDelivered" => "Mark delivered",
+        "Cancel" => "Cancel order",
+        "Refund" => "Refund",
+        _ => action
+    };
+}
+<div class="card" style="max-width:840px">
+    <div class="card-head">
+        <h3>@Model.OrderNumber</h3>
+        <div class="flex items-center gap-2">
+            <a class="btn btn-outline btn-sm" asp-action="Index" aria-label="Back to order list">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+                Back to list
+            </a>
+            @if (Model.RequiresProcurement)
+            {
+                <span class="badge badge-warning">Needs procurement</span>
+            }
+            <span class="badge badge-neutral">@(Enum.TryParse<DeChimex.Domain.Enums.OrderStatus>(Model.Status, out var _s4) ? DeChimex.Domain.Enums.OrderStatusPresentation.CustomerLabel(_s4) : Model.Status)</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="g" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+            <div><div class="text-xs text-muted">Customer</div><div>@Model.CustomerName</div></div>
+            <div><div class="text-xs text-muted">Type</div><div>@Model.Type</div></div>
+            <div><div class="text-xs text-muted">Ordering</div><div><span class="badge @(Model.Kind == "Direct" ? "badge-success" : "badge-info")">@(Model.Kind == "Direct" ? "Direct purchase" : "Custom order")</span></div></div>
+            <div><div class="text-xs text-muted">Subtotal</div><div>₦@Model.Subtotal.ToString("N2")</div></div>
+            <div><div class="text-xs text-muted">Delivery</div><div>₦@Model.DeliveryFee.ToString("N2")</div></div>
+            <div><div class="text-xs text-muted">Discount</div><div>₦@Model.Discount.ToString("N2")</div></div>
+            <div><div class="text-xs text-muted">Tax</div><div>₦@Model.Tax.ToString("N2")</div></div>
+            <div><div class="text-xs text-muted">Grand total</div><div class="font-bold">₦@Model.GrandTotal.ToString("N2")</div></div>
+            <div><div class="text-xs text-muted">Created</div><div>@Model.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy")</div></div>
+        </div>
+
+        @{ var payment = ViewBag.Payment as DeChimex.Domain.Entities.Payment; }
+        @if (payment is not null)
+        {
+            <div style="margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#F8FAFC;border-bottom:1px solid var(--border)">
+                    <span class="text-sm font-semibold">Payment</span>
+                    <span class="badge @(payment.Status == DeChimex.Domain.Enums.PaymentStatus.Succeeded ? "badge-success" : "badge-neutral")">@payment.Status</span>
+                </div>
+                <div class="g" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:14px">
+                    <div><div class="text-xs text-muted">Method</div><div>@payment.Method</div></div>
+                    <div><div class="text-xs text-muted">Amount</div><div>₦@payment.Amount.Amount.ToString("N2")</div></div>
+                    @if (payment.Method == DeChimex.Domain.Enums.PaymentMethod.Paystack)
+                    {
+                        <div><div class="text-xs text-muted">Order total</div><div>₦@payment.OrderAmount.ToString("N2")</div></div>
+                        <div><div class="text-xs text-muted">Service fee (@payment.ServiceFeePercent%)</div><div>₦@payment.CustomerBorneCharge.ToString("N2")</div></div>
+                        <div><div class="text-xs text-muted">Paystack fee (expected / charged)</div><div>₦@payment.PaystackFeeExpected.ToString("N2") / @(payment.PaystackFeeActual is decimal pf ? $"₦{pf:N2}" : "not recorded")</div></div>
+                    }
+                    <div><div class="text-xs text-muted">Reference</div><div style="font-size:12px;word-break:break-all">@payment.Reference</div></div>
+                    @if (payment.PaidAtUtc is not null)
+                    {
+                        <div><div class="text-xs text-muted">Paid at</div><div>@payment.PaidAtUtc.Value.ToLocalTime().ToString("d MMM yyyy HH:mm")</div></div>
+                    }
+                    @if (payment.GatewayReference is not null && payment.GatewayReference.StartsWith("manual-") && !string.IsNullOrWhiteSpace(payment.RawResponse))
+                    {
+                        <div><div class="text-xs text-muted">Note</div><div>@payment.RawResponse</div></div>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(payment.GatewayReference))
+                    {
+                        <div><div class="text-xs text-muted">Gateway reference</div><div style="font-size:12px;word-break:break-all">@payment.GatewayReference</div></div>
+                    }
+                </div>
+            </div>
+        }
+
+        @{
+            var invoiceDoc = ViewBag.InvoiceDocument as DeChimex.Contracts.Invoices.InvoiceDocumentDto;
+            var receiptDoc = ViewBag.ReceiptDocument as DeChimex.Contracts.Invoices.ReceiptDocumentDto;
+        }
+        @if (invoiceDoc is not null || receiptDoc is not null)
+        {
+            <div style="margin-top:16px;border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                <div style="padding:10px 14px;background:#F8FAFC;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                    <span class="text-sm font-semibold">Documents</span>
+                    @if (invoiceDoc is not null)
+                    {
+                        <a class="btn btn-outline btn-sm" href="/admin/invoices/@invoiceDoc.Id">Invoice @invoiceDoc.InvoiceNumber (@invoiceDoc.Status)</a>
+                    }
+                    @if (receiptDoc is not null)
+                    {
+                        <a class="btn btn-outline btn-sm" href="/admin/receipts/@receiptDoc.Id">Receipt @receiptDoc.ReceiptNumber@(receiptDoc.IsRefunded ? " (refunded)" : "")</a>
+                    }
+                </div>
+                <div class="text-xs text-muted" style="padding:8px 14px">
+                    The invoice was issued when the order was placed; the receipt was generated after payment.
+                    Open a document to download it or generate a share link for the customer.
+                </div>
+            </div>
+        }
+
+        <h4 class="mt-4 mb-2">Items</h4>
+        @if (Model.Items.Count == 0 && Model.Services.Count == 0)
+        {
+            <div class="text-muted">No line items.</div>
+        }
+        else
+        {
+            <table class="table">
+                <thead><tr><th>Item</th><th>Unit price</th><th>Qty</th><th>Total</th></tr></thead>
+                <tbody>
+                    @foreach (var i in Model.Items)
+                    {
+                        <tr><td>@i.ProductName <span class="text-muted">(@i.Sku)</span></td><td>₦@i.UnitPrice.ToString("N2")</td><td>@i.Quantity</td><td>₦@i.LineTotal.ToString("N2")</td></tr>
+                    }
+                    @foreach (var s in Model.Services)
+                    {
+                        <tr><td>@s.ServiceName <span class="text-muted">(service)</span></td><td>₦@s.UnitPrice.ToString("N2")</td><td>@s.Quantity</td><td>₦@s.LineTotal.ToString("N2")</td></tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@if (actions.Length > 0)
+{
+    <div class="card mt-4" style="max-width:840px">
+        <div class="card-head"><h3>Order actions</h3></div>
+        <div class="card-body">
+            <div class="flex gap-2" style="flex-wrap:wrap">
+                @foreach (var action in actions)
+                {
+                    if (action == "MarkPaid" && canUpdateStatus)
+                    {
+                        <form asp-action="MarkPaid" asp-route-id="@Model.Id" method="post" style="margin:0">
+                            <div class="flex gap-2 items-center" style="flex-wrap:wrap">
+                                <select class="select" name="Method" style="min-width:150px">
+                                    <option value="Cash">Cash</option>
+                                    <option value="BankTransfer">Bank transfer</option>
+                                    <option value="Paystack">Paystack (reference)</option>
+                                </select>
+                                <input class="input" name="Note" placeholder="Reference / note (optional)" style="min-width:220px" />
+                                <button type="submit" class="btn btn-primary btn-sm">Mark as paid</button>
+                            </div>
+                        </form>
+                    }
+                    else if (action == "Cancel" && canCancel)
+                    {
+                        var hasHeldPayment = ViewBag.Payment is DeChimex.Domain.Entities.Payment hp && hp.Status == DeChimex.Domain.Enums.PaymentStatus.Succeeded;
+                        <form asp-action="Cancel" asp-route-id="@Model.Id" method="post" style="margin:0"
+                              onsubmit="return confirm('@(hasHeldPayment ? "Cancel this order. A payment is still HELD." : "Cancel this order?")');">
+                            <div class="flex gap-2 items-center flex-wrap">
+                                <input class="input" name="Reason" placeholder="Reason (optional)" style="min-width:180px" />
+                                @if (hasHeldPayment)
+                                {
+                                    @* AUD-018: cancelling a paid order keeps the money — make the
+                                       resolution explicit instead of implied. *@
+                                    <select class="input" name="RefundOutcome" style="min-width:220px" title="What happens to the held payment?">
+                                        <option value="RefundLater">Payment held: refund owed (default)</option>
+                                        <option value="StoreCredit">Payment held: resolved as store credit</option>
+                                    </select>
+                                }
+                                <button type="submit" class="btn btn-outline btn-sm">Cancel order</button>
+                            </div>
+                        </form>
+                    }
+                    else if (action == "Refund" && canRefund)
+                    {
+                        <form asp-action="Refund" asp-route-id="@Model.Id" method="post" style="margin:0" onsubmit="return confirm('Record/request this refund? Gateway acceptance does not confirm final settlement.');">
+                            <button type="submit" class="btn btn-outline btn-sm" style="color:var(--danger)">Refund</button>
+                        </form>
+                    }
+                    else if (canUpdateStatus)
+                    {
+                        <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post" style="margin:0">
+                            <input type="hidden" name="status" value="@ActionStatus(action)" />
+                            <button type="submit" class="btn btn-outline btn-sm">@ActionLabel(action)</button>
+                        </form>
+                    }
+                }
+            </div>
+            <p class="text-xs text-muted mt-3 mb-0">Available actions follow the order workflow. Marking as paid reserves stock, flags procurement when stock is short, issues the invoice and notifies the customer.</p>
+        </div>
+    </div>
+}

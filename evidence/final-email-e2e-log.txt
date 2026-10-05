@@ -1,0 +1,661 @@
+Test run for /home/user/ContinualDevelopment/DeChimexPrints/tests/DeChimex.UnitTests/bin/Debug/net9.0/DeChimex.UnitTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    25, Skipped:     0, Total:    25, Duration: 78 ms - DeChimex.UnitTests.dll (net9.0)
+email design E2E (tag=emailfem, mode=verify)
+ok 01 - A1 all 19 rendered templates present
+ok 02 - 01-Welcome: app palette only
+ok 03 - 01-Welcome: pre-redesign palette gone
+ok 04 - 01-Welcome: shell intact
+ok 05 - 01-Welcome: no unresolved placeholders
+ok 06 - 01-Welcome: no em or en dash
+ok 07 - 01-Welcome: email-safe layout
+ok 08 - 01-Welcome: responsive rules + mobile CTA
+ok 09 - 01-Welcome: brand lockup with real logo
+ok 10 - 01-Welcome: slim footer only (brand, contact, policies, copyright)
+ok 11 - 01-Welcome: footer is not an oversized corporate block
+ok 12 - 01-Welcome: CTA uses --primary and keeps a link fallback
+ok 13 - 01-Welcome: unsubscribe only when marketing
+ok 14 - 01-Welcome: plain-text part is markup-free
+ok 15 - 01-Welcome: plain text is complete
+ok 16 - 01-Welcome: plain text keeps the app link
+ok 17 - 02-EmailVerification: app palette only
+ok 18 - 02-EmailVerification: pre-redesign palette gone
+ok 19 - 02-EmailVerification: shell intact
+ok 20 - 02-EmailVerification: no unresolved placeholders
+ok 21 - 02-EmailVerification: no em or en dash
+ok 22 - 02-EmailVerification: email-safe layout
+ok 23 - 02-EmailVerification: responsive rules + mobile CTA
+ok 24 - 02-EmailVerification: brand lockup with real logo
+ok 25 - 02-EmailVerification: slim footer only (brand, contact, policies, copyright)
+ok 26 - 02-EmailVerification: footer is not an oversized corporate block
+ok 27 - 02-EmailVerification: CTA uses --primary and keeps a link fallback
+ok 28 - 02-EmailVerification: unsubscribe only when marketing
+ok 29 - 02-EmailVerification: plain-text part is markup-free
+ok 30 - 02-EmailVerification: plain text is complete
+ok 31 - 02-EmailVerification: plain text keeps the app link
+ok 32 - 03-ForgotPassword: app palette only
+ok 33 - 03-ForgotPassword: pre-redesign palette gone
+ok 34 - 03-ForgotPassword: shell intact
+ok 35 - 03-ForgotPassword: no unresolved placeholders
+ok 36 - 03-ForgotPassword: no em or en dash
+ok 37 - 03-ForgotPassword: email-safe layout
+ok 38 - 03-ForgotPassword: responsive rules + mobile CTA
+ok 39 - 03-ForgotPassword: brand lockup with real logo
+ok 40 - 03-ForgotPassword: slim footer only (brand, contact, policies, copyright)
+ok 41 - 03-ForgotPassword: footer is not an oversized corporate block
+ok 42 - 03-ForgotPassword: CTA uses --primary and keeps a link fallback
+ok 43 - 03-ForgotPassword: unsubscribe only when marketing
+ok 44 - 03-ForgotPassword: plain-text part is markup-free
+ok 45 - 03-ForgotPassword: plain text is complete
+ok 46 - 03-ForgotPassword: plain text keeps the app link
+ok 47 - 04-PasswordResetConfirmation: app palette only
+ok 48 - 04-PasswordResetConfirmation: pre-redesign palette gone
+ok 49 - 04-PasswordResetConfirmation: shell intact
+ok 50 - 04-PasswordResetConfirmation: no unresolved placeholders
+ok 51 - 04-PasswordResetConfirmation: no em or en dash
+ok 52 - 04-PasswordResetConfirmation: email-safe layout
+ok 53 - 04-PasswordResetConfirmation: responsive rules + mobile CTA
+ok 54 - 04-PasswordResetConfirmation: brand lockup with real logo
+ok 55 - 04-PasswordResetConfirmation: slim footer only (brand, contact, policies, copyright)
+ok 56 - 04-PasswordResetConfirmation: footer is not an oversized corporate block
+ok 57 - 04-PasswordResetConfirmation: unsubscribe only when marketing
+ok 58 - 04-PasswordResetConfirmation: plain-text part is markup-free
+ok 59 - 04-PasswordResetConfirmation: plain text is complete
+ok 60 - 05-Otp: app palette only
+ok 61 - 05-Otp: pre-redesign palette gone
+ok 62 - 05-Otp: shell intact
+ok 63 - 05-Otp: no unresolved placeholders
+ok 64 - 05-Otp: no em or en dash
+ok 65 - 05-Otp: email-safe layout
+ok 66 - 05-Otp: responsive rules + mobile CTA
+ok 67 - 05-Otp: brand lockup with real logo
+ok 68 - 05-Otp: slim footer only (brand, contact, policies, copyright)
+ok 69 - 05-Otp: footer is not an oversized corporate block
+ok 70 - 05-Otp: unsubscribe only when marketing
+ok 71 - 05-Otp: plain-text part is markup-free
+ok 72 - 05-Otp: plain text is complete
+ok 73 - 06-OrderConfirmation: app palette only
+ok 74 - 06-OrderConfirmation: pre-redesign palette gone
+ok 75 - 06-OrderConfirmation: shell intact
+ok 76 - 06-OrderConfirmation: no unresolved placeholders
+ok 77 - 06-OrderConfirmation: no em or en dash
+ok 78 - 06-OrderConfirmation: email-safe layout
+ok 79 - 06-OrderConfirmation: responsive rules + mobile CTA
+ok 80 - 06-OrderConfirmation: brand lockup with real logo
+ok 81 - 06-OrderConfirmation: slim footer only (brand, contact, policies, copyright)
+ok 82 - 06-OrderConfirmation: footer is not an oversized corporate block
+ok 83 - 06-OrderConfirmation: CTA uses --primary and keeps a link fallback
+ok 84 - 06-OrderConfirmation: unsubscribe only when marketing
+ok 85 - 06-OrderConfirmation: plain-text part is markup-free
+ok 86 - 06-OrderConfirmation: plain text is complete
+ok 87 - 06-OrderConfirmation: plain text keeps the app link
+ok 88 - 07-OrderStatusUpdate: app palette only
+ok 89 - 07-OrderStatusUpdate: pre-redesign palette gone
+ok 90 - 07-OrderStatusUpdate: shell intact
+ok 91 - 07-OrderStatusUpdate: no unresolved placeholders
+ok 92 - 07-OrderStatusUpdate: no em or en dash
+ok 93 - 07-OrderStatusUpdate: email-safe layout
+ok 94 - 07-OrderStatusUpdate: responsive rules + mobile CTA
+ok 95 - 07-OrderStatusUpdate: brand lockup with real logo
+ok 96 - 07-OrderStatusUpdate: slim footer only (brand, contact, policies, copyright)
+ok 97 - 07-OrderStatusUpdate: footer is not an oversized corporate block
+ok 98 - 07-OrderStatusUpdate: CTA uses --primary and keeps a link fallback
+ok 99 - 07-OrderStatusUpdate: unsubscribe only when marketing
+ok 100 - 07-OrderStatusUpdate: plain-text part is markup-free
+ok 101 - 07-OrderStatusUpdate: plain text is complete
+ok 102 - 07-OrderStatusUpdate: plain text keeps the app link
+ok 103 - 08-PaymentReceipt: app palette only
+ok 104 - 08-PaymentReceipt: pre-redesign palette gone
+ok 105 - 08-PaymentReceipt: shell intact
+ok 106 - 08-PaymentReceipt: no unresolved placeholders
+ok 107 - 08-PaymentReceipt: no em or en dash
+ok 108 - 08-PaymentReceipt: email-safe layout
+ok 109 - 08-PaymentReceipt: responsive rules + mobile CTA
+ok 110 - 08-PaymentReceipt: brand lockup with real logo
+ok 111 - 08-PaymentReceipt: slim footer only (brand, contact, policies, copyright)
+ok 112 - 08-PaymentReceipt: footer is not an oversized corporate block
+ok 113 - 08-PaymentReceipt: CTA uses --primary and keeps a link fallback
+ok 114 - 08-PaymentReceipt: unsubscribe only when marketing
+ok 115 - 08-PaymentReceipt: plain-text part is markup-free
+ok 116 - 08-PaymentReceipt: plain text is complete
+ok 117 - 08-PaymentReceipt: plain text keeps the app link
+ok 118 - 09-PaymentFailed: app palette only
+ok 119 - 09-PaymentFailed: pre-redesign palette gone
+ok 120 - 09-PaymentFailed: shell intact
+ok 121 - 09-PaymentFailed: no unresolved placeholders
+ok 122 - 09-PaymentFailed: no em or en dash
+ok 123 - 09-PaymentFailed: email-safe layout
+ok 124 - 09-PaymentFailed: responsive rules + mobile CTA
+ok 125 - 09-PaymentFailed: brand lockup with real logo
+ok 126 - 09-PaymentFailed: slim footer only (brand, contact, policies, copyright)
+ok 127 - 09-PaymentFailed: footer is not an oversized corporate block
+ok 128 - 09-PaymentFailed: CTA uses --primary and keeps a link fallback
+ok 129 - 09-PaymentFailed: unsubscribe only when marketing
+ok 130 - 09-PaymentFailed: plain-text part is markup-free
+ok 131 - 09-PaymentFailed: plain text is complete
+ok 132 - 09-PaymentFailed: plain text keeps the app link
+ok 133 - 10-OrderRequestReceived: app palette only
+ok 134 - 10-OrderRequestReceived: pre-redesign palette gone
+ok 135 - 10-OrderRequestReceived: shell intact
+ok 136 - 10-OrderRequestReceived: no unresolved placeholders
+ok 137 - 10-OrderRequestReceived: no em or en dash
+ok 138 - 10-OrderRequestReceived: email-safe layout
+ok 139 - 10-OrderRequestReceived: responsive rules + mobile CTA
+ok 140 - 10-OrderRequestReceived: brand lockup with real logo
+ok 141 - 10-OrderRequestReceived: slim footer only (brand, contact, policies, copyright)
+ok 142 - 10-OrderRequestReceived: footer is not an oversized corporate block
+ok 143 - 10-OrderRequestReceived: CTA uses --primary and keeps a link fallback
+ok 144 - 10-OrderRequestReceived: unsubscribe only when marketing
+ok 145 - 10-OrderRequestReceived: plain-text part is markup-free
+ok 146 - 10-OrderRequestReceived: plain text is complete
+ok 147 - 10-OrderRequestReceived: plain text keeps the app link
+ok 148 - 11-OrderMessageNotification: app palette only
+ok 149 - 11-OrderMessageNotification: pre-redesign palette gone
+ok 150 - 11-OrderMessageNotification: shell intact
+ok 151 - 11-OrderMessageNotification: no unresolved placeholders
+ok 152 - 11-OrderMessageNotification: no em or en dash
+ok 153 - 11-OrderMessageNotification: email-safe layout
+ok 154 - 11-OrderMessageNotification: responsive rules + mobile CTA
+ok 155 - 11-OrderMessageNotification: brand lockup with real logo
+ok 156 - 11-OrderMessageNotification: slim footer only (brand, contact, policies, copyright)
+ok 157 - 11-OrderMessageNotification: footer is not an oversized corporate block
+ok 158 - 11-OrderMessageNotification: CTA uses --primary and keeps a link fallback
+ok 159 - 11-OrderMessageNotification: unsubscribe only when marketing
+ok 160 - 11-OrderMessageNotification: plain-text part is markup-free
+ok 161 - 11-OrderMessageNotification: plain text is complete
+ok 162 - 11-OrderMessageNotification: plain text keeps the app link
+ok 163 - 12-OrderQuoteReady: app palette only
+ok 164 - 12-OrderQuoteReady: pre-redesign palette gone
+ok 165 - 12-OrderQuoteReady: shell intact
+ok 166 - 12-OrderQuoteReady: no unresolved placeholders
+ok 167 - 12-OrderQuoteReady: no em or en dash
+ok 168 - 12-OrderQuoteReady: email-safe layout
+ok 169 - 12-OrderQuoteReady: responsive rules + mobile CTA
+ok 170 - 12-OrderQuoteReady: brand lockup with real logo
+ok 171 - 12-OrderQuoteReady: slim footer only (brand, contact, policies, copyright)
+ok 172 - 12-OrderQuoteReady: footer is not an oversized corporate block
+ok 173 - 12-OrderQuoteReady: CTA uses --primary and keeps a link fallback
+ok 174 - 12-OrderQuoteReady: unsubscribe only when marketing
+ok 175 - 12-OrderQuoteReady: plain-text part is markup-free
+ok 176 - 12-OrderQuoteReady: plain text is complete
+ok 177 - 12-OrderQuoteReady: plain text keeps the app link
+ok 178 - 13-DesignProofReady: app palette only
+ok 179 - 13-DesignProofReady: pre-redesign palette gone
+ok 180 - 13-DesignProofReady: shell intact
+ok 181 - 13-DesignProofReady: no unresolved placeholders
+ok 182 - 13-DesignProofReady: no em or en dash
+ok 183 - 13-DesignProofReady: email-safe layout
+ok 184 - 13-DesignProofReady: responsive rules + mobile CTA
+ok 185 - 13-DesignProofReady: brand lockup with real logo
+ok 186 - 13-DesignProofReady: slim footer only (brand, contact, policies, copyright)
+ok 187 - 13-DesignProofReady: footer is not an oversized corporate block
+ok 188 - 13-DesignProofReady: CTA uses --primary and keeps a link fallback
+ok 189 - 13-DesignProofReady: unsubscribe only when marketing
+ok 190 - 13-DesignProofReady: plain-text part is markup-free
+ok 191 - 13-DesignProofReady: plain text is complete
+ok 192 - 13-DesignProofReady: plain text keeps the app link
+ok 193 - 14-DesignProofApproved: app palette only
+ok 194 - 14-DesignProofApproved: pre-redesign palette gone
+ok 195 - 14-DesignProofApproved: shell intact
+ok 196 - 14-DesignProofApproved: no unresolved placeholders
+ok 197 - 14-DesignProofApproved: no em or en dash
+ok 198 - 14-DesignProofApproved: email-safe layout
+ok 199 - 14-DesignProofApproved: responsive rules + mobile CTA
+ok 200 - 14-DesignProofApproved: brand lockup with real logo
+ok 201 - 14-DesignProofApproved: slim footer only (brand, contact, policies, copyright)
+ok 202 - 14-DesignProofApproved: footer is not an oversized corporate block
+ok 203 - 14-DesignProofApproved: CTA uses --primary and keeps a link fallback
+ok 204 - 14-DesignProofApproved: unsubscribe only when marketing
+ok 205 - 14-DesignProofApproved: plain-text part is markup-free
+ok 206 - 14-DesignProofApproved: plain text is complete
+ok 207 - 14-DesignProofApproved: plain text keeps the app link
+ok 208 - 15-ContactMessageReceived: app palette only
+ok 209 - 15-ContactMessageReceived: pre-redesign palette gone
+ok 210 - 15-ContactMessageReceived: shell intact
+ok 211 - 15-ContactMessageReceived: no unresolved placeholders
+ok 212 - 15-ContactMessageReceived: no em or en dash
+ok 213 - 15-ContactMessageReceived: email-safe layout
+ok 214 - 15-ContactMessageReceived: responsive rules + mobile CTA
+ok 215 - 15-ContactMessageReceived: brand lockup with real logo
+ok 216 - 15-ContactMessageReceived: slim footer only (brand, contact, policies, copyright)
+ok 217 - 15-ContactMessageReceived: footer is not an oversized corporate block
+ok 218 - 15-ContactMessageReceived: unsubscribe only when marketing
+ok 219 - 15-ContactMessageReceived: plain-text part is markup-free
+ok 220 - 15-ContactMessageReceived: plain text is complete
+ok 221 - 16-ContactReply: app palette only
+ok 222 - 16-ContactReply: pre-redesign palette gone
+ok 223 - 16-ContactReply: shell intact
+ok 224 - 16-ContactReply: no unresolved placeholders
+ok 225 - 16-ContactReply: no em or en dash
+ok 226 - 16-ContactReply: email-safe layout
+ok 227 - 16-ContactReply: responsive rules + mobile CTA
+ok 228 - 16-ContactReply: brand lockup with real logo
+ok 229 - 16-ContactReply: slim footer only (brand, contact, policies, copyright)
+ok 230 - 16-ContactReply: footer is not an oversized corporate block
+ok 231 - 16-ContactReply: unsubscribe only when marketing
+ok 232 - 16-ContactReply: plain-text part is markup-free
+ok 233 - 16-ContactReply: plain text is complete
+ok 234 - 17-ProviderTestEmail: app palette only
+ok 235 - 17-ProviderTestEmail: pre-redesign palette gone
+ok 236 - 17-ProviderTestEmail: shell intact
+ok 237 - 17-ProviderTestEmail: no unresolved placeholders
+ok 238 - 17-ProviderTestEmail: no em or en dash
+ok 239 - 17-ProviderTestEmail: email-safe layout
+ok 240 - 17-ProviderTestEmail: responsive rules + mobile CTA
+ok 241 - 17-ProviderTestEmail: brand lockup with real logo
+ok 242 - 17-ProviderTestEmail: slim footer only (brand, contact, policies, copyright)
+ok 243 - 17-ProviderTestEmail: footer is not an oversized corporate block
+ok 244 - 17-ProviderTestEmail: unsubscribe only when marketing
+ok 245 - 17-ProviderTestEmail: plain-text part is markup-free
+ok 246 - 17-ProviderTestEmail: plain text is complete
+ok 247 - 98-Marketing: app palette only
+ok 248 - 98-Marketing: pre-redesign palette gone
+ok 249 - 98-Marketing: shell intact
+ok 250 - 98-Marketing: no unresolved placeholders
+ok 251 - 98-Marketing: no em or en dash
+ok 252 - 98-Marketing: email-safe layout
+ok 253 - 98-Marketing: responsive rules + mobile CTA
+ok 254 - 98-Marketing: brand lockup with real logo
+ok 255 - 98-Marketing: slim footer only (brand, contact, policies, copyright)
+ok 256 - 98-Marketing: footer is not an oversized corporate block
+ok 257 - 98-Marketing: unsubscribe only when marketing
+ok 258 - 98-Marketing: plain-text part is markup-free
+ok 259 - 98-Marketing: plain text is complete
+ok 260 - 99-OrderConfirmation-Minimal: app palette only
+ok 261 - 99-OrderConfirmation-Minimal: pre-redesign palette gone
+ok 262 - 99-OrderConfirmation-Minimal: shell intact
+ok 263 - 99-OrderConfirmation-Minimal: no unresolved placeholders
+ok 264 - 99-OrderConfirmation-Minimal: no em or en dash
+ok 265 - 99-OrderConfirmation-Minimal: email-safe layout
+ok 266 - 99-OrderConfirmation-Minimal: responsive rules + mobile CTA
+ok 267 - 99-OrderConfirmation-Minimal: brand lockup with real logo
+ok 268 - 99-OrderConfirmation-Minimal: slim footer only (brand, contact, policies, copyright)
+ok 269 - 99-OrderConfirmation-Minimal: footer is not an oversized corporate block
+ok 270 - 99-OrderConfirmation-Minimal: CTA uses --primary and keeps a link fallback
+ok 271 - 99-OrderConfirmation-Minimal: unsubscribe only when marketing
+ok 272 - 99-OrderConfirmation-Minimal: plain-text part is markup-free
+ok 273 - 99-OrderConfirmation-Minimal: plain text is complete
+ok 274 - 99-OrderConfirmation-Minimal: plain text keeps the app link
+ok 275 - A2 contrast body on card 7.58:1 >= 4.5
+ok 276 - A2 contrast muted on card 4.76:1 >= 4.5
+ok 277 - A2 contrast heading on card 17.98:1 >= 4.5
+ok 278 - A2 contrast CTA label on --primary 7.9:1 >= 4.5
+ok 279 - A2 contrast link on card 7.9:1 >= 4.5
+ok 280 - A2 contrast info pill on --primary-50 8.88:1 >= 4.5
+ok 281 - A2 contrast ok pill 7.29:1 >= 4.5
+ok 282 - A2 contrast warn pill 6.84:1 >= 4.5
+ok 283 - A2 contrast bad pill 7.6:1 >= 4.5
+ok 284 - A2 contrast alert info text on #EFF6FF 8.01:1 >= 4.5
+ok 285 - A2 contrast amount on --primary-50 10.22:1 >= 4.5
+ok 01 - register mail -> verify page
+ok 02 - verification token captured for mail
+ok 03 - brevo api-key header present (key loaded at runtime)
+ok 04 - customer mail signed in
+ok 286 - C1 forgot-password email rendered + captured
+ok 287 - live-ForgotPassword: app palette only
+ok 288 - live-ForgotPassword: pre-redesign palette gone
+ok 289 - live-ForgotPassword: shell intact
+ok 290 - live-ForgotPassword: no unresolved placeholders
+ok 291 - live-ForgotPassword: no em or en dash
+ok 292 - live-ForgotPassword: email-safe layout
+ok 293 - live-ForgotPassword: responsive rules + mobile CTA
+ok 294 - live-ForgotPassword: brand lockup with real logo
+ok 295 - live-ForgotPassword: slim footer only (brand, contact, policies, copyright)
+ok 296 - live-ForgotPassword: footer is not an oversized corporate block
+ok 297 - live-ForgotPassword: CTA uses --primary and keeps a link fallback
+ok 298 - live-ForgotPassword: unsubscribe only when marketing
+ok 299 - C2 contact enquiry email rendered + captured
+ok 300 - live-ContactMessageReceived: app palette only
+ok 301 - live-ContactMessageReceived: pre-redesign palette gone
+ok 302 - live-ContactMessageReceived: shell intact
+ok 303 - live-ContactMessageReceived: no unresolved placeholders
+ok 304 - live-ContactMessageReceived: no em or en dash
+ok 305 - live-ContactMessageReceived: email-safe layout
+ok 306 - live-ContactMessageReceived: responsive rules + mobile CTA
+ok 307 - live-ContactMessageReceived: brand lockup with real logo
+ok 308 - live-ContactMessageReceived: slim footer only (brand, contact, policies, copyright)
+ok 309 - live-ContactMessageReceived: footer is not an oversized corporate block
+ok 310 - live-ContactMessageReceived: unsubscribe only when marketing
+ok 05 - owner logged in
+ok 311 - C3 admin settings offers the provider test send
+ok 312 - C3 provider test email rendered + captured
+ok 313 - live-ProviderTestEmail: app palette only
+ok 314 - live-ProviderTestEmail: pre-redesign palette gone
+ok 315 - live-ProviderTestEmail: shell intact
+ok 316 - live-ProviderTestEmail: no unresolved placeholders
+ok 317 - live-ProviderTestEmail: no em or en dash
+ok 318 - live-ProviderTestEmail: email-safe layout
+ok 319 - live-ProviderTestEmail: responsive rules + mobile CTA
+ok 320 - live-ProviderTestEmail: brand lockup with real logo
+ok 321 - live-ProviderTestEmail: slim footer only (brand, contact, policies, copyright)
+ok 322 - live-ProviderTestEmail: footer is not an oversized corporate block
+ok 323 - live-ProviderTestEmail: unsubscribe only when marketing
+ok 324 - C4 contact enquiry listed for staff
+ok 325 - C4 staff contact reply rendered + captured
+ok 326 - live-ContactReply: app palette only
+ok 327 - live-ContactReply: pre-redesign palette gone
+ok 328 - live-ContactReply: shell intact
+ok 329 - live-ContactReply: no unresolved placeholders
+ok 330 - live-ContactReply: no em or en dash
+ok 331 - live-ContactReply: email-safe layout
+ok 332 - live-ContactReply: responsive rules + mobile CTA
+ok 333 - live-ContactReply: brand lockup with real logo
+ok 334 - live-ContactReply: slim footer only (brand, contact, policies, copyright)
+ok 335 - live-ContactReply: footer is not an oversized corporate block
+ok 336 - live-ContactReply: unsubscribe only when marketing
+PASS 01: category created: E2E Mail Shop emailfem
+PASS 01: product created (direct): E2E Mail Mug emailfem
+PASS 02: checkout amount visibility (You will pay)
+PASS 03: lands on /checkout/complete/{order}
+PASS 04: paystack stub checkout opened (order bf11276f)
+ok 337 - C0 order confirmation email rendered + captured
+ok 338 - live-OrderConfirmation: app palette only
+ok 339 - live-OrderConfirmation: pre-redesign palette gone
+ok 340 - live-OrderConfirmation: shell intact
+ok 341 - live-OrderConfirmation: no unresolved placeholders
+ok 342 - live-OrderConfirmation: no em or en dash
+ok 343 - live-OrderConfirmation: email-safe layout
+ok 344 - live-OrderConfirmation: responsive rules + mobile CTA
+ok 345 - live-OrderConfirmation: brand lockup with real logo
+ok 346 - live-OrderConfirmation: slim footer only (brand, contact, policies, copyright)
+ok 347 - live-OrderConfirmation: footer is not an oversized corporate block
+ok 348 - live-OrderConfirmation: CTA uses --primary and keeps a link fallback
+ok 349 - live-OrderConfirmation: unsubscribe only when marketing
+ok 350 - C0 payment receipt email rendered + captured
+ok 351 - live-PaymentReceipt: app palette only
+ok 352 - live-PaymentReceipt: pre-redesign palette gone
+ok 353 - live-PaymentReceipt: shell intact
+ok 354 - live-PaymentReceipt: no unresolved placeholders
+ok 355 - live-PaymentReceipt: no em or en dash
+ok 356 - live-PaymentReceipt: email-safe layout
+ok 357 - live-PaymentReceipt: responsive rules + mobile CTA
+ok 358 - live-PaymentReceipt: brand lockup with real logo
+ok 359 - live-PaymentReceipt: slim footer only (brand, contact, policies, copyright)
+ok 360 - live-PaymentReceipt: footer is not an oversized corporate block
+ok 361 - live-PaymentReceipt: CTA uses --primary and keeps a link fallback
+ok 362 - live-PaymentReceipt: unsubscribe only when marketing
+PASS 02: category created: E2E Mail emailfem
+PASS 03: product created with category: E2E Mail Tee emailfem
+PASS 04: category ordering question retained
+PASS 05: order completed through persisted workspace
+ok 363 - C5 workspace message notification rendered + captured
+ok 364 - live-OrderMessageNotification: app palette only
+ok 365 - live-OrderMessageNotification: pre-redesign palette gone
+ok 366 - live-OrderMessageNotification: shell intact
+ok 367 - live-OrderMessageNotification: no unresolved placeholders
+ok 368 - live-OrderMessageNotification: no em or en dash
+ok 369 - live-OrderMessageNotification: email-safe layout
+ok 370 - live-OrderMessageNotification: responsive rules + mobile CTA
+ok 371 - live-OrderMessageNotification: brand lockup with real logo
+ok 372 - live-OrderMessageNotification: slim footer only (brand, contact, policies, copyright)
+ok 373 - live-OrderMessageNotification: footer is not an oversized corporate block
+ok 374 - live-OrderMessageNotification: CTA uses --primary and keeps a link fallback
+ok 375 - live-OrderMessageNotification: unsubscribe only when marketing
+ok 376 - C6 design-proof email rendered + captured
+ok 377 - live-DesignProofReady: app palette only
+ok 378 - live-DesignProofReady: pre-redesign palette gone
+ok 379 - live-DesignProofReady: shell intact
+ok 380 - live-DesignProofReady: no unresolved placeholders
+ok 381 - live-DesignProofReady: no em or en dash
+ok 382 - live-DesignProofReady: email-safe layout
+ok 383 - live-DesignProofReady: responsive rules + mobile CTA
+ok 384 - live-DesignProofReady: brand lockup with real logo
+ok 385 - live-DesignProofReady: slim footer only (brand, contact, policies, copyright)
+ok 386 - live-DesignProofReady: footer is not an oversized corporate block
+ok 387 - live-DesignProofReady: CTA uses --primary and keeps a link fallback
+ok 388 - live-DesignProofReady: unsubscribe only when marketing
+ok 389 - C7 unsubscribe page uses the app brand lockup
+ok 390 - B1 stub captured live sends
+ok 391 - B2 live send is markup and shell (Your DE-CHIMEX password was changed)
+ok 392 - B2 live send keeps app palette (Your DE-CHIMEX password was changed)
+ok 393 - B2 live plain text is markup-free (Your DE-CHIMEX password was changed)
+ok 394 - B2 live send has a recipient (Your DE-CHIMEX password was changed)
+ok 395 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 396 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 397 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 398 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 399 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 400 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 401 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 402 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 403 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 404 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 405 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 406 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 407 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 408 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 409 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 410 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 411 - B2 live send is markup and shell (Payment receipt for order DCX-2026-000)
+ok 412 - B2 live send keeps app palette (Payment receipt for order DCX-2026-000)
+ok 413 - B2 live plain text is markup-free (Payment receipt for order DCX-2026-000)
+ok 414 - B2 live send has a recipient (Payment receipt for order DCX-2026-000)
+ok 415 - B2 live send is markup and shell (Your order DCX-2026-000001 is confirme)
+ok 416 - B2 live send keeps app palette (Your order DCX-2026-000001 is confirme)
+ok 417 - B2 live plain text is markup-free (Your order DCX-2026-000001 is confirme)
+ok 418 - B2 live send has a recipient (Your order DCX-2026-000001 is confirme)
+ok 419 - B2 live send is markup and shell (Payment failed for DCX-2026-000002)
+ok 420 - B2 live send keeps app palette (Payment failed for DCX-2026-000002)
+ok 421 - B2 live plain text is markup-free (Payment failed for DCX-2026-000002)
+ok 422 - B2 live send has a recipient (Payment failed for DCX-2026-000002)
+ok 423 - B2 live send is markup and shell (Payment receipt for order DCX-2026-000)
+ok 424 - B2 live send keeps app palette (Payment receipt for order DCX-2026-000)
+ok 425 - B2 live plain text is markup-free (Payment receipt for order DCX-2026-000)
+ok 426 - B2 live send has a recipient (Payment receipt for order DCX-2026-000)
+ok 427 - B2 live send is markup and shell (Your order DCX-2026-000002 is confirme)
+ok 428 - B2 live send keeps app palette (Your order DCX-2026-000002 is confirme)
+ok 429 - B2 live plain text is markup-free (Your order DCX-2026-000002 is confirme)
+ok 430 - B2 live send has a recipient (Your order DCX-2026-000002 is confirme)
+ok 431 - B2 live send is markup and shell (Update on your order DCX-2026-000003)
+ok 432 - B2 live send keeps app palette (Update on your order DCX-2026-000003)
+ok 433 - B2 live plain text is markup-free (Update on your order DCX-2026-000003)
+ok 434 - B2 live send has a recipient (Update on your order DCX-2026-000003)
+ok 435 - B2 live send is markup and shell (Update on your order DCX-2026-000002)
+ok 436 - B2 live send keeps app palette (Update on your order DCX-2026-000002)
+ok 437 - B2 live plain text is markup-free (Update on your order DCX-2026-000002)
+ok 438 - B2 live send has a recipient (Update on your order DCX-2026-000002)
+ok 439 - B2 live send is markup and shell (We received your order request DCX-202)
+ok 440 - B2 live send keeps app palette (We received your order request DCX-202)
+ok 441 - B2 live plain text is markup-free (We received your order request DCX-202)
+ok 442 - B2 live send has a recipient (We received your order request DCX-202)
+ok 443 - B2 live send is markup and shell (Your quote for DCX-2026-000004 is read)
+ok 444 - B2 live send keeps app palette (Your quote for DCX-2026-000004 is read)
+ok 445 - B2 live plain text is markup-free (Your quote for DCX-2026-000004 is read)
+ok 446 - B2 live send has a recipient (Your quote for DCX-2026-000004 is read)
+ok 447 - B2 live send is markup and shell (Payment receipt for order DCX-2026-000)
+ok 448 - B2 live send keeps app palette (Payment receipt for order DCX-2026-000)
+ok 449 - B2 live plain text is markup-free (Payment receipt for order DCX-2026-000)
+ok 450 - B2 live send has a recipient (Payment receipt for order DCX-2026-000)
+ok 451 - B2 live send is markup and shell (Your order DCX-2026-000004 is confirme)
+ok 452 - B2 live send keeps app palette (Your order DCX-2026-000004 is confirme)
+ok 453 - B2 live plain text is markup-free (Your order DCX-2026-000004 is confirme)
+ok 454 - B2 live send has a recipient (Your order DCX-2026-000004 is confirme)
+ok 455 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 456 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 457 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 458 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 459 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 460 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 461 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 462 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 463 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 464 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 465 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 466 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 467 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 468 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 469 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 470 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 471 - B2 live send is markup and shell (We received your order request DCX-202)
+ok 472 - B2 live send keeps app palette (We received your order request DCX-202)
+ok 473 - B2 live plain text is markup-free (We received your order request DCX-202)
+ok 474 - B2 live send has a recipient (We received your order request DCX-202)
+ok 475 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 476 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 477 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 478 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 479 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 480 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 481 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 482 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 483 - B2 live send is markup and shell (We received your order request DCX-202)
+ok 484 - B2 live send keeps app palette (We received your order request DCX-202)
+ok 485 - B2 live plain text is markup-free (We received your order request DCX-202)
+ok 486 - B2 live send has a recipient (We received your order request DCX-202)
+ok 487 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 488 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 489 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 490 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 491 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 492 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 493 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 494 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 495 - B2 live send is markup and shell (Payment receipt for order DCX-2026-000)
+ok 496 - B2 live send keeps app palette (Payment receipt for order DCX-2026-000)
+ok 497 - B2 live plain text is markup-free (Payment receipt for order DCX-2026-000)
+ok 498 - B2 live send has a recipient (Payment receipt for order DCX-2026-000)
+ok 499 - B2 live send is markup and shell (Your order DCX-2026-000007 is confirme)
+ok 500 - B2 live send keeps app palette (Your order DCX-2026-000007 is confirme)
+ok 501 - B2 live plain text is markup-free (Your order DCX-2026-000007 is confirme)
+ok 502 - B2 live send has a recipient (Your order DCX-2026-000007 is confirme)
+ok 503 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 504 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 505 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 506 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 507 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 508 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 509 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 510 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 511 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 512 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 513 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 514 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 515 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 516 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 517 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 518 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 519 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 520 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 521 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 522 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 523 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 524 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 525 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 526 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 527 - B2 live send is markup and shell (Payment receipt for order DCX-2026-000)
+ok 528 - B2 live send keeps app palette (Payment receipt for order DCX-2026-000)
+ok 529 - B2 live plain text is markup-free (Payment receipt for order DCX-2026-000)
+ok 530 - B2 live send has a recipient (Payment receipt for order DCX-2026-000)
+ok 531 - B2 live send is markup and shell (Your order DCX-2026-000010 is confirme)
+ok 532 - B2 live send keeps app palette (Your order DCX-2026-000010 is confirme)
+ok 533 - B2 live plain text is markup-free (Your order DCX-2026-000010 is confirme)
+ok 534 - B2 live send has a recipient (Your order DCX-2026-000010 is confirme)
+ok 535 - B2 live send is markup and shell (Verify your DE-CHIMEX email)
+ok 536 - B2 live send keeps app palette (Verify your DE-CHIMEX email)
+ok 537 - B2 live plain text is markup-free (Verify your DE-CHIMEX email)
+ok 538 - B2 live send has a recipient (Verify your DE-CHIMEX email)
+ok 539 - B2 live send is markup and shell (Welcome to DE-CHIMEX PRINT HUB)
+ok 540 - B2 live send keeps app palette (Welcome to DE-CHIMEX PRINT HUB)
+ok 541 - B2 live plain text is markup-free (Welcome to DE-CHIMEX PRINT HUB)
+ok 542 - B2 live send has a recipient (Welcome to DE-CHIMEX PRINT HUB)
+ok 543 - B2 live send is markup and shell (Reset your DE-CHIMEX password)
+ok 544 - B2 live send keeps app palette (Reset your DE-CHIMEX password)
+ok 545 - B2 live plain text is markup-free (Reset your DE-CHIMEX password)
+ok 546 - B2 live send has a recipient (Reset your DE-CHIMEX password)
+ok 547 - B2 live send is markup and shell (New contact form message from Mail Tes)
+ok 548 - B2 live send keeps app palette (New contact form message from Mail Tes)
+ok 549 - B2 live plain text is markup-free (New contact form message from Mail Tes)
+ok 550 - B2 live send has a recipient (New contact form message from Mail Tes)
+ok 551 - B2 live send is markup and shell (DE-CHIMEX test email - delivery works)
+ok 552 - B2 live send keeps app palette (DE-CHIMEX test email - delivery works)
+ok 553 - B2 live plain text is markup-free (DE-CHIMEX test email - delivery works)
+ok 554 - B2 live send has a recipient (DE-CHIMEX test email - delivery works)
+ok 555 - B2 live send is markup and shell (Re: your enquiry emailfem)
+ok 556 - B2 live send keeps app palette (Re: your enquiry emailfem)
+ok 557 - B2 live plain text is markup-free (Re: your enquiry emailfem)
+ok 558 - B2 live send has a recipient (Re: your enquiry emailfem)
+ok 559 - B2 live send is markup and shell (Payment receipt for order DCX-2026-000)
+ok 560 - B2 live send keeps app palette (Payment receipt for order DCX-2026-000)
+ok 561 - B2 live plain text is markup-free (Payment receipt for order DCX-2026-000)
+ok 562 - B2 live send has a recipient (Payment receipt for order DCX-2026-000)
+ok 563 - B2 live send is markup and shell (Your order DCX-2026-000011 is confirme)
+ok 564 - B2 live send keeps app palette (Your order DCX-2026-000011 is confirme)
+ok 565 - B2 live plain text is markup-free (Your order DCX-2026-000011 is confirme)
+ok 566 - B2 live send has a recipient (Your order DCX-2026-000011 is confirme)
+ok 567 - B2 live send is markup and shell (We received your order request DCX-202)
+ok 568 - B2 live send keeps app palette (We received your order request DCX-202)
+ok 569 - B2 live plain text is markup-free (We received your order request DCX-202)
+ok 570 - B2 live send has a recipient (We received your order request DCX-202)
+ok 571 - B2 live send is markup and shell (New message on your order DCX-2026-000)
+ok 572 - B2 live send keeps app palette (New message on your order DCX-2026-000)
+ok 573 - B2 live plain text is markup-free (New message on your order DCX-2026-000)
+ok 574 - B2 live send has a recipient (New message on your order DCX-2026-000)
+ok 575 - B2 live send is markup and shell (A design proof for DCX-2026-000012 is )
+ok 576 - B2 live send keeps app palette (A design proof for DCX-2026-000012 is )
+ok 577 - B2 live plain text is markup-free (A design proof for DCX-2026-000012 is )
+ok 578 - B2 live send has a recipient (A design proof for DCX-2026-000012 is )
+    live subjects: ['A design proof for DCX-2026-000012 is ready for approval', 'DE-CHIMEX test email - delivery works', 'New contact form message from Mail Tester emailfem', 'New message on your order DCX-2026-000012', 'Payment failed for DCX-2026-000002', 'Payment receipt for order DCX-2026-000001', 'Payment receipt for order DCX-2026-000002', 'Payment receipt for order DCX-2026-000004', 'Payment receipt for order DCX-2026-000007', 'Payment receipt for order DCX-2026-000010', 'Payment receipt for order DCX-2026-000011', 'Re: your enquiry emailfem', 'Reset your DE-CHIMEX password', 'Update on your order DCX-2026-000002', 'Update on your order DCX-2026-000003', 'Verify your DE-CHIMEX email', 'We received your order request DCX-2026-000004', 'We received your order request DCX-2026-000005', 'We received your order request DCX-2026-000006', 'We received your order request DCX-2026-000012', 'Welcome to DE-CHIMEX PRINT HUB', 'Your DE-CHIMEX password was changed', 'Your order DCX-2026-000001 is confirmed', 'Your order DCX-2026-000002 is confirmed', 'Your order DCX-2026-000004 is confirmed', 'Your order DCX-2026-000007 is confirmed', 'Your order DCX-2026-000010 is confirmed', 'Your order DCX-2026-000011 is confirmed', 'Your quote for DCX-2026-000004 is ready']
+ok 579 - B3 email link resolves on the app () -> 200
+ok 580 - B3 email link resolves on the app (/portal/orders/track) -> 200
+ok 581 - B3 email link resolves on the app (/privacy) -> 200
+ok 582 - B3 email link resolves on the app (/terms) -> 200
+ok 583 - B3 email link resolves on the app (/contact) -> 200
+ok 584 - B3 email link resolves on the app () -> 200
+ok 585 - B3 email link resolves on the app (/Account/VerifyEmail) -> 200
+ok 586 - B3 email link resolves on the app (/privacy) -> 200
+ok 587 - B3 email link resolves on the app (/terms) -> 200
+ok 588 - B3 email link resolves on the app (/contact) -> 200
+ok 589 - B3 email link resolves on the app () -> 200
+ok 590 - B3 email link resolves on the app () -> 200
+ok 591 - B3 email link resolves on the app (/privacy) -> 200
+ok 592 - B3 email link resolves on the app (/terms) -> 200
+ok 593 - B3 email link resolves on the app (/contact) -> 200
+ok 594 - B3 email link resolves on the app () -> 200
+ok 595 - B3 email link resolves on the app (/Account/ResetPassword) -> 200
+ok 596 - B3 email link resolves on the app (/privacy) -> 200
+ok 597 - B3 email link resolves on the app (/terms) -> 200
+ok 598 - B3 email link resolves on the app (/contact) -> 200
+ok 599 - B3 email link resolves on the app () -> 200
+ok 600 - B3 email link resolves on the app (/privacy) -> 200
+ok 601 - B3 email link resolves on the app (/terms) -> 200
+ok 602 - B3 email link resolves on the app (/contact) -> 200
+ok 603 - B3 email link resolves on the app () -> 200
+ok 604 - B3 email link resolves on the app (/privacy) -> 200
+ok 605 - B3 email link resolves on the app (/terms) -> 200
+ok 606 - B3 email link resolves on the app (/contact) -> 200
+ok 607 - B3 email link resolves on the app () -> 200
+ok 608 - B3 email link resolves on the app (/privacy) -> 200
+ok 609 - B3 email link resolves on the app (/terms) -> 200
+ok 610 - B3 email link resolves on the app (/contact) -> 200
+ok 611 - B3 email link resolves on the app () -> 200
+ok 612 - B3 email link resolves on the app (/portal/orders/track) -> 200
+ok 613 - B3 email link resolves on the app (/privacy) -> 200
+ok 614 - B3 email link resolves on the app (/terms) -> 200
+ok 615 - B3 email link resolves on the app (/contact) -> 200
+ok 616 - B3 email link resolves on the app () -> 200
+ok 617 - B3 email link resolves on the app (/portal/orders/track) -> 200
+ok 618 - B3 email link resolves on the app (/privacy) -> 200
+ok 619 - B3 email link resolves on the app (/terms) -> 200
+ok 620 - B3 email link resolves on the app (/contact) -> 200
+ok 621 - B3 email link resolves on the app () -> 200
+ok 622 - B3 email link resolves on the app (/portal/orders/535ece09-68b3-4d1a-b6eb-023fc) -> 200
+ok 623 - B3 email link resolves on the app (/privacy) -> 200
+ok 624 - B3 email link resolves on the app (/terms) -> 200
+ok 625 - B3 email link resolves on the app (/contact) -> 200
+ok 626 - B3 email link resolves on the app () -> 200
+ok 627 - B3 email link resolves on the app (/portal/orders/535ece09-68b3-4d1a-b6eb-023fc) -> 200
+ok 628 - B3 email link resolves on the app (/privacy) -> 200
+ok 629 - B3 email link resolves on the app (/terms) -> 200
+ok 630 - B3 email link resolves on the app (/contact) -> 200
+ok 631 - B3 email link resolves on the app () -> 200
+ok 632 - B3 email link resolves on the app (/portal/orders/535ece09-68b3-4d1a-b6eb-023fc) -> 200
+ok 633 - B3 email link resolves on the app (/privacy) -> 200
+ok 634 - B3 email link resolves on the app (/terms) -> 200
+ok 635 - B3 email link resolves on the app (/contact) -> 200
+ok 636 - B3 link sweep actually looked at links
+    rendered templates: ['ContactMessageReceived', 'ContactReply', 'DesignProofApproved', 'DesignProofReady', 'EmailVerification', 'ForgotPassword', 'Marketing', 'OrderConfirmation', 'OrderConfirmation-Minimal', 'OrderMessageNotification', 'OrderQuoteReady', 'OrderRequestReceived', 'OrderStatusUpdate', 'Otp', 'PasswordResetConfirmation', 'PaymentFailed', 'PaymentReceipt', 'ProviderTestEmail', 'Welcome']
+RESULT: 636 passed, 0 failed (TAG=emailfem)

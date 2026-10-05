@@ -1,0 +1,46 @@
+@model FeeDetail
+@{ var r = Model.Row; }
+<p><a href="/dev/service-fees/ledger">← Ledger</a></p>
+<div class="dv-grid dv-g2">
+    <section class="dv-card">
+        <div class="dv-card-head"><h2 class="dv-mono">@r.Reference</h2>@DevUi.Status(r.Status)</div>
+        <dl class="dv-kv">
+            <dt>Order</dt><dd class="dv-mono">@r.OrderNumber <span class="dv-muted">(@r.OrderKind · @(Model.OrderStatus ?? "none"))</span></dd>
+            <dt>Fee status</dt><dd><strong>@r.FeeStatus</strong></dd>
+            <dt>Attempted</dt><dd>@DevUi.Utc(r.AttemptUtc)</dd>
+            <dt>Paid</dt><dd>@DevUi.Utc(r.PaidUtc)</dd>
+            <dt>Refunded</dt><dd>@DevUi.Utc(r.RefundedUtc)@if (r.RefundReference is not null) { <span class="dv-mono dv-small"> · @r.RefundReference</span> }</dd>
+            @if (Model.FailureReason is not null) { <dt>Failure reason</dt><dd>@Model.FailureReason</dd> }
+        </dl>
+    </section>
+    <section class="dv-card">
+        <h2>Amounts (@Model.Currency)</h2>
+        <dl class="dv-kv">
+            <dt>Order amount</dt><dd>@DevUi.Naira(r.OrderAmount)</dd>
+            <dt>Percentage applied</dt><dd>@DevUi.Pct(r.Percent) <span class="dv-muted dv-small">(snapshotted at checkout)</span></dd>
+            <dt>Service fee</dt><dd><strong>@DevUi.Naira(r.ServiceFee)</strong></dd>
+            <dt>Charged to customer</dt><dd>@DevUi.Naira(r.TransactionAmount)</dd>
+            <dt>Paystack fee (expected)</dt><dd>@DevUi.Naira(r.PaystackFeeExpected)</dd>
+            <dt>Paystack fee (actual)</dt><dd>@(r.PaystackFeeActual is { } a ? DevUi.Naira(a) : "not reported")</dd>
+            <dt>Net fee counted</dt><dd><strong>@DevUi.Naira(r.NetFee)</strong></dd>
+        </dl>
+    </section>
+</div>
+<section class="dv-card" style="margin-top:12px">
+    <h2>All payment attempts for this order</h2>
+    <div class="dv-table-wrap"><table class="dv-table"><thead><tr><th>Reference</th><th>Method</th><th>Status</th><th>Created</th><th>Paid</th><th class="num">%</th><th class="num">Fee</th><th>Failure</th></tr></thead><tbody>
+    @foreach (var at in Model.Attempts)
+    {
+        <tr class="@(at.Id == r.PaymentId ? "is-current" : "")">
+            <td class="dv-mono dv-small">@if (at.Method == "Paystack" && at.Id != r.PaymentId) { <a href="/dev/service-fees/@at.Id">@at.Reference</a> } else { @at.Reference }@if (at.Id == r.PaymentId) { <span class="dv-muted"> (this)</span> }</td>
+            <td>@at.Method</td><td>@DevUi.Status(at.Status)</td><td class="dv-small">@DevUi.Utc(at.CreatedUtc)</td><td class="dv-small">@DevUi.Utc(at.PaidUtc)</td>
+            <td class="num">@DevUi.Pct(at.Percent)</td><td class="num">@DevUi.Naira(at.Fee)</td><td class="dv-small">@at.FailureReason</td>
+        </tr>
+    }
+    </tbody></table></div>
+</section>
+<section class="dv-card" style="margin-top:12px">
+    <h2>Paystack calls for this reference</h2>
+    <partial name="~/Views/Dev/_Calls.cshtml" model="Model.Calls" />
+</section>
+<partial name="~/Views/Dev/_FeeRules.cshtml" />

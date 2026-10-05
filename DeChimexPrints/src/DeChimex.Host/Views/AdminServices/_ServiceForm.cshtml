@@ -1,0 +1,49 @@
+@model DeChimex.Host.Models.Admin.ServiceFormViewModel
+@{
+    // The icon accent is auto-assigned from the curated palette (see ServiceIconPalette).
+    // For Create the controller assigns a colour; for Edit it preserves the stored one.
+    var iconColor = string.IsNullOrWhiteSpace(Model.IconColor) ? ServiceIconPalette.DefaultColor : Model.IconColor!;
+}
+<div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+<div class="field">
+    <label class="label" asp-for="Name">Name <span class="req">*</span></label>
+    <input class="input" asp-for="Name" />
+    <span asp-validation-for="Name" class="field-error"></span>
+</div>
+
+<div class="field">
+    <label class="label" asp-for="Description">Description</label>
+    <textarea class="input" asp-for="Description" rows="3"></textarea>
+    <span asp-validation-for="Description" class="field-error"></span>
+</div>
+
+<div class="field">
+    <label class="label" asp-for="BasePrice">Base price (₦) <span class="req">*</span></label>
+    <input class="input" asp-for="BasePrice" type="number" step="0.01" min="0" />
+    <span asp-validation-for="BasePrice" class="field-error"></span>
+</div>
+
+<div class="field">
+    <label class="label">Icon accent</label>
+    <input type="hidden" asp-for="IconColor" value="@iconColor" />
+    <div class="service-color-preview" id="service-color-preview" data-color="@iconColor">
+        <span class="feature-ic" style="background:@(iconColor)22;color:@iconColor;margin-bottom:0" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+        </span>
+        <span class="service-color-value" id="service-color-value" style="color:@iconColor">@iconColor</span>
+    </div>
+    <p class="field-hint">A soft accent is chosen automatically from the DeChimex palette so each service card stays colourful yet subtle. You don't need to pick one.</p>
+</div>
+
+<div class="field">
+    <label class="flex items-center gap-2 text-sm">
+        <input class="checkbox" asp-for="IsFeatured" /> Featured on storefront
+    </label>
+</div>
+
+<div class="field">
+    <label class="flex items-center gap-2 text-sm">
+        <input class="checkbox" asp-for="IsActive" /> Active (shown in the store)
+    </label>
+</div>

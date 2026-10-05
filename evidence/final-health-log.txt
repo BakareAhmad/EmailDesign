@@ -1,0 +1,49 @@
+{
+    "status": "Healthy",
+    "totalDurationMs": 70.81,
+    "timestamp": "2026-10-05T19:20:33.494926Z",
+    "entries": [
+        {
+            "name": "database",
+            "status": "Healthy",
+            "description": null,
+            "durationMs": 24.36,
+            "error": null,
+            "tags": [
+                "ready"
+            ]
+        },
+        {
+            "name": "paystack",
+            "status": "Healthy",
+            "description": "Paystack reachable (HTTP 404).",
+            "durationMs": 53.49,
+            "error": null,
+            "tags": [
+                "external",
+                "paystack"
+            ]
+        },
+        {
+            "name": "brevo",
+            "status": "Healthy",
+            "description": "Brevo reachable (HTTP 200).",
+            "durationMs": 41.16,
+            "error": null,
+            "tags": [
+                "external",
+                "brevo"
+            ]
+        },
+        {
+            "name": "runtime",
+            "status": "Healthy",
+            "description": "runtime ok: 0 open realtime connection(s); upload storage writable (both roots).",
+            "durationMs": 15.46,
+            "error": null,
+            "tags": [
+                "ready"
+            ]
+        }
+    ]
+}

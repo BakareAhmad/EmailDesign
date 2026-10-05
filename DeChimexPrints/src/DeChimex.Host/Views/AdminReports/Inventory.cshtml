@@ -1,0 +1,19 @@
+@model IReadOnlyList<DeChimex.Host.Models.Admin.InventoryReportRow>
+@{
+    Layout = "_AdminLayout";
+}
+<div class="card">
+    <div class="card-head"><h3>Inventory movement</h3></div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>Product</th><th>Stock in</th><th>Stock out</th><th>Adjustments</th></tr></thead>
+            <tbody>
+                @if (Model.Count == 0) { <tr><td colspan="4" class="text-muted">No movements.</td></tr> }
+                @foreach (var r in Model)
+                {
+                    <tr><td>@r.Product</td><td>@r.StockIn</td><td>@r.StockOut</td><td>@r.Adjustments</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

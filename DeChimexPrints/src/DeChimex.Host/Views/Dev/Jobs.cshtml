@@ -1,0 +1,22 @@
+@model IReadOnlyList<DeChimex.Application.Common.Interfaces.JobStatusSnapshot>
+<p class="dv-note">Live state since the process started. Every failure is also written to the <a href="/dev/logs?category=BackgroundJob">technical log</a>, so failure history survives restarts. A recurring job is <strong>Stale</strong> when it has not completed within 3× its interval.</p>
+<section class="dv-card" style="margin-top:12px">
+    <div class="dv-table-wrap"><table class="dv-table">
+        <thead><tr><th>Job</th><th>State</th><th>Last run</th><th>Last success</th><th>Last failure</th><th class="num">OK / failed</th><th class="num">Duration (last / max)</th><th>Next run</th></tr></thead>
+        <tbody>
+        @foreach (var j in Model)
+        {
+            <tr>
+                <td><strong>@j.Name</strong><div class="dv-muted dv-small">@j.Description</div><div class="dv-muted dv-small">@(j.Recurring ? (j.ExpectedInterval is { } iv ? $"every {DevUi.Duration(iv)}" : "recurring") : "on demand / one-shot")</div></td>
+                <td>@DevUi.Status(j.State)@if (j.ConsecutiveFailures > 0) { <div class="dv-small">@j.ConsecutiveFailures consecutive failure(s)</div> }</td>
+                <td class="dv-small">@DevUi.Ago(j.LastCompletedUtc ?? j.LastStartedUtc)<div class="dv-muted">@j.LastNote</div></td>
+                <td class="dv-small">@DevUi.Ago(j.LastSuccessUtc)</td>
+                <td class="dv-small">@DevUi.Ago(j.LastFailureUtc)<div class="dv-wrap">@j.LastFailureMessage</div></td>
+                <td class="num">@DevUi.Num(j.SuccessCount) / @DevUi.Num(j.FailureCount)</td>
+                <td class="num">@DevUi.Ms(j.LastDurationMs) / @DevUi.Ms(j.MaxDurationMs)</td>
+                <td class="dv-small">@(j.NextExpectedUtc is { } n ? (n < DateTime.UtcNow ? "due now" : "in " + DevUi.Duration(n - DateTime.UtcNow)) : "—")</td>
+            </tr>
+        }
+        </tbody>
+    </table></div>
+</section>

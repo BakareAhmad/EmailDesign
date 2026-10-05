@@ -1,0 +1,2 @@
+WRITE: committed real business aggregate and audit row; process exiting.
+READ: new process recovered the persisted activity; relational access/filter queries executed successfully.

@@ -1,0 +1,122 @@
+@model DeChimex.Contracts.Marketing.MarketingBroadcastDetailsDto
+@{
+    Layout = "_AdminLayout";
+    var b = Model.Broadcast;
+    var canManage = User.HasClaim("permission", "marketing.manage");
+    var isDraft = b.Status == "Draft";
+    var isCompleted = b.Status == "Completed";
+}
+<div class="toolbar" style="margin-bottom:16px">
+    <a class="btn btn-outline btn-sm" asp-action="Index" aria-label="Back to broadcasts">← Broadcasts</a>
+    <span style="flex:1"></span>
+    @if (canManage && isDraft)
+    {
+        <form method="post" asp-action="Send" asp-route-id="@b.Id" style="display:inline"
+              onsubmit="return confirm('Send this broadcast to @b.RecipientCount current eligible recipients? Emails go out in the background.');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-primary btn-sm">Send to eligible customers</button>
+        </form>
+    }
+    @if (canManage && isCompleted && b.FailedCount > 0)
+    {
+        <form method="post" asp-action="Retry" asp-route-id="@b.Id" style="display:inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline btn-sm">Retry @b.FailedCount failed</button>
+        </form>
+    }
+    <a class="btn btn-ghost btn-sm" asp-action="Preview" asp-route-id="@b.Id" target="_blank">Preview email</a>
+</div>
+
+@if (TempData["Success"] is string ok)
+{
+    <div class="flash flash-success" role="status" style="margin-bottom:14px">@ok</div>
+}
+@if (TempData["Error"] is string err)
+{
+    <div class="flash flash-error" role="alert" style="margin-bottom:14px">@err</div>
+}
+
+<div class="g g-12">
+    <div class="col-8">
+        <div class="card">
+            <div class="card-head">
+                <div>
+                    <h3 style="font-size:16px;font-weight:800">@b.Subject</h3>
+                    <p class="text-muted" style="font-size:13px;margin-top:2px">
+                        Created @b.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy HH:mm") by @(b.CreatedBy ?? "admin")
+                        @(b.QueuedAtUtc is { } q ? $" · sent {q.ToLocalTime():d MMM yyyy HH:mm}" : "")
+                        @(b.CompletedAtUtc is { } c ? $" · completed {c.ToLocalTime():d MMM yyyy HH:mm}" : "")
+                    </p>
+                </div>
+                <div>
+                    @switch (b.Status)
+                    {
+                        case "Draft":
+                            <span class="badge badge-neutral">Draft</span> break;
+                        case "Queued":
+                            <span class="badge badge-warning">Queued</span> break;
+                        case "Sending":
+                            <span class="badge badge-warning">Sending…</span> break;
+                        default:
+                            <span class="badge badge-success">Completed</span> break;
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                @* HtmlContent is sanitized on save (MarketingHtmlSanitizer) and this
+                   iframe is fully sandboxed (no scripts, no same-origin). Render it RAW:
+                   Razor attribute-encodes it exactly once for attribute transport. The
+                   previous WebUtility.HtmlEncode wrapper double-encoded the content and
+                   the preview displayed literal entity soup instead of the email. *@
+                <iframe srcdoc="@Model.HtmlContent"
+                        sandbox style="width:100%;height:440px;border:1px solid var(--n-200);border-radius:10px;background:#fff"></iframe>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card" style="margin-bottom:16px">
+            <div class="card-head"><h3 style="font-size:14px;font-weight:800">Delivery</h3></div>
+            <div class="card-body" style="font-size:14px">
+                <div class="flex justify-between mb-2"><span class="text-muted">Recipients</span><b>@b.RecipientCount</b></div>
+                <div class="flex justify-between mb-2"><span class="text-muted">Delivered</span><b style="color:#059669">@b.SentCount</b></div>
+                <div class="flex justify-between mb-2"><span class="text-muted">Failed</span><b style="color:@(b.FailedCount > 0 ? "#DC2626" : "inherit")">@b.FailedCount</b></div>
+                <div class="flex justify-between"><span class="text-muted">Pending</span><b>@(b.RecipientCount - b.SentCount - b.FailedCount)</b></div>
+                @if (b.Status == "Queued" || b.Status == "Sending")
+                {
+                    <p class="text-muted" style="font-size:12px;margin-top:10px">The background worker delivers this in batches; this page updates on refresh.</p>
+                }
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-head"><h3 style="font-size:14px;font-weight:800">Recipients</h3></div>
+            <div class="card-body" style="max-height:420px;overflow:auto;padding:0">
+                <table class="table">
+                    <thead><tr><th>Email</th><th>Status</th></tr></thead>
+                    <tbody>
+                        @foreach (var r in Model.Recipients)
+                        {
+                            <tr>
+                                <td style="font-size:13px">@r.Email</td>
+                                <td>
+                                    @switch (r.Status)
+                                    {
+                                        case "Sent":
+                                            <span class="badge badge-success">Sent</span> break;
+                                        case "Failed":
+                                            <span class="badge badge-error" title="@r.FailureReason">Failed</span> break;
+                                        default:
+                                            <span class="badge badge-neutral">Pending</span> break;
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        @if (Model.Recipients.Count == 0)
+                        {
+                            <tr><td colspan="2" class="table-empty text-muted" style="padding:18px">Recipients are snapshotted when the broadcast is sent.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

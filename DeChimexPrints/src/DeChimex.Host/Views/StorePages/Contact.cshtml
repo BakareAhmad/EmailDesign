@@ -1,0 +1,102 @@
+@model DeChimex.Host.Models.Store.ContactFormViewModel
+@using DeChimex.Host
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = "Contact";
+    ViewData["ActiveNav"] = "contact";
+    var biz = ViewBag.Business as Dictionary<string, string> ?? new Dictionary<string, string>();
+    string Get(string k, string fb = "") => biz.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fb;
+    string FirstError(string prop) => ViewData.ModelState.TryGetValue(prop, out var st) && st.Errors.Count > 0 ? st.Errors[0].ErrorMessage : "";
+    var services = ViewBag.Services as IReadOnlyList<DeChimex.Contracts.Services.ServiceDto> ?? new List<DeChimex.Contracts.Services.ServiceDto>();
+    var bizEmail = Get("business.email", "chimexgraphics@gmail.com");
+    var bizAddress = Get("business.address", "Nepa Road, Sapon, Abeokuta, Ogun State.");
+    var pickupAddress = Get("business.pickup_address", "Awe Crescent, Elediye, Somolu, Lagos State.");
+    var rawPhones = Get("business.phone", "+234 906 205 1934, +234 903 424 5882");
+    var phoneList = rawPhones.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+    if (phoneList.Count == 0) phoneList.Add("+234 906 205 1934");
+    var waUrl = DeChimex.Shared.WhatsApp.BuildUrl(Get("business.whatsapp"));
+    if (waUrl is null)
+    {
+        var firstPhone = phoneList.FirstOrDefault() ?? "";
+        waUrl = DeChimex.Shared.WhatsApp.BuildUrl(firstPhone) ?? "https://wa.me/2349062051934";
+    }
+    var igUrl = Get("business.instagram", "https://www.instagram.com/chimex_graphics?igsh=MW16OHkxOWxlajJ4YQ==");
+    var ttUrl = Get("business.tiktok", "https://www.tiktok.com/@bosewa?_r=1&_t=ZS-986YrmcyL00");
+    var hours = Get("business.hours", "Monday to Saturday: 8am to 6pm");
+    var m = Model ?? new DeChimex.Host.Models.Store.ContactFormViewModel();
+    var preSvc = Context.Request.Query["service"].ToString();
+}
+
+<div class="cs-wrap cs-wrap-md">
+    <div class="cs-page-head">
+        <h1>Let's talk about your project</h1>
+        <p class="cs-muted">Quotes, bulk orders, bring-your-own-item branding or anything else. Send a message or reach us directly.</p>
+    </div>
+
+    @if (TempData["Success"] is string successMsg)
+    {
+        TempData.Remove("Success");
+        <div class="alert alert-success" role="status" style="margin-bottom:16px">@successMsg</div>
+    }
+
+    <div class="pg-contact">
+        <section class="cs-card cs-card-pad" aria-labelledby="formHeading">
+            <h2 id="formHeading" class="cs-card-title">Send a message</h2>
+            <form id="contactForm" asp-action="ContactPost" method="post" novalidate style="margin-top:10px">
+                <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+                <div class="au-grid-2">
+                    <div class="field">
+                        <label class="label" for="c_name">Full name <span class="req" aria-hidden="true">*</span></label>
+                        <input class="input" id="c_name" name="name" value="@m.Name" autocomplete="name" aria-required="true" aria-describedby="err-c_name" placeholder="Jane Doe">
+                        <div id="err-c_name" class="field-error @(FirstError("Name").Length > 0 ? "" : "hidden")" role="alert">@FirstError("Name")</div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="c_phone">Phone</label>
+                        <input class="input" id="c_phone" name="phone" value="@m.Phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+234…">
+                    </div>
+                </div>
+                <div class="field">
+                    <label class="label" for="c_email">Email <span class="req" aria-hidden="true">*</span></label>
+                    <input class="input" id="c_email" name="email" value="@m.Email" type="email" inputmode="email" autocomplete="email" aria-required="true" aria-describedby="err-c_email" placeholder="you@example.com">
+                    <div id="err-c_email" class="field-error @(FirstError("Email").Length > 0 ? "" : "hidden")" role="alert">@FirstError("Email")</div>
+                </div>
+                <div class="field">
+                    <label class="label" for="svc">What is it about?</label>
+                    <select class="select" id="svc" name="service">
+                        <option value="">General enquiry</option>
+                        @foreach (var s in services)
+                        {
+                            <option value="@s.Name" selected="@(m.Service == s.Name || (string.IsNullOrEmpty(m.Service) && preSvc == s.Name))">@s.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label class="label" for="c_details">Project details <span class="req" aria-hidden="true">*</span></label>
+                    <textarea class="input" id="c_details" name="details" rows="5" aria-required="true" aria-describedby="err-c_details" placeholder="What would you like to print or brand? Quantity, deadline, sizes…">@m.Details</textarea>
+                    <div id="err-c_details" class="field-error @(FirstError("Details").Length > 0 ? "" : "hidden")" role="alert">@FirstError("Details")</div>
+                </div>
+                <button class="btn btn-primary btn-block btn-lg" id="sendBtn" type="submit">Send message</button>
+            </form>
+        </section>
+
+        <aside class="cs-stack" aria-labelledby="reachHeading">
+            <h2 id="reachHeading" class="cs-card-title">Reach us directly</h2>
+            <div class="pg-reach">
+                <a href="@waUrl" target="_blank" rel="noopener" class="cs-wa">@Html.Raw(CustomerIcons.Svg("whatsapp", 20)) <div><b>Chat on WhatsApp</b><span>Fastest way to get a quote</span></div></a>
+                @foreach (var phoneItem in phoneList)
+                {
+                    var digits = new string(phoneItem.Where(char.IsDigit).ToArray());
+                    <a href="tel:+@digits" data-bi-link="phone">@Html.Raw(CustomerIcons.Svg("phone", 20)) <div><b>Call</b><span>@phoneItem</span></div></a>
+                }
+                <a href="mailto:@bizEmail" data-bi-link="email">@Html.Raw(CustomerIcons.Svg("mail", 20)) <div><b>Email</b><span>@bizEmail</span></div></a>
+                <div>@Html.Raw(CustomerIcons.Svg("pin", 20)) <div><b>Studio</b><span data-bi="business.address">@bizAddress</span></div></div>
+                <div>@Html.Raw(CustomerIcons.Svg("box", 20)) <div><b>Pickup point</b><span data-bi="business.pickup_address">@pickupAddress</span></div></div>
+                <div>@Html.Raw(CustomerIcons.Svg("clock", 20)) <div><b>Opening hours</b><span>@hours</span></div></div>
+            </div>
+            <div class="cs-row" style="gap:8px">
+                <a href="@igUrl" target="_blank" rel="noopener" class="btn btn-outline btn-sm">@Html.Raw(CustomerIcons.Svg("instagram", 16)) Instagram</a>
+                <a href="@ttUrl" target="_blank" rel="noopener" class="btn btn-outline btn-sm">@Html.Raw(CustomerIcons.Svg("tiktok", 16)) TikTok</a>
+            </div>
+        </aside>
+    </div>
+</div>

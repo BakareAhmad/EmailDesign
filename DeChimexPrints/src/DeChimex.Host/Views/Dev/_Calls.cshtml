@@ -1,0 +1,26 @@
+@model IReadOnlyList<DeChimex.Domain.Entities.Diagnostics.IntegrationCall>
+@if (Model.Count == 0)
+{
+    <p class="dv-muted dv-small">None in this range.</p>
+}
+else
+{
+    <div class="dv-table-wrap"><table class="dv-table">
+        <thead><tr><th>Time (UTC)</th><th>Call</th><th>Outcome</th><th class="num">HTTP</th><th class="num">Duration</th><th>Reference / template</th><th>Detail</th><th>Correlation</th></tr></thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td class="dv-small dv-nowrap">@c.TimestampUtc.ToString("MM-dd HH:mm:ss")</td>
+                <td>@c.Integration <span class="dv-muted">@c.Operation</span></td>
+                <td>@DevUi.Status(c.Outcome)</td>
+                <td class="num">@(c.HttpStatus?.ToString() ?? "none")</td>
+                <td class="num">@c.DurationMs ms</td>
+                <td class="dv-mono dv-small dv-wrap">@(c.Reference ?? c.Template)@if (c.RecipientCategory is not null) { <div class="dv-muted">@c.RecipientCategory · @c.RecipientMasked</div> }</td>
+                <td class="dv-small dv-wrap">@c.Detail</td>
+                <td class="dv-mono dv-small">@if (c.CorrelationId is not null) { <a href="/dev/logs?range=30d&correlationId=@Uri.EscapeDataString(c.CorrelationId)">@(c.CorrelationId.Length > 24 ? "…" + c.CorrelationId[^20..] : c.CorrelationId)</a> }</td>
+            </tr>
+        }
+        </tbody>
+    </table></div>
+}

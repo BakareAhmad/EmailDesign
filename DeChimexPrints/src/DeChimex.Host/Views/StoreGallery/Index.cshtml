@@ -1,0 +1,356 @@
+@model IReadOnlyList<DeChimex.Contracts.Gallery.GalleryMediaDto>
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = "Gallery";
+    ViewData["ActiveNav"] = "gallery";
+    var items = Model ?? new List<DeChimex.Contracts.Gallery.GalleryMediaDto>();
+    var categories = new List<string> { "All" };
+    categories.AddRange(items.Where(x => !string.IsNullOrEmpty(x.Category)).Select(x => x.Category!).Distinct().OrderBy(x => x));
+    var activeCategory = ViewBag.ActiveCategory as string ?? "All";
+    var displayedItems = activeCategory == "All" ? items : items.Where(x => x.Category == activeCategory).ToList();
+}
+
+@section Styles {
+<style>
+    /* ---- Category filter pills ---- */
+    .filter-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--n-600);font-size:13px;font-weight:600;cursor:pointer;transition:border-color .12s,color .12s,background .12s}
+    .filter-pill:hover{border-color:var(--primary);color:var(--primary)}
+    .filter-pill.active{background:var(--n-900);color:#fff;border-color:var(--n-900)}
+
+    /* ---- Instagram-style dense media grid: image-first, no gaps ---- */
+    /* SPACING EVALUATION (2026-09-05, owner request: "space between the view width and
+       the media grid container, left and right margin ... adequate space for each
+       screen size"): the grid USED to be full-bleed (tiles flush to the viewport
+       edges) while the hero, filter pills and footer sit in the site shell. It is now
+       wrapped in the SAME responsive shell (.container = max-width 1280 + 24px side
+       padding), so its left/right edges line up with the page's text column at every
+       width and the breathing room scales with the viewport:
+         viewport < 1328px -> 24px gutters each side (the container's own padding)
+         viewport >= 1328px -> gutters grow as the 1280 shell centres:
+                               24px at 1328, ~144px at 1600, ~664px at 2560
+       Using the shared shell (rather than a second, gallery-only spacing scale) keeps
+       ONE spacing system across the storefront, so the grid never drifts out of
+       alignment with the heading above it.
+       Because the block is no longer flush to the screen edges, its OUTER corners are
+       rounded and it carries a soft shadow (inner 2px gaps untouched) so it reads as
+       one designed surface instead of a raw strip of tiles. */
+    .gallery-shell{padding-top:6px;padding-bottom:14px}
+    /* NOTE: deliberately NO background and NO box-shadow on the grid box. When the
+       item count is not a multiple of the column count (e.g. 6 items in an 8-column
+       row at >=1400px) the trailing cells are empty; a painted background/shadow
+       turned them into an obvious grey slab. Left transparent they simply read as
+       page whitespace, exactly like any photo grid with a partial last row. The
+       radius + overflow:hidden stay so the OUTER corners of the occupied tiles are
+       softly clipped now that the block is inset from the screen edges. */
+    .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:100%;
+        border-radius:14px;overflow:hidden}
+    @@media (min-width:560px){.gallery-grid{grid-template-columns:repeat(4,1fr)}}
+    @@media (min-width:768px){.gallery-grid{grid-template-columns:repeat(5,1fr)}}
+    @@media (min-width:1024px){.gallery-grid{grid-template-columns:repeat(6,1fr)}}
+    @@media (min-width:1400px){.gallery-grid{grid-template-columns:repeat(8,1fr)}}
+
+    .gitem{position:relative;display:block;aspect-ratio:1/1;overflow:hidden;background:var(--n-50);cursor:pointer;isolation:isolate;text-decoration:none;user-select:none}
+    .gitem::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(15,23,42,0) 55%,rgba(15,23,42,.22));opacity:0;transition:opacity .15s ease;pointer-events:none}
+    .gitem:hover::after,.gitem:focus-visible::after{opacity:1}
+    .gitem:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+    .gitem img{width:100%;height:100%;object-fit:cover;display:block;background:var(--n-50);transition:transform .25s ease}
+    .gitem:hover img{transform:scale(1.03)}
+
+    /* Video without a poster/thumbnail: subtle centered play tile */
+    .gitem.vid-empty{background:linear-gradient(135deg,#0f172a,#1e293b)}
+    .gitem.vid-empty .g-play-big{position:absolute;inset:0;display:grid;place-items:center;z-index:1}
+    .gitem.vid-empty .g-play-big svg{width:38px;height:38px;color:rgba(255,255,255,.9);filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+
+    /* Small media-type indicator, top-right (Instagram-style) */
+    .g-badge{position:absolute;top:8px;right:8px;z-index:2;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(15,23,42,.5);backdrop-filter:blur(2px);color:#fff}
+    .g-badge svg{width:14px;height:14px}
+
+    /* ---- Detail viewer: media + caption form ONE cohesive dark card ---- */
+    .g-card{border-radius:14px;overflow:hidden;background:#0F172A;
+        box-shadow:0 24px 48px -20px rgba(15,23,42,.55), 0 2px 8px rgba(15,23,42,.25)}
+    .g-view{display:grid;place-items:center;background:#0F172A;overflow:hidden}
+    /* background + font-style override app.css's global `img{background:var(--n-100);
+       font-style:italic}` (line ~685), which otherwise paints the object-fit letterbox
+       gutters light-grey and breaks the dark media card. */
+    .g-view img{width:100%;max-height:70vh;object-fit:contain;display:block;
+        background:#0F172A;font-style:normal}
+    .g-view video{width:100%;max-height:70vh;object-fit:contain;display:block;background:#0F172A}
+    /* Caption strip attached to the media (no floating text in the white gap) */
+    .g-cap{display:flex;align-items:center;gap:12px;padding:13px 16px;
+        border-top:1px solid rgba(148,163,184,.16);
+        background:linear-gradient(180deg,rgba(148,163,184,.07),rgba(148,163,184,.02))}
+    .g-cap-cat{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;padding:4px 11px;
+        border-radius:999px;background:rgba(129,140,248,.16);border:1px solid rgba(129,140,248,.38);
+        color:#C7D2FE;font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+        white-space:nowrap}
+    .g-cap-cat .g-cap-dot{width:6px;height:6px;border-radius:50%;background:#818CF8;flex:0 0 auto}
+    .g-cap-title{flex:1 1 auto;min-width:0;color:#F1F5F9;font-size:15.5px;font-weight:600;
+        letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .g-cap-type{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
+        color:rgba(203,213,225,.62);font-size:11px;font-weight:600;letter-spacing:.06em;
+        text-transform:uppercase}
+    .g-cap-type svg{width:14px;height:14px}
+    @@media (max-width:520px){
+        .g-cap{flex-wrap:wrap;gap:8px 10px}
+        .g-cap-title{flex:1 1 100%;order:3;white-space:normal}
+    }
+    /* viewer prev/next (only shown for multi-image media) */
+    .g-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(15,23,42,.5);color:#fff;display:grid;place-items:center;border:none;cursor:pointer;backdrop-filter:blur(2px)}
+    .g-nav[data-dir="prev"]{left:14px}.g-nav[data-dir="next"]{right:14px}
+    .g-view-wrap{position:relative}
+    /* Carousel counter pill (1/6 ...) floating at the top of the viewer, Instagram style. */
+    .g-count{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:3;
+        background:rgba(15,23,42,.55);color:#fff;font-size:12px;font-weight:600;letter-spacing:.03em;
+        padding:3px 11px;border-radius:999px;backdrop-filter:blur(4px);pointer-events:none}
+    /* Soft cross-fade + slide when flipping between a post's images. */
+    @@keyframes gswap{from{opacity:.25;transform:translateX(14px)}to{opacity:1;transform:none}}
+    .g-card.g-swap{animation:gswap .22s ease}
+    @@media (prefers-reduced-motion:reduce){.g-card.g-swap{animation:none}}
+</style>
+}
+
+<div class="cs-wrap">
+    <div class="cs-page-head">
+        <h1>Our work</h1>
+        <p class="cs-muted">Recent printing, branding and promotional projects. Tap any item to view it larger.</p>
+    </div>
+</div>
+
+<section style="padding:0 0 40px;flex:1 0 auto">
+    <div class="cs-wrap" style="padding-bottom:12px">
+        <div class="chips" id="filters" role="tablist" aria-label="Filter gallery">
+            @foreach (var c in categories)
+            {
+                var isSelected = activeCategory == c;
+                <button class="chip filter-pill @(isSelected ? "is-active active" : "")" type="button" data-cat="@c" onclick="setF('@c')">@c</button>
+            }
+        </div>
+    </div>
+
+    @if (displayedItems.Count > 0)
+    {
+        <div class="cs-wrap gallery-shell">
+        <div class="gallery-grid" id="grid">
+            @foreach (var g in displayedItems)
+            {
+                var isVideo = g.Type == "Video";
+                var thumb = !string.IsNullOrWhiteSpace(g.ThumbnailUrl) ? g.ThumbnailUrl : g.Url;
+                var cat = g.Category ?? "General";
+                var borderCat = cat.Replace("\"", "&quot;");
+                var borderTitle = g.Title.Replace("\"", "&quot;");
+                var borderUrl = g.Url.Replace("\"", "&quot;");
+                var borderThumb = thumb.Replace("\"", "&quot;");
+                // Carousel post: one tile per post showing its FIRST image; the extra images
+                // travel in data-urls and are revealed inside the viewer (Instagram style).
+                var isMulti = g.Type == "Image" && g.MediaUrls.Count > 1;
+                // Single-quoted attribute: Razor HTML-encodes the JSON once and the browser
+                // decodes it back, so JSON.parse(dataset.urls) receives clean JSON. Any
+                // apostrophe inside a url is emitted as a JSON unicode escape so it can
+                // never break out of the attribute.
+                var urlsJson = System.Text.Json.JsonSerializer.Serialize(
+                    g.MediaUrls.Select(u => new { url = u, type = "Image" })).Replace("'", @"\u0027");
+                <div class="gitem @(isVideo && string.IsNullOrWhiteSpace(g.ThumbnailUrl) ? "vid-empty" : "")"
+                     data-id="@g.Id" data-title="@borderTitle" data-cat="@borderCat" data-type="@g.Type"
+                     data-url="@borderUrl" data-thumb="@borderThumb" data-multi="@(isMulti ? "true" : "false")"
+                     data-urls='@urlsJson'
+                     role="button" tabindex="0" onclick="openGallery(this)" aria-label="Open @g.Title">
+                    @if (isVideo && string.IsNullOrWhiteSpace(g.ThumbnailUrl))
+                    {
+                        <div class="g-play-big" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    }
+                    else
+                    {
+                        <img src="@thumb" alt="@g.Title" loading="lazy"
+                             onerror="this.closest('.gitem').classList.add('img-fallback');this.remove();">
+                    }
+
+                    @if (isVideo)
+                    {
+                        <span class="g-badge" title="@cat" aria-label="Video">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </span>
+                    }
+                    else if (isMulti)
+                    {
+                        <span class="g-badge" title="@cat" aria-label="Multiple images">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="12" height="12" rx="1.5"/><path d="M4 8v10a2 2 0 0 0 2 2h10"/></svg>
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+        </div>
+    }
+    else
+    {
+        <div class="container">
+            <div class="empty text-center" style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:56px 24px;text-align:center">
+                <div style="width:56px;height:56px;border-radius:16px;background:var(--primary-50, #eef2ff);color:var(--primary);display:grid;place-items:center;margin:0 auto 16px">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                </div>
+                <h3 style="font-size:16px;font-weight:700;color:var(--n-900)">No gallery items found</h3>
+                <p style="color:var(--n-500);font-size:13.5px;max-width:440px;margin:8px auto 0">Portfolio showcase projects will appear here once added to the gallery.</p>
+            </div>
+        </div>
+    }
+</section>
+
+@section Scripts {
+<script>
+function setF(c){
+    document.querySelectorAll('#filters .filter-pill').forEach(p => {
+        p.classList.toggle('active', p.getAttribute('data-cat') === c); p.classList.toggle('is-active', p.getAttribute('data-cat') === c);
+    });
+    document.querySelectorAll('#grid .gitem').forEach(card => {
+        const cat = card.getAttribute('data-cat');
+        card.style.display = (c === 'All' || cat === c) ? '' : 'none';
+    });
+}
+function galleryVideoError(holder){
+    if(!holder) return;
+    holder.innerHTML = `<div style="padding:32px 20px;text-align:center;color:#CBD5E1;font-size:13.5px;line-height:1.6">
+        <div style="font-size:30px;margin-bottom:10px">&#9888;</div>
+        <div style="font-weight:600;color:#fff">This video can't be played</div>
+        <div style="margin-top:6px;color:#94A3B8">Its file format isn't supported by your browser. Please re-upload it as an MP4 video.</div>
+    </div>`;
+}
+function renderGalleryMedia(url, type, title){
+    if(type === 'Video'){
+        return `<div class="g-view"><video src="${url}" controls playsinline preload="metadata" onerror="galleryVideoError(this.parentElement)"></video></div>`;
+    }
+    return `<div class="g-view"><img src="${url}" alt="${title}" onerror="this.closest('.g-view').innerHTML='<div style=&quot;padding:32px 20px;text-align:center;color:#CBD5E1;font-size:13.5px&quot;>This image couldn&apos;t be loaded.</div>'"></div>`;
+}
+// Caption strip: category chip + title + media-type, attached to the media card so the
+// metadata reads as part of the artwork instead of loose text under it.
+function renderGalleryCaption(cat, title, type){
+    const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const typeIcon = type === 'Video'
+        ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>';
+    const typeLabel = type === 'Video' ? 'Video' : 'Image';
+    return `<div class="g-cap">`
+         + `<span class="g-cap-cat"><span class="g-cap-dot" aria-hidden="true"></span>${esc(cat)}</span>`
+         + `<span class="g-cap-title">${esc(title)}</span>`
+         + `<span class="g-cap-type">${typeIcon}${typeLabel}</span>`
+         + `</div>`;
+}
+function openGallery(el){
+    const d = el.dataset;
+    // NOTE: the grid tiles expose the category as data-cat (used by the filter pills);
+    // d.category never exists, so reading it silently fell back to "General" for every
+    // item. Accept both so the caption chip shows the item's real category.
+    const title = d.title, cat = d.cat || d.category || 'General', type = d.type;
+    // Build the media list. Current model is one item, but the viewer supports a
+    // collection (multi-image) when data provides it (data-multi=true + data-urls).
+    let items = [];
+    if(d.multi === 'true' && d.urls){
+        try { items = JSON.parse(d.urls); } catch(_) { items = [{url:d.url, type:'Image'}]; }
+    } else {
+        items = [{url:d.url, type:type}];
+    }
+    let idx = 0;
+    const navHtml = items.length > 1
+        ? `<button class="g-nav" data-dir="prev" aria-label="Previous image">&#8249;</button><button class="g-nav" data-dir="next" aria-label="Next image">&#8250;</button>`
+        : '';
+    // Instagram-style carousel counter, unobtrusive at the top of the viewer.
+    // Re-evaluated on every render so it always shows the live position.
+    const countHtml = () => items.length > 1 ? `<span class="g-count" id="gCount">${idx + 1}/${items.length}</span>` : '';
+    function wrapHtml(animate){
+        const it = items[idx];
+        // .g-card wraps media + caption so they render as one object.
+        return `<div class="g-view-wrap"><div class="g-card${animate ? ' g-swap' : ''}">${renderGalleryMedia(it.url, it.type, title)}${renderGalleryCaption(cat, title, it.type)}</div>${navHtml}${countHtml()}</div>`;
+    }
+    openModal({
+        size: 'xl',
+        // Header carries the section context; the item's category + title live in the
+        // caption strip attached to the media (avoids repeating the title twice).
+        title: 'Gallery',
+        body: wrapHtml(false)
+    });
+    // Move keyboard focus into the opened viewer: with focus left on the grid tile,
+    // a Space press would re-trigger the tile's own Space=click binding instead of
+    // reaching the document-level video play/pause handler.
+    const ovFocus = document.getElementById('dcxModal');
+    if(ovFocus){ ovFocus.setAttribute('tabindex', '-1'); ovFocus.focus({preventScroll: true}); }
+    // wire carousel navigation (only present when a collection is provided)
+    if(items.length > 1){
+        const modal = document.getElementById('dcxModal');
+        const swap = () => {
+            modal.querySelector('.g-view-wrap').outerHTML = wrapHtml(true);
+            wire();
+            // preload neighbours so swiping feels instant
+            [idx + 1, idx - 1].forEach(n => {
+                const it = items[(n + items.length) % items.length];
+                if(it && it.type !== 'Video'){ const im = new Image(); im.src = it.url; }
+            });
+        };
+        const step = dir => { idx = (idx + dir + items.length) % items.length; swap(); };
+        function wire(){
+            modal.querySelector('.g-nav[data-dir="prev"]')?.addEventListener('click', e => { e.stopPropagation(); step(-1); });
+            modal.querySelector('.g-nav[data-dir="next"]')?.addEventListener('click', e => { e.stopPropagation(); step(1); });
+        }
+        wire();
+        // touch swipe: horizontal drag flips the carousel
+        let sx = null, sy = null;
+        modal.addEventListener('touchstart', e => {
+            if(e.touches.length === 1){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; }
+        }, {passive:true});
+        modal.addEventListener('touchend', e => {
+            if(sx === null) return;
+            const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+            sx = sy = null;
+            if(Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) step(dx < 0 ? 1 : -1);
+        }, {passive:true});
+        // Arrow keys while THIS modal is open. Bound on document because swap() replaces
+        // the focused nav button, which would drop focus (and a modal-scoped listener) away.
+        const onKey = e => {
+            const m = document.getElementById('dcxModal');
+            if(!m || !m.classList.contains('open') || !m.contains(document.getElementById('gCount'))) return;
+            if(e.key === 'ArrowLeft'){ e.preventDefault(); step(-1); }
+            if(e.key === 'ArrowRight'){ e.preventDefault(); step(1); }
+        };
+        document.addEventListener('keydown', onKey);
+        // drop the listener once the viewer closes (node removed -> poll on next ticks)
+        const gc = setInterval(() => {
+            const m = document.getElementById('dcxModal');
+            if(!m || !m.classList.contains('open')){ document.removeEventListener('keydown', onKey); clearInterval(gc); }
+        }, 400);
+    }
+    // Space bar toggles play/pause for the viewer's video - bound for single- AND
+    // multi-media posts (the arrow-key listener above only binds for collections).
+    // One press plays, the next pauses. Form fields keep their native Space; a
+    // focused <video> keeps its native Space behaviour (no double toggle); keys
+    // already consumed by a widget (defaultPrevented, e.g. a grid tile opening the
+    // viewer) are ignored. preventDefault also stops Space activating a focused
+    // modal button (e.g. Close).
+    const onSpace = e => {
+        if(e.key !== ' ' && e.code !== 'Space') return;
+        if(e.defaultPrevented) return;
+        const m = document.getElementById('dcxModal');
+        if(!m || !m.classList.contains('open')) return;
+        const t = e.target;
+        if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+        if(t && t.tagName === 'VIDEO') return;
+        const v = m.querySelector('video');
+        if(!v) return;
+        e.preventDefault();
+        if(v.paused || v.ended){ const pr = v.play(); if(pr && pr.catch) pr.catch(() => {}); } else { v.pause(); }
+    };
+    document.addEventListener('keydown', onSpace);
+    const gcSpace = setInterval(() => {
+        const m = document.getElementById('dcxModal');
+        if(!m || !m.classList.contains('open')){ document.removeEventListener('keydown', onSpace); clearInterval(gcSpace); }
+    }, 400);
+}
+// keyboard access
+document.querySelectorAll('#grid .gitem').forEach(el => {
+    el.addEventListener('keydown', e => {
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
+    });
+});
+window.setF = setF;
+window.openGallery = openGallery;
+</script>
+}

@@ -1,0 +1,25 @@
+@model DeChimex.Host.Controllers.Mvc.ErrorViewModel
+@{
+    Layout = "_PublicLayout";
+    ViewData["Title"] = $"{Model.Code}";
+
+    // Offer the signed-in user's OWN home — never a portal they cannot use.
+    var isAuth = User.Identity?.IsAuthenticated == true;
+    var (homeHref, homeLabel) = DeChimex.Host.Middleware.ErrorPageWriter.AccountHomeFor(User);
+}
+
+<section style="padding:72px 0 96px">
+    <div class="container" style="max-width:560px;text-align:center">
+        <div style="font-size:64px;font-weight:800;letter-spacing:-.03em;color:var(--primary)">@Model.Code</div>
+        <h1 class="h-display mt-3" style="font-size:1.6rem">@Model.Title</h1>
+        <p class="text-muted mt-2 mb-6" style="line-height:1.6">@Model.Message</p>
+        <div class="flex items-center justify-center gap-3" style="flex-wrap:wrap">
+            <a href="/" class="btn btn-primary">Back to home</a>
+            <a href="/products" class="btn btn-secondary">Browse products</a>
+            @if (isAuth)
+            {
+                <a href="@homeHref" class="btn btn-ghost" data-testid="error-home-link">@homeLabel</a>
+            }
+        </div>
+    </div>
+</section>

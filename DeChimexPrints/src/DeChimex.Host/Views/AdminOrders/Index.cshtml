@@ -1,0 +1,67 @@
+@model IReadOnlyList<DeChimex.Contracts.Orders.OrderSummaryDto>
+@{
+    Layout = "_AdminLayout";
+    var statuses = ViewBag.Statuses as string[] ?? Array.Empty<string>();
+    var hasFilter = !string.IsNullOrWhiteSpace((string?)ViewBag.Search) || !string.IsNullOrWhiteSpace((string?)ViewBag.Status);
+}
+<div class="toolbar" style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <form method="get" class="flex items-center gap-2" style="flex-wrap:wrap">
+        <input class="input" type="search" name="search" value="@(ViewBag.Search)" placeholder="Search order number..." style="width:280px;min-width:220px">
+        <select class="select" name="status" style="width:190px;min-width:150px">
+            <option value="">All statuses</option>
+            @foreach (var s in statuses)
+            {
+                <option value="@s" selected="@(s == (string?)ViewBag.Status)">@s</option>
+            }
+        </select>
+        <button class="btn btn-secondary" type="submit">Filter</button>
+    </form>
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead>
+            <tr><th>Order</th><th>Customer</th><th>Type</th><th>Status</th><th>Total</th><th>Date</th><th></th></tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                    var es = hasFilter
+    ? new EmptyState(EmptyIcons.Search, "No results", "Try adjusting your search or filters.")
+    : new EmptyState(EmptyIcons.Cart, "No orders yet", "Orders placed from the storefront will appear here.");
+                <tr><td colspan="7" class="table-empty">
+                <partial name="_EmptyState" model="es" /></td></tr>
+            }
+            @foreach (var o in Model)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@o.Id" class="font-semibold">@o.OrderNumber</a></td>
+                    <td>@o.CustomerName</td>
+                    <td class="text-muted">@o.Type <span class="badge @(@o.Kind == "Direct" ? "badge-success" : "badge-info")" title="@(o.Kind == "Direct" ? "Direct product purchase" : "Custom sales workflow")">@(o.Kind == "Direct" ? "Direct" : "Custom")</span></td>
+                    <td><span class="badge badge-neutral">@o.Status</span></td>
+                    <td>₦@o.GrandTotal.ToString("N2")</td>
+                    <td class="text-muted">@o.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy")</td>
+                    <td style="text-align:right">
+                        @{
+                            var isCustom = o.Status is "AwaitingReview" or "InDiscussion" or "RequirementsConfirmed" or "AwaitingDesignApproval";
+                        }
+                        @if (isCustom)
+                        {
+                            <a class="btn btn-ghost btn-sm" asp-controller="AdminOrderWorkspace" asp-action="Index" asp-route-orderId="@o.Id">Workspace</a>
+                        }
+                        <a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@o.Id">View</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.HasPrevious) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)" asp-route-status="@(ViewBag.Status)" asp-route-search="@(ViewBag.Search)">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.HasNext) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)" asp-route-status="@(ViewBag.Status)" asp-route-search="@(ViewBag.Search)">Next</a> }
+    </div>
+}

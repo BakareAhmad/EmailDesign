@@ -1,0 +1,204 @@
+@model IReadOnlyList<DeChimex.Contracts.Gallery.GalleryMediaDto>
+@{
+    Layout = "_AdminLayout";
+    var canManage = ViewBag.CanManage is true;
+}
+@section Styles {
+<style>
+    /* ---- Instagram-style dense media grid: image-first, no gaps ---- */
+    .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:100%}
+    @@media (min-width:560px){.gallery-grid{grid-template-columns:repeat(4,1fr)}}
+    @@media (min-width:768px){.gallery-grid{grid-template-columns:repeat(6,1fr)}}
+    @@media (min-width:1024px){.gallery-grid{grid-template-columns:repeat(8,1fr)}}
+
+    .gitem{position:relative;display:block;aspect-ratio:1/1;overflow:hidden;background:var(--n-50);cursor:pointer;isolation:isolate;text-decoration:none;user-select:none}
+    .gitem::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(15,23,42,0) 55%,rgba(15,23,42,.22));opacity:0;transition:opacity .15s ease;pointer-events:none}
+    .gitem:hover::after,.gitem:focus-visible::after{opacity:1}
+    .gitem:focus-visible{outline:2px solid var(--primary);outline-offset:-2px}
+    .gitem img{width:100%;height:100%;object-fit:cover;display:block;background:var(--n-50);transition:transform .25s ease}
+    .gitem:hover img{transform:scale(1.03)}
+
+    .gitem.vid-empty{background:linear-gradient(135deg,#0f172a,#1e293b)}
+    .gitem.vid-empty .g-play-big{position:absolute;inset:0;display:grid;place-items:center;z-index:1}
+    .gitem.vid-empty .g-play-big svg{width:38px;height:38px;color:rgba(255,255,255,.9);filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+
+    .g-badge{position:absolute;top:8px;right:8px;z-index:2;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(15,23,42,.5);backdrop-filter:blur(2px);color:#fff}
+    .g-badge svg{width:14px;height:14px}
+
+    /* ---- Detail viewer media ---- */
+    .g-view{display:grid;place-items:center;background:#0F172A;border-radius:12px;overflow:hidden}
+    .g-view img{width:100%;max-height:72vh;object-fit:contain;display:block}
+    .g-view video{width:100%;max-height:72vh;object-fit:contain;display:block;background:#0F172A;border-radius:12px}
+    .g-meta{text-align:center;margin-top:14px}
+    .g-meta .g-meta-cat{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--n-500)}
+    .g-meta .g-meta-title{font-size:15px;font-weight:700;color:var(--n-900);margin-top:2px}
+    .g-meta .g-meta-row{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+    .g-view-wrap{position:relative}
+    .g-nav{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;background:rgba(15,23,42,.5);color:#fff;display:grid;place-items:center;border:none;cursor:pointer;backdrop-filter:blur(2px)}
+    .g-nav[data-dir="prev"]{left:14px}.g-nav[data-dir="next"]{right:14px}
+</style>
+}
+<div class="toolbar" style="display:flex;justify-content:flex-end;margin-bottom:16px;gap:10px">
+    @if (canManage)
+    {
+        <form asp-action="ReEncode" method="post" style="margin:0" onsubmit="return confirm('Re-encode all gallery videos for browser playback? This may take a moment for larger videos.');">
+            <button type="submit" class="btn btn-secondary" title="Re-encode existing videos to H.264 so they play in browsers">Re-encode videos</button>
+        </form>
+        <a class="btn btn-primary" asp-action="Create">New media</a>
+    }
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="text-muted">No gallery items.</div>
+}
+else
+{
+    <div class="gallery-grid" id="grid">
+        @foreach (var m in Model)
+        {
+            var isVideo = m.Type == "Video";
+            var isMulti = m.Type == "Image" && m.MediaUrls.Count > 1;
+            var thumb = !string.IsNullOrWhiteSpace(m.ThumbnailUrl) ? m.ThumbnailUrl : m.Url;
+            var cat = m.Category ?? "General";
+            var borderCat = cat.Replace("\"", "&quot;");
+            var borderTitle = m.Title.Replace("\"", "&quot;");
+            var borderUrl = m.Url.Replace("\"", "&quot;");
+            var borderThumb = thumb.Replace("\"", "&quot;");
+            <div class="gitem @(isVideo && string.IsNullOrWhiteSpace(m.ThumbnailUrl) ? "vid-empty" : "")"
+                 data-id="@m.Id" data-title="@borderTitle" data-cat="@borderCat" data-type="@m.Type"
+                 data-url="@borderUrl" data-thumb="@borderThumb" data-featured="@m.IsFeatured.ToString().ToLowerInvariant()"
+                 data-archived="@m.IsArchived.ToString().ToLowerInvariant()" data-count="@m.MediaUrls.Count"
+                 role="button" tabindex="0" onclick="openAdminItem(this)" aria-label="Open @m.Title">
+                @if (isVideo && string.IsNullOrWhiteSpace(m.ThumbnailUrl))
+                {
+                    <div class="g-play-big" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </div>
+                }
+                else
+                {
+                    <img src="@thumb" alt="@m.Title" loading="lazy"
+                         onerror="this.closest('.gitem').classList.add('img-fallback');this.remove();">
+                }
+                @if (isVideo)
+                {
+                    <span class="g-badge" title="@cat" aria-label="Video">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </span>
+                }
+                else if (isMulti)
+                {
+                    <span class="g-badge" title="@m.MediaUrls.Count images" aria-label="@m.MediaUrls.Count images">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="3" width="12" height="12" rx="1.5"/><path d="M4 8v10a2 2 0 0 0 2 2h10"/></svg>
+                    </span>
+                }
+            </div>
+        }
+    </div>
+}
+
+@if (canManage)
+{
+    <div style="display:none" aria-hidden="true">
+        @foreach (var m in Model)
+        {
+            <form id="arc-@m.Id" asp-action="Archive" asp-route-id="@m.Id" method="post">
+                <input type="hidden" name="archive" value="@(m.IsArchived ? "false" : "true")" />
+            </form>
+            <form id="del-@m.Id" asp-action="Delete" asp-route-id="@m.Id" method="post"></form>
+        }
+    </div>
+}
+
+@section Scripts {
+<script>
+function galleryVideoError(holder){
+    if(!holder) return;
+    holder.innerHTML = `<div style="padding:32px 20px;text-align:center;color:#CBD5E1;font-size:13.5px;line-height:1.6">
+        <div style="font-size:30px;margin-bottom:10px">&#9888;</div>
+        <div style="font-weight:600;color:#fff">This video can't be played</div>
+        <div style="margin-top:6px;color:#94A3B8">Its file format isn't supported by your browser. Please re-upload it as an MP4 video.</div>
+    </div>`;
+}
+function galleryModal(title, body, footer){
+    const o = document.getElementById('galleryModal');
+    const html = `<div class="modal xl" role="document"><div class="modal-head"><h3>${title}</h3><button class="icon-btn" onclick="closeGalleryModal()" aria-label="Close dialog"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><div class="modal-body">${body}</div>${footer ? `<div class="modal-foot">${footer}</div>` : ''}</div>`;
+    if(o){ o.innerHTML = html; o.classList.add('open'); }
+    else {
+        const ov = document.createElement('div'); ov.id='galleryModal'; ov.className='overlay open'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
+        ov.innerHTML = html; document.body.appendChild(ov);
+        ov.addEventListener('click', e => { if(e.target === ov) closeGalleryModal(); });
+    }
+    // Focus the opened overlay so a Space press reaches the document-level video
+    // play/pause handler instead of re-triggering the grid tile's Space=click binding.
+    const ovf = document.getElementById('galleryModal');
+    if(ovf){ ovf.setAttribute('tabindex', '-1'); ovf.focus({preventScroll: true}); }
+}
+function closeGalleryModal(){
+    const o = document.getElementById('galleryModal');
+    if(o){ o.classList.remove('open'); setTimeout(()=>o.remove(), 200); }
+}
+function renderGalleryMedia(url, type, title){
+    if(type === 'Video'){
+        return `<div class="g-view"><video src="${url}" controls playsinline preload="metadata" onerror="galleryVideoError(this.parentElement)"></video></div>`;
+    }
+    return `<div class="g-view"><img src="${url}" alt="${title}" onerror="this.closest('.g-view').innerHTML='<div style=&quot;padding:32px 20px;text-align:center;color:#CBD5E1;font-size:13.5px&quot;>This image couldn&apos;t be loaded.</div>'"></div>`;
+}
+function submitGalleryForm(formId, isDelete){
+    const f = document.getElementById(formId);
+    if(!f) return;
+    if(isDelete && !confirm('Delete this gallery item? This cannot be undone.')) return;
+    closeGalleryModal();
+    f.submit();
+}
+function openAdminItem(el){
+    const d = el.dataset;
+    const type = d.type, url = d.url, thumb = d.thumb || url, title = d.title, cat = d.category || 'General';
+    const isVideo = type === 'Video';
+    const isArchived = d.archived === 'true';
+    const media = renderGalleryMedia(isVideo ? url : thumb, isVideo ? 'Video' : 'Image', title);
+    let badges = '';
+    if(d.featured === 'true') badges += '<span class="badge badge-primary">Featured</span>';
+    badges += `<span class="badge ${isArchived ? 'badge-warning' : 'badge-success'}">${isArchived ? 'Archived' : 'Active'}</span>`;
+    const count = parseInt(d.count || '1', 10);
+    if(!isVideo && count > 1) badges += `<span class="badge badge-secondary">${count} images</span>`;
+    const body = `<div class="g-view-wrap">${media}</div>
+        <div class="g-meta">
+            <div class="g-meta-cat">${cat}</div>
+            <div class="g-meta-title">${title}</div>
+            <div class="g-meta-row">${badges}</div>
+        </div>`;
+    const footer = `<button class="btn btn-secondary" onclick="submitGalleryForm('arc-${d.id}', false)">${isArchived ? 'Restore' : 'Archive'}</button>
+        <button class="btn btn-danger" onclick="submitGalleryForm('del-${d.id}', true)">Delete</button>
+        <a class="btn btn-primary" href="/admin/gallery/edit/${d.id}">Edit</a>
+        <button class="btn btn-secondary" onclick="closeGalleryModal()">Close</button>`;
+    galleryModal(title, body, footer);
+}
+// keyboard access
+document.querySelectorAll('#grid .gitem').forEach(el => {
+    el.addEventListener('keydown', e => {
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); el.click(); }
+    });
+});
+// Space bar toggles play/pause for the video inside the open gallery modal:
+// one press plays, the next pauses. Form fields keep native Space, a focused
+// <video> keeps its native Space behaviour, widget-consumed keys (defaultPrevented)
+// are ignored, and Enter still activates modal buttons for keyboard users.
+document.addEventListener('keydown', e => {
+    if(e.key !== ' ' && e.code !== 'Space') return;
+    if(e.defaultPrevented) return;
+    const ov = document.getElementById('galleryModal');
+    if(!ov || !ov.classList.contains('open')) return;
+    const t = e.target;
+    if(t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+    if(t && t.tagName === 'VIDEO') return;
+    const v = ov.querySelector('video');
+    if(!v) return;
+    e.preventDefault();
+    if(v.paused || v.ended){ const pr = v.play(); if(pr && pr.catch) pr.catch(() => {}); } else { v.pause(); }
+});
+window.openAdminItem = openAdminItem;
+window.closeGalleryModal = closeGalleryModal;
+</script>
+}

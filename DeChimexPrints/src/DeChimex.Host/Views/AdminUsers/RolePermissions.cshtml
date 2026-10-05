@@ -1,0 +1,40 @@
+@model IReadOnlyList<DeChimex.Contracts.Auth.PermissionDto>
+@{
+    Layout = "_AdminLayout";
+    var role = ViewBag.Role as DeChimex.Contracts.Auth.RoleDto;
+    var granted = new HashSet<string>(role?.Permissions ?? new List<string>());
+    string GroupOf(string name) => name.Split('.')[0];
+    var groups = Model.Select(p => GroupOf(p.Name)).Distinct().OrderBy(g => g).ToList();
+}
+<div class="card" style="max-width:720px">
+    <div class="card-head"><h3>Permissions: @(role?.Name)</h3></div>
+    <div class="card-body">
+        <p class="text-sm text-muted mb-4">Check the capabilities this role can use. Save applies immediately to all users with this role.</p>
+        <form asp-action="RolePermissions" asp-route-id="@(role?.Id)" method="post">
+            @for (var gi = 0; gi < groups.Count; gi++)
+            {
+                var group = groups[gi];
+                var inGroup = Model.Where(p => GroupOf(p.Name) == group).ToList();
+                <div class="mb-4" id="permgrp@gi" style="border:1px solid var(--n-200);border-radius:10px;padding:12px">
+                    <div class="flex items-center justify-between mb-2">
+                        <strong class="text-sm" style="text-transform:capitalize">@group</strong>
+                        <button type="button" class="btn btn-ghost btn-sm" onclick="document.querySelectorAll('#permgrp@gi input[type=checkbox]').forEach(x=>x.checked=true)">Select all</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                        @foreach (var p in inGroup)
+                        {
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" name="PermissionIds" value="@p.Id" @(granted.Contains(p.Name) ? "checked" : "") />
+                                @p.Name
+                            </label>
+                        }
+                    </div>
+                </div>
+            }
+            <div class="flex items-center gap-2">
+                <button class="btn btn-primary" type="submit">Save permissions</button>
+                <a class="btn btn-outline" asp-action="Roles">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

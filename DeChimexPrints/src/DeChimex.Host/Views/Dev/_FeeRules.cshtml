@@ -1,0 +1,11 @@
+<details class="dv-card" style="margin-top:12px" open="@(ViewData["FeeRulesOpen"] is true)">
+    <summary><strong>How service fees are counted (rules taken from the app's actual payment and refund code)</strong></summary>
+    <ul class="dv-small" style="line-height:1.7">
+        <li><strong>Source of truth:</strong> each Paystack payment row. At checkout the app snapshots the <em>configured percentage</em>, the order amount, the expected Paystack fee and the service fee actually added (<code>CustomerBorneCharge</code>). Changing the percentage later never rewrites these rows.</li>
+        <li><strong>Collected:</strong> a fee counts when the payment reaches <em>Succeeded</em>, on its paid date (Africa/Lagos calendar).</li>
+        <li><strong>Not collected:</strong> Failed, Abandoned, Initialized and Pending attempts carry a computed fee but no money moved, so they are listed separately and never counted. A retried checkout creates a new attempt; only the one that succeeds is counted.</li>
+        <li><strong>Refunds:</strong> refunds in this app are always <em>full</em> (order amount + service fee). There are no partial refunds. When the refund succeeds the payment becomes <em>Refunded</em> and its fee is reversed on the refund date. If the refund call fails, the payment stays Succeeded and the fee stays collected.</li>
+        <li><strong>Net</strong> = gross collected − reversed for the same period. A payment made in one period and refunded in a later one adds to gross in the first period and to reversed in the later one.</li>
+        <li><strong>Scope:</strong> manual and bank-transfer payments have no Paystack service fee and are excluded. Direct-checkout and custom orders are both included when paid through Paystack.</li>
+    </ul>
+</details>

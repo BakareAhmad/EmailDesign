@@ -1,0 +1,50 @@
+ok 01 - login page renders the sign-in form
+shot 01-developer-sign-in-page.png
+ok 02 - empty email + password: server refuses and stays on the login page
+shot 02-sign-in-empty-fields-validation.png
+ok 03 - wrong password: 'Invalid email or password', still on login, no portal access
+shot 03-sign-in-wrong-password-error.png
+ok 04 - after the failed attempt /dev still requires sign-in
+ok 05 - correct credentials land on the Developer Portal dashboard
+ok 06 - dashboard tiles rendered
+ok 07 - service-fee figures (today / this month) rendered on the dashboard
+ok 08 - normal sign-in: no cancellation noise in the app log
+shot 04-dashboard-after-sign-in.png
+ok 09 - double-submit + reload during sign-in still ends on the rendered dashboard
+ok 10 - double-submit: no OperationCanceledException reaches the global handler / logs
+shot 05-dashboard-after-double-submit-and-reload.png
+   storm: 120 requests reset, 10 ended as 499 mid-request: ['/dev', '/dev/api/status', '/dev/health', '/dev/performance', '/dev/service-fees']
+ok 11 - abort storm: requests really were dropped mid-request (499 recorded on the dev paths)
+ok 12 - the dashboard itself (/dev) was among the aborted requests
+ok 13 - abort storm: ZERO cancellations reached the global handler
+ok 14 - abort storm: ZERO OperationCanceledException stack traces logged
+ok 15 - abort storm: ZERO status-code re-executions (/Error?code=499) for gone clients
+ok 16 - abort storm: ZERO unhandled exceptions
+ok 17 - the aborted requests are logged under their own path (not rewritten to /Error)
+ok 18 - browser aborted the dashboard status poll (AbortController)
+ok 19 - aborted polls: no cancellation noise in the app log
+ok 20 - public /health still Healthy after the storm
+ok 21 - status JSON returns tiles after the storm
+ok 22 - service-fees page (the query from the report) renders
+ok 23 - dashboard renders normally after the storm
+shot 06-dashboard-after-abort-storm.png
+ok 24 - technical log has no OperationCanceled error entries
+shot 07-technical-log-no-cancellation-errors.png
+ok 25 - owner logged in
+ok 26 - missing customer (details): 404 status
+ok 27 - missing customer (details): styled error page, not a blank document
+ok 28 - missing customer (details): staff home link 'Admin dashboard'
+ok 29 - missing customer (details): the action ran once (not re-executed)
+shot 08-admin-missing-customer-details-styled-404.png
+ok 30 - missing customer (edit): 404 status
+ok 31 - missing customer (edit): styled error page, not a blank document
+ok 32 - missing customer (edit): staff home link 'Admin dashboard'
+ok 33 - missing customer (edit): the action ran once (not re-executed)
+shot 09-admin-missing-customer-edit-styled-404.png
+ok 34 - form posted without its anti-forgery token: rejected with 400
+ok 35 - rejected form shows the styled error page (not blank, not 405)
+shot 10-admin-form-without-antiforgery-token-styled-400.png
+ok 36 - nothing was created by the rejected form
+ok 37 - unknown URL still gives the styled 404
+
+RESULT: 37 passed, 0 failed (TAG=finalab)

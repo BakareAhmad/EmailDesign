@@ -1,0 +1,191 @@
+@model DeChimex.Host.Models.Admin.ProductFormViewModel
+@{
+    var isEdit = Model.Id != Guid.Empty;
+    var categories = ViewBag.Categories as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+}
+<div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+<div class="g g-2">
+    <div class="field">
+        <label class="label" asp-for="Name">Name <span class="req">*</span></label>
+        <input class="input" asp-for="Name" />
+        <span asp-validation-for="Name" class="field-error"></span>
+    </div>
+
+    <div class="field">
+        <label class="label" asp-for="Sku">SKU <span class="req">*</span></label>
+        @if (isEdit)
+        {
+            <input type="hidden" asp-for="Sku" />
+            <input class="input" value="@Model.Sku" disabled />
+            <div class="field-hint">SKU cannot be changed after creation.</div>
+        }
+        else
+        {
+            <div class="sku-wrap">
+                <input class="input" asp-for="Sku"
+                       maxlength="9"
+                       spellcheck="false"
+                       autocomplete="off"
+                       placeholder="Automatically suggested"
+                       pattern="^[A-Z0-9]{3}-[A-Z0-9]{5}$"
+                       title="Exactly 9 characters, e.g. PBC-7K4M2"
+                       data-sku-input
+                       data-sku-auto="true" />
+                <button type="button" class="icon-btn sku-regen" data-sku-regen
+                        title="Regenerate SKU" aria-label="Regenerate SKU">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+                </button>
+            </div>
+            <div class="field-hint">Automatically generated from product name</div>
+        }
+        <span asp-validation-for="Sku" class="field-error"></span>
+    </div>
+</div>
+
+<div class="field">
+    <label class="label" asp-for="Description">Description</label>
+    <textarea class="input" asp-for="Description" rows="3"></textarea>
+    <span asp-validation-for="Description" class="field-error"></span>
+</div>
+
+<div class="g g-2">
+    <div class="field">
+        <label class="label" asp-for="CategoryId">Category <span class="req">*</span></label>
+        <select class="select" asp-for="CategoryId" asp-items="categories"></select>
+        <span asp-validation-for="CategoryId" class="field-error"></span>
+    </div>
+
+    <div class="field">
+        <label class="label" asp-for="SellingPrice">Price (₦) <span class="req">*</span></label>
+        <input class="input" asp-for="SellingPrice" type="number" step="0.01" min="0.01" />
+        <span asp-validation-for="SellingPrice" class="field-error"></span>
+    </div>
+</div>
+
+@if (!isEdit)
+{
+    <div class="g g-2">
+        <div class="field">
+            <label class="label" asp-for="InitialQuantity">Initial quantity</label>
+            <input class="input" asp-for="InitialQuantity" type="number" min="0" />
+            <span asp-validation-for="InitialQuantity" class="field-error"></span>
+        </div>
+
+        <div class="field">
+            <label class="label" asp-for="LowStockThreshold">Low stock threshold</label>
+            <input class="input" asp-for="LowStockThreshold" type="number" min="0" />
+            <span asp-validation-for="LowStockThreshold" class="field-error"></span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="field">
+        <label class="label" asp-for="LowStockThreshold">Low stock threshold</label>
+        <input class="input" asp-for="LowStockThreshold" type="number" min="0" />
+        <span asp-validation-for="LowStockThreshold" class="field-error"></span>
+    </div>
+}
+
+<div class="g g-2">
+    <div class="field">
+        <label class="flex items-center gap-2 text-sm">
+            <input class="checkbox" asp-for="IsCustomizable" /> Customizable
+        </label>
+    </div>
+
+    <div class="field">
+        <label class="flex items-center gap-2 text-sm">
+            <input class="checkbox" asp-for="IsFeatured" /> Featured on storefront
+        </label>
+    </div>
+</div>
+
+<div class="field">
+    <label class="label" asp-for="Images">Images <span class="req">*</span></label>
+    <input type="file" class="input" asp-for="Images" id="Images" multiple accept=".jpg,.jpeg,.png,.webp,.gif" required="@(!isEdit || ViewBag.NeedsImage is true)" onchange="pPick(this)" />
+    <div class="field-hint">
+        @if (ViewBag.NeedsImage is true) { <span><strong>This product has no image yet - uploading at least one is required.</strong></span> }
+        @if (isEdit) { <span>Existing images are kept; new uploads are added after them (manage order on the product page).</span> }
+        else { <span>Select several views at once - front, back, details... They belong to this one product. At least one image is required.</span> }
+        <span>JPEG, PNG, WebP, or GIF. Max 10 MB each. The first image is the primary one.</span>
+    </div>
+    <span asp-validation-for="Images" class="field-error"></span>
+
+    <!-- Selection preview: order = upload order; card 1 becomes the primary image. -->
+    <style>
+        .pstrip{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+        .pstrip:empty{display:none}
+        .pcard{position:relative;width:88px;height:88px;border-radius:10px;overflow:hidden;border:2px solid var(--border);background:var(--n-100)}
+        .pcard.first{border-color:var(--primary)}
+        .pcard img{width:100%;height:100%;object-fit:cover;display:block}
+        .pcard-cover{position:absolute;top:4px;left:4px;background:var(--primary);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;display:none}
+        .pcard.first .pcard-cover{display:inline-block}
+        .pcard-idx{position:absolute;bottom:4px;left:4px;background:rgba(15,23,42,.62);color:#fff;font-size:10px;font-weight:600;border-radius:999px;padding:1px 7px}
+        .pcard-tools{position:absolute;top:4px;right:4px;display:flex;flex-direction:column;gap:3px}
+        .pcard-tools button{width:20px;height:20px;border-radius:6px;border:0;background:rgba(15,23,42,.62);color:#fff;font-size:11px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+        .pcard-tools button:hover{background:rgba(15,23,42,.85)}
+    </style>
+    <div class="pstrip" id="pstrip" aria-label="Selected images in upload order"></div>
+    <div class="gstrip-hint field-note" id="pstripHint" style="display:none">Use &#8249; &#8250; to reorder before saving - position 1 becomes the primary image. &times; removes a file from the selection.</div>
+</div>
+<script>
+(function(){
+    var input = document.getElementById('Images');
+    var strip = document.getElementById('pstrip');
+    if(!input || !strip) return;
+    var form = input.closest('form');
+    function cards(){ return Array.prototype.slice.call(strip.querySelectorAll('.pcard')); }
+    function refresh(){
+        cards().forEach(function(c, i){
+            c.classList.toggle('first', i === 0);
+            var idx = c.querySelector('.pcard-idx'); if(idx) idx.textContent = String(i + 1);
+        });
+        var hint = document.getElementById('pstripHint');
+        if(hint) hint.style.display = cards().length > 0 ? '' : 'none';
+    }
+    function makeCard(file){
+        var card = document.createElement('div');
+        card.className = 'pcard';
+        var img = document.createElement('img');
+        img.alt = file.name; img.src = URL.createObjectURL(file);
+        card.appendChild(img);
+        var cover = document.createElement('span'); cover.className = 'pcard-cover'; cover.textContent = 'Primary'; card.appendChild(cover);
+        var idx = document.createElement('span'); idx.className = 'pcard-idx'; card.appendChild(idx);
+        var tools = document.createElement('span'); tools.className = 'pcard-tools';
+        tools.innerHTML = '<button type="button" title="Move earlier" onclick="pMove(this.closest(\'.pcard\'),-1)">&#8249;</button>'
+                        + '<button type="button" title="Move later" onclick="pMove(this.closest(\'.pcard\'),1)">&#8250;</button>'
+                        + '<button type="button" title="Remove" onclick="pDrop(this.closest(\'.pcard\'))">&times;</button>';
+        card.appendChild(tools);
+        card._file = file;
+        return card;
+    }
+    window.pPick = function(inp){
+        Array.prototype.slice.call(inp.files || []).forEach(function(f){ strip.appendChild(makeCard(f)); });
+        refresh();
+    };
+    window.pMove = function(card, dir){
+        var list = cards(), i = list.indexOf(card), j = i + dir;
+        if(i < 0 || j < 0 || j >= list.length) return;
+        if(dir < 0) strip.insertBefore(card, list[j]);
+        else strip.insertBefore(card, list[j].nextSibling);
+        refresh();
+    };
+    window.pDrop = function(card){ card.remove(); refresh(); };
+    form.addEventListener('submit', function(){
+        var dt = new DataTransfer();
+        cards().forEach(function(c){ if(c._file) dt.items.add(c._file); });
+        input.files = dt.files; // posts the selection in the previewed order
+    });
+})();
+</script>
+
+@if (!isEdit)
+{
+    var existingSkus = ViewBag.ExistingSkus as System.Collections.Generic.IEnumerable<string> ?? System.Array.Empty<string>();
+    <script>
+        window.__dechimexExistingSkus = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(existingSkus));
+    </script>
+    <script src="~/js/product-sku.js" asp-append-version="true"></script>
+}

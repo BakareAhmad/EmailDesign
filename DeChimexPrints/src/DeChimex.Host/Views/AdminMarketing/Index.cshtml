@@ -1,0 +1,74 @@
+@model IReadOnlyList<DeChimex.Contracts.Marketing.MarketingBroadcastDto>
+@{
+    Layout = "_AdminLayout";
+    var canManage = User.HasClaim("permission", "marketing.manage");
+}
+<div class="toolbar" style="margin-bottom:16px">
+    <div class="text-muted" style="font-size:13px">
+        <b>@ViewBag.EligibleRecipients</b> eligible recipient(s): subscribed, registered customers.
+        <span class="badge badge-neutral" style="margin-left:6px">Marketing only - transactional emails are separate</span>
+    </div>
+    <span style="flex:1"></span>
+    @if (canManage)
+    {
+        <a class="btn btn-primary btn-sm" asp-action="Compose">+ New broadcast</a>
+    }
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead>
+            <tr><th>Subject</th><th>Status</th><th>Recipients</th><th>Sent</th><th>Failed</th><th>Created</th><th>Sent at</th><th></th></tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="8" class="table-empty">
+                    <partial name="_EmptyState" model='new EmptyState(EmptyIcons.Inbox, "No broadcasts yet", "Compose a marketing email to reach your registered customers.")' />
+                </td></tr>
+            }
+            @foreach (var b in Model)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@b.Id" class="font-semibold">@b.Subject</a>
+                        <div class="text-muted" style="font-size:12px">by @(b.CreatedBy ?? "admin")</div>
+                    </td>
+                    <td>
+                        @switch (b.Status)
+                        {
+                            case "Draft":
+                                <span class="badge badge-neutral">Draft</span> break;
+                            case "Queued":
+                                <span class="badge badge-warning">Queued</span> break;
+                            case "Sending":
+                                <span class="badge badge-warning">Sending…</span> break;
+                            default:
+                                <span class="badge badge-success">Completed</span> break;
+                        }
+                    </td>
+                    <td class="text-muted">@b.RecipientCount</td>
+                    <td class="text-muted">@b.SentCount</td>
+                    <td>
+                        @if (b.FailedCount > 0)
+                        { <span class="badge badge-error">@b.FailedCount</span> }
+                        else { <span class="text-muted">0</span> }
+                    </td>
+                    <td class="text-muted">@b.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy HH:mm")</td>
+                    <td class="text-muted">@(b.QueuedAtUtc?.ToLocalTime().ToString("d MMM yyyy HH:mm") ?? "-")</td>
+                    <td style="text-align:right;white-space:nowrap">
+                        <a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@b.Id">View</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if ((int)ViewBag.TotalPages > 1)
+{
+    <div class="toolbar" style="margin-top:14px">
+        @if (ViewBag.HasPrevious) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)">Previous</a> }
+        <span class="text-muted" style="font-size:13px">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.HasNext) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)">Next</a> }
+    </div>
+}

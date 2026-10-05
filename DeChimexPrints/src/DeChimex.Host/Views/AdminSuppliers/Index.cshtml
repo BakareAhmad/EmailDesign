@@ -1,0 +1,45 @@
+@model IReadOnlyList<DeChimex.Domain.Entities.Supplier>
+@{
+    Layout = "_AdminLayout";
+    var canManage = ViewBag.CanManage is true;
+}
+<div class="toolbar" style="display:flex;justify-content:flex-end;margin-bottom:16px">
+    @if (canManage)
+    {
+        <a class="btn btn-primary" asp-action="Create">New supplier</a>
+    }
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead><tr><th>Name</th><th>Contact</th><th>Email</th><th>Phone</th><th>Category</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                    var es = new EmptyState(EmptyIcons.Truck, "No suppliers yet", "Add the vendors you buy materials from to speed up procurement.", CtaHref: canManage ? "/admin/suppliers/create" : null, CtaText: "New supplier");
+                <tr><td colspan="7" class="table-empty">
+                <partial name="_EmptyState" model="es" /></td></tr>
+            }
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td class="font-semibold">@s.Name</td>
+                    <td class="text-muted">@(s.Contact ?? "-")</td>
+                    <td class="text-muted">@(s.Email ?? "-")</td>
+                    <td class="text-muted">@(s.Phone ?? "-")</td>
+                    <td class="text-muted">@(s.Category ?? "-")</td>
+                    <td>@if (s.Status == "Active") { <span class="badge badge-success">Active</span> } else { <span class="badge badge-neutral">@s.Status</span> }</td>
+                    <td style="text-align:right">
+                        @if (canManage)
+                        {
+                            <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@s.Id">Edit</a>
+                            <form asp-action="Delete" asp-route-id="@s.Id" method="post" style="display:inline" onsubmit="return confirm('Delete this supplier?');">
+                                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger)">Delete</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

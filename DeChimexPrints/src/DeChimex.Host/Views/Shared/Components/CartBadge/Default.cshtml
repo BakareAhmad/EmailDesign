@@ -1,0 +1,6 @@
+@model int
+@if (Model > 0)
+{
+    var display = Model > 9 ? "9+" : Model.ToString();
+    <span class="cs-count cart-badge" aria-label="@Model items in cart">@display</span>
+}

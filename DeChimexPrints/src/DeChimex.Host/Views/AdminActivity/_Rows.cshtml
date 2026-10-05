@@ -1,0 +1,29 @@
+@model DeChimex.Application.Features.Activity.ActivityPage
+@using DeChimex.Shared.Constants
+@{
+ bool Can(string p)=>User.HasClaim(Permissions.ClaimType,p);
+ string PageUrl(int p){var q=Context.Request.Query.ToDictionary(x=>x.Key,x=>(string?)x.Value.ToString());q.Remove("format");q.Remove("HistoryCutoff");q["Page"]=p.ToString();return Microsoft.AspNetCore.WebUtilities.QueryHelpers.AddQueryString("/admin/activity",q);}
+}
+<div class="card card-body" data-page="@Model.Page" data-history-cutoff="@System.DateTime.SpecifyKind(Model.AsOfUtc, System.DateTimeKind.Utc).ToString("O")">
+@if(Model.Items.Count==0){<div class="empty"><h3>No matching activity</h3><p>Try a broader filter. New business history starts when this feature is deployed.</p></div>}
+@foreach(var a in Model.Items){
+<article class="activity-entry" data-activity-id="@a.Id" data-type="@a.Type" style="padding:18px 0;border-bottom:1px solid var(--n-100)">
+ <div class="flex items-start justify-between gap-3"><div><span class="badge @(a.Importance=="attention"?"badge-warning":"badge-neutral")">@a.Category</span> <strong style="font-size:16px">@a.Title</strong></div><time class="text-xs text-muted" datetime="@System.DateTime.SpecifyKind(a.TimestampUtc, System.DateTimeKind.Utc).ToString("O")" title="@a.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss 'UTC'")">@a.TimestampUtc.ToString("dd MMM HH:mm 'UTC'")</time></div>
+ <p class="mt-2">@a.Summary</p><div class="text-sm text-muted mt-2">by @a.ActorName · @a.ActorRole @(a.IsRealtime?"· Live activity":"· History")</div>
+ <div class="flex gap-3 mt-2 text-sm">
+ @if(a.OrderId.HasValue&&Can(Permissions.Orders.View)){<a href="/admin/orders/@a.OrderId/workspace">Open order →</a>}
+ @if(a.ProductId.HasValue&&Can(Permissions.Products.View)){<a href="/admin/products/@a.ProductId">Open product →</a>}
+ @if(a.CustomerId.HasValue&&Can(Permissions.Customers.View)){<a href="/admin/customers/@a.CustomerId">Open customer →</a>}
+ @if(a.StaffUserId.HasValue&&Can(Permissions.Users.View)){<a href="/admin/users">Staff accounts →</a>}
+ @if(a.EntityName=="Category"&&Can(Permissions.Categories.View)){<a href="/admin/categories">Subcategories →</a>}
+ @if(a.EntityName=="MajorCategory"&&Can(Permissions.Categories.View)){<a href="/admin/major-categories">Major categories →</a>}
+ @if((a.EntityName=="Role"||a.EntityName=="RolePermission")&&Can(Permissions.Users.AssignRoles)){<a href="/admin/users/roles">Roles and permissions →</a>}
+ <a href="/admin/activity?Type=@a.Type">Similar activity</a>
+ </div>
+</article>
+}
+<div class="flex gap-3 mt-4">
+ @if(Model.Page>1){<a class="btn btn-secondary" href="@PageUrl(Model.Page-1)">Newer activity</a>}
+ <span class="text-muted">Page @Model.Page</span>
+ @if(Model.HasNext){<a class="btn btn-secondary" href="@PageUrl(Model.Page+1)">Older activity</a>}
+</div></div>

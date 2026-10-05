@@ -1,0 +1,32 @@
+@model IReadOnlyList<ConfigItem>
+@{ var sys = (SystemInfo)ViewBag.System; }
+<div class="dv-note" style="margin-bottom:12px">Shows whether each setting is <strong>Configured / Missing / Invalid</strong> and test vs live mode. Secret values, connection strings and keys are never displayed or returned by any Developer Portal endpoint.</div>
+<div class="dv-grid dv-g2">
+    <section class="dv-card">
+        <h2>Settings</h2>
+        <div class="dv-table-wrap"><table class="dv-table">
+            <thead><tr><th>Area</th><th>Setting</th><th>Status</th><th>Detail</th></tr></thead>
+            <tbody>
+            @foreach (var c in Model)
+            {
+                <tr><td class="dv-muted">@c.Area</td><td>@c.Name</td><td>@DevUi.Status(c.Status)</td><td class="dv-small dv-wrap">@c.Detail</td></tr>
+            }
+            </tbody>
+        </table></div>
+    </section>
+    <section class="dv-card">
+        <h2>Environment &amp; version</h2>
+        <dl class="dv-kv">
+            <dt>Environment</dt><dd>@sys.Environment</dd>
+            <dt>Version</dt><dd>@sys.Version</dd>
+            <dt>Informational</dt><dd class="dv-mono dv-small">@sys.InformationalVersion</dd>
+            <dt>Build time</dt><dd>@DevUi.Utc(sys.BuildUtc)</dd>
+            <dt>Runtime</dt><dd>@sys.Runtime</dd>
+            <dt>Framework</dt><dd>@sys.Framework</dd>
+            <dt>OS</dt><dd>@sys.Os (@sys.ProcessArch)</dd>
+            <dt>Server time zone</dt><dd>@sys.ServerTimeZone</dd>
+            <dt>Database provider</dt><dd>@sys.DatabaseProvider</dd>
+            <dt>Started</dt><dd>@DevUi.Utc(sys.StartedUtc) (up @DevUi.Duration(sys.Uptime))</dd>
+        </dl>
+    </section>
+</div>

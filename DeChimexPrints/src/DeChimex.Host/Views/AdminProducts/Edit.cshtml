@@ -1,0 +1,17 @@
+@model DeChimex.Host.Models.Admin.ProductFormViewModel
+@{
+    Layout = "_AdminLayout";
+}
+<div class="card" style="max-width:880px">
+    <div class="card-head"><h3>Edit product</h3></div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="Id" />
+            @await Html.PartialAsync("_ProductForm", Model)
+            <div class="flex items-center gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">Save</button>
+                <a class="btn btn-outline" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

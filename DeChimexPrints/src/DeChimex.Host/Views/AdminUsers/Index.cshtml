@@ -1,0 +1,72 @@
+@model IReadOnlyList<DeChimex.Contracts.Auth.UserDto>
+@{
+    Layout = "_AdminLayout";
+    var canCreate = ViewBag.CanCreate is true;
+    var canDisable = ViewBag.CanDisable is true;
+}
+<div class="toolbar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <form method="get" class="flex items-center gap-2">
+        <input class="input" type="search" name="search" value="@(ViewBag.Search)" placeholder="Search users..." style="width:280px;min-width:220px">
+        <button class="btn btn-secondary" type="submit">Search</button>
+    </form>
+    <div class="flex items-center gap-2">
+        <a class="btn btn-outline" asp-action="Roles">Roles</a>
+        @if (canCreate)
+        {
+            <a class="btn btn-primary" asp-action="Create">New staff user</a>
+        }
+    </div>
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Roles</th><th>Status</th><th>Last login</th><th></th></tr></thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                    var es = !string.IsNullOrWhiteSpace((string?)ViewBag.Search)
+    ? new EmptyState(EmptyIcons.Search, "No results", "Try adjusting your search.")
+    : new EmptyState(EmptyIcons.User, "No users yet", "Team accounts appear here after they are created.", CtaHref: canCreate ? "/admin/users/create" : null, CtaText: "New user");
+                <tr><td colspan="7" class="table-empty">
+                <partial name="_EmptyState" model="es" /></td></tr>
+            }
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td class="font-semibold">@u.FullName</td>
+                    <td>@(u.Username ?? "-")</td>
+                    <td class="text-muted">@u.Email</td>
+                    <td>@string.Join(", ", u.Roles)</td>
+                    <td>
+                        @if (u.IsActive) { <span class="badge badge-success">Active</span> }
+                        else { <span class="badge badge-neutral">Disabled</span> }
+                        @if (!u.IsEmailVerified) { <span class="badge badge-warning">Unverified</span> }
+                    </td>
+                    <td class="text-muted">@(u.LastLoginUtc?.ToLocalTime().ToString("d MMM yyyy") ?? "-")</td>
+                    <td style="text-align:right">
+                        @if (canCreate)
+                        {
+                            <a class="btn btn-ghost btn-sm" asp-action="Username" asp-route-id="@u.Id">Username</a>
+                        }
+                        @if (canDisable && u.IsActive)
+                        {
+                            <form asp-action="SetActive" asp-route-id="@u.Id" method="post" style="display:inline">
+                                <input type="hidden" name="isActive" value="false" />
+                                <button type="submit" class="btn btn-ghost btn-sm">Disable</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.HasPrevious) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)" asp-route-search="@(ViewBag.Search)">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.HasNext) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)" asp-route-search="@(ViewBag.Search)">Next</a> }
+    </div>
+}

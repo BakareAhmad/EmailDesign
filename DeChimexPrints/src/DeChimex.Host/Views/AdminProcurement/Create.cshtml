@@ -1,0 +1,86 @@
+@model DeChimex.Host.Models.Admin.ProcurementCreateViewModel
+@{
+    Layout = "_AdminLayout";
+    var products = ViewBag.Products as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+}
+<div class="card" style="max-width:760px">
+    <div class="card-head"><h3>New procurement request</h3></div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+            <div class="field">
+                <label class="label" asp-for="SourceOrderNumber">Linked order (optional)</label>
+                <input class="input" asp-for="SourceOrderNumber" placeholder="e.g. DCX-2026-000042" />
+                <span class="hint">The order number shown on the order page (looks like DCX-2026-000042).</span>
+                <span asp-validation-for="SourceOrderNumber" class="field-error"></span>
+            </div>
+
+            <h4 class="mt-2 mb-2">Items to procure</h4>
+            <div id="procureRows">
+                @for (var i = 0; i < Model.Items.Count; i++)
+                {
+                    var idx = i;
+                    <div class="procure-row" style="display:grid;grid-template-columns:1fr 110px 130px 36px;gap:8px;margin-bottom:8px;align-items:center">
+                        <select class="select" name="Items[@idx].ProductId">
+                            <option value="">Select product...</option>
+                            @foreach (var p in products)
+                            {
+                                <option value="@p.Value" selected="@(Model.Items[idx].ProductId.ToString() == p.Value ? "selected" : null)">@p.Text</option>
+                            }
+                        </select>
+                        <input class="input" type="number" min="1" name="Items[@idx].Quantity" value="@Model.Items[idx].Quantity" />
+                        <input class="input" type="number" step="0.01" min="0" name="Items[@idx].UnitCost" value="@Model.Items[idx].UnitCost" placeholder="Unit cost" />
+                        <button type="button" class="btn btn-ghost btn-sm remove-procure-row" title="Remove line" aria-label="Remove line">&times;</button>
+                    </div>
+                }
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="addProcureRow">+ Add item</button>
+
+            <div class="field mt-4">
+                <label class="label" asp-for="Notes">Notes</label>
+                <textarea class="input" asp-for="Notes" rows="2"></textarea>
+            </div>
+
+            <div class="flex items-center gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">Create request</button>
+                <a class="btn btn-outline" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function(){
+    const options = (document.querySelector('#procureRows select')?.innerHTML || '').trim();
+    document.getElementById('addProcureRow').addEventListener('click', () => {
+        const container = document.getElementById('procureRows');
+        let max = -1;
+        container.querySelectorAll('[name^="Items["]').forEach(el => {
+            const m = el.name.match(/Items\[(\d+)\]/);
+            if (m) max = Math.max(max, parseInt(m[1], 10));
+        });
+        const idx = max + 1;
+        container.insertAdjacentHTML('beforeend',
+            '<div class="procure-row" style="display:grid;grid-template-columns:1fr 110px 130px 36px;gap:8px;margin-bottom:8px;align-items:center">' +
+            '<select class="select" name="Items[' + idx + '].ProductId"><option value="">Select product...</option>' + options + '</select>' +
+            '<input class="input" type="number" min="1" name="Items[' + idx + '].Quantity" value="1" />' +
+            '<input class="input" type="number" step="0.01" min="0" name="Items[' + idx + '].UnitCost" placeholder="Unit cost" />' +
+            '<button type="button" class="btn btn-ghost btn-sm remove-procure-row" title="Remove line" aria-label="Remove line">&times;</button></div>');
+        bind();
+    });
+    function bind(){
+        document.querySelectorAll('.remove-procure-row').forEach(btn => {
+            if (btn.dataset.bound) return;
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', () => {
+                const rows = document.getElementById('procureRows');
+                if (rows.children.length > 1) btn.closest('.procure-row').remove();
+            });
+        });
+    }
+    bind();
+})();
+</script>
+}

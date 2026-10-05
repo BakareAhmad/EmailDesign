@@ -1,0 +1,238 @@
+@using DeChimex.Host
+@inject DeChimex.Host.Services.CustomerShellService Shell
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = "Custom printing & branded merchandise";
+    ViewData["ActiveNav"] = "home";
+    ViewData["MetaDescription"] = "Shop ready-to-buy print products or order custom branded merchandise from DE-CHIMEX PRINT HUB. Secure payment, delivery or pickup.";
+    var biz = ViewBag.Business as Dictionary<string, string> ?? new Dictionary<string, string>();
+    string Get(string k, string fb = "") => biz.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fb;
+    var isCustomer = User.Identity?.IsAuthenticated == true && User.IsInRole(DeChimex.Shared.Constants.RoleNames.Customer);
+    var shopBase = isCustomer ? "/portal/shop" : "/products";
+    var majors = ViewBag.NavMajorCategories as IReadOnlyList<DeChimex.Contracts.Categories.MajorCategoryDto> ?? new List<DeChimex.Contracts.Categories.MajorCategoryDto>();
+    var categories = ViewBag.Categories as IReadOnlyList<DeChimex.Contracts.Categories.CategoryDto> ?? new List<DeChimex.Contracts.Categories.CategoryDto>();
+    var services = ViewBag.Services as IReadOnlyList<DeChimex.Contracts.Services.ServiceDto> ?? new List<DeChimex.Contracts.Services.ServiceDto>();
+    var featured = ViewBag.Featured as IReadOnlyList<DeChimex.Contracts.Products.ProductSummaryDto> ?? new List<DeChimex.Contracts.Products.ProductSummaryDto>();
+    var withImages = featured.Where(f => !string.IsNullOrWhiteSpace(f.PrimaryImageUrl)).Take(4).ToList();
+    var readyCount = categories.Sum(c => c.ProductCount);
+    // Real business figures only when the owner has set them (no invented fallbacks).
+    // Labels match the owner's Settings screen (and the pre-refactor hero's metrics band).
+    var stats = new[] { ("business.stat_projects", "Projects delivered", "box"), ("business.stat_brands", "Happy brands", "user"), ("business.stat_turnaround", "Avg. turnaround", "clock") }
+        .Select(t => (Value: Get(t.Item1), Label: t.Item2, Icon: t.Item3)).Where(t => !string.IsNullOrWhiteSpace(t.Value)).ToList();
+    var waUrl = DeChimex.Shared.WhatsApp.BuildUrl(Get("business.whatsapp")) ?? DeChimex.Shared.WhatsApp.BuildUrl(Get("business.phone").Split(',')[0]) ?? "https://wa.me/2349062051934";
+    ViewData["ShopBase"] = shopBase;
+    ViewData["IsCustomer"] = isCustomer;
+    var reviews = new[]
+    {
+        (Name: "Muinat B.", Title: "Public Relations Manager, Success Nur/Pry School", Img: "/img/reviews/success-school-logo.jpeg", Text: "DE-CHIMEX delivered beyond our expectations. The quality, attention to detail and fast turnaround are unmatched."),
+        (Name: "Olalekan F.", Title: "Founder, EAYoruba", Img: "/img/reviews/olalekan-f.jpeg", Text: "We have been working with DE-CHIMEX Print Hub for a while now, and they have consistently delivered quality work. Their prints are clean, professional, and they are always reliable throughout the process."),
+        (Name: "TokenPicks", Title: "Trading software company", Img: "/img/reviews/tokenpicks-logo.png", Text: "The branded materials came out sharp, clean and exactly on spec. DE-CHIMEX made the process simple from artwork checks to final delivery."),
+        (Name: "DE-YEMKING Publishers LTD.", Title: "Publishing company", Img: "/img/reviews/de-yemking-logo.png", Text: "Reliable, creative and quality-driven. DE-CHIMEX understands premium presentation and delivers professional print production every time."),
+    };
+    var catIcons = new[] { "tag", "printer", "box", "sparkle", "brush", "image", "shop", "star" };
+}
+
+<section class="hm-hero" aria-labelledby="heroTitle">
+    <div class="cs-wrap">
+        @* Hero composition restored from the pre-refactor design (owner's reference screenshots, 8 viewports):
+           two columns at EVERY width - copy left, art right. >720 px the landscape art (~2/3 of the row) is anchored
+           right and runs into the gutter; <=720 px the portrait art sits beside the copy. The art is a true-alpha
+           cut-out (tools/hero-art), so the page background shows around and through it. Layout: .hm-hero in customer.css. *@
+        <div class="hm-hero-grid">
+            <div class="hm-copy">
+                <span class="hm-kicker">Printing • Branding • Promotional</span>
+                <h1 class="hm-title" id="heroTitle"><span>Your brand,</span> <em>beautifully</em> <span>produced.</span></h1>
+                <p class="hm-lead">Branded mugs, jerseys, flasks, corporate gifts and print work, produced by DE-CHIMEX PRINT HUB. Order ready-to-buy products online, or send your own items for custom branding.</p>
+                <div class="hm-cta">
+                    <a class="btn btn-primary btn-lg" href="@shopBase">Shop products @Html.Raw(CustomerIcons.Svg("arrow-right", 16))</a>
+                    <a class="btn btn-outline btn-lg" href="/services">Explore services @Html.Raw(CustomerIcons.Svg("arrow-right", 16))</a>
+                </div>
+            </div>
+            <div class="hm-visual" aria-hidden="@(Shell.HeroDesktopUrl is null ? "true" : null)">
+                @if (Shell.HeroDesktopUrl is not null)
+                {
+                    @* Transparent art: portrait hero-mobile.(webp|png) <=720 px, landscape hero(-768).(webp|png) above.
+                       Each file is optional (CustomerShellService checks existence); no files -> product mosaic. *@
+                    var webpSet = DeChimex.Host.Services.CustomerShellService.Srcset(Shell.HeroTabletWebpUrl, Shell.HeroDesktopWebpUrl);
+                    <picture class="hm-hero-img" data-testid="home-hero">
+                        @if (Shell.HeroMobileUrl is not null)
+                        {
+                            if (Shell.HeroMobileWebpUrl is not null) { <source media="(max-width: 720px)" type="image/webp" srcset="@Shell.HeroMobileWebpUrl" width="800" height="1093"> }
+                            <source media="(max-width: 720px)" srcset="@Shell.HeroMobileUrl" width="800" height="1093">
+                        }
+                        @if (webpSet is not null) { <source type="image/webp" srcset="@webpSet" sizes="@DeChimex.Host.Services.CustomerShellService.HeroSizes" width="1536" height="1024"> }
+                        <img src="@Shell.HeroDesktopUrl" srcset="@DeChimex.Host.Services.CustomerShellService.Srcset(Shell.HeroTabletUrl, Shell.HeroDesktopUrl)" sizes="@DeChimex.Host.Services.CustomerShellService.HeroSizes"
+                             alt="DE-CHIMEX PRINT HUB branded jersey, mugs, water bottle and notebook" width="1536" height="1024" loading="eager" decoding="async" fetchpriority="high">
+                    </picture>
+                }
+                else
+                {
+                <div class="hm-mosaic">
+                    @foreach (var f in withImages.Take(2))
+                    {
+                        <a href="@shopBase/@f.Id" tabindex="-1">
+                            <img src="@f.PrimaryImageUrl" alt="" width="600" height="600" loading="eager" decoding="async">
+                            <span class="hm-tag">@f.Name<b>@CustomerPresentation.Money(f.SellingPrice)</b></span>
+                        </a>
+                    }
+                    <a href="/services" class="is-brand" tabindex="-1"><strong>Custom branding</strong><span>Tees · mugs · gifts · print</span></a>
+                    @for (var i = withImages.Take(2).Count(); i < 2; i++)
+                    {
+                        <a href="@shopBase" tabindex="-1"><span class="pc-noimg">@Html.Raw(CustomerIcons.Svg("image", 30, null, 1.5))</span></a>
+                    }
+                </div>
+                }
+            </div>
+        </div>
+        @if (stats.Count > 0)
+        {
+            <ul class="hm-stats" aria-label="DE-CHIMEX at a glance">
+                @foreach (var s in stats)
+                {
+                    <li><span class="hm-stat-ic">@Html.Raw(CustomerIcons.Svg(s.Icon, 20))</span><span><b>@s.Value</b><span>@s.Label</span></span></li>
+                }
+            </ul>
+        }
+    </div>
+</section>
+
+@if (majors.Count > 0 || categories.Count > 0)
+{
+    <section class="cs-section" style="padding-top:22px" aria-labelledby="catsHeading">
+        <div class="cs-wrap">
+            <div class="cs-section-head"><div><h2 id="catsHeading">Shop by category</h2><p>Browse what we make, then narrow it down.</p></div><a class="cs-link" href="@shopBase">All products →</a></div>
+            <div class="cat-tiles">
+                @{ var idx = 0; }
+                @if (majors.Count > 0)
+                {
+                    foreach (var m in majors.Take(7))
+                    {
+                        var count = categories.Where(c => c.MajorCategoryId == m.Id).Sum(c => c.ProductCount);
+                        var img = featured.FirstOrDefault(f => categories.Any(c => c.Id == f.CategoryId && c.MajorCategoryId == m.Id) && !string.IsNullOrWhiteSpace(f.PrimaryImageUrl))?.PrimaryImageUrl;
+                        <a class="cat-tile" href="@shopBase?majorCategoryId=@m.Id">
+                            <span class="cat-ic">@Html.Raw(CustomerIcons.Svg(catIcons[idx++ % catIcons.Length], 20))</span>
+                            @if (img is not null) { <img src="@img" alt="" loading="lazy" width="200" height="200"> }
+                            <strong>@m.Name</strong>
+                            <span>@(count > 0 ? $"{count} product{(count == 1 ? "" : "s")}" : $"{m.CategoryCount} range{(m.CategoryCount == 1 ? "" : "s")}")</span>
+                        </a>
+                    }
+                }
+                else
+                {
+                    foreach (var c in categories.OrderByDescending(c => c.ProductCount).Take(7))
+                    {
+                        <a class="cat-tile" href="@shopBase?categoryId=@c.Id">
+                            <span class="cat-ic">@Html.Raw(CustomerIcons.Svg(catIcons[idx++ % catIcons.Length], 20))</span>
+                            <strong>@c.Name</strong><span>@c.ProductCount product@(c.ProductCount == 1 ? "" : "s")</span>
+                        </a>
+                    }
+                }
+                <a class="cat-tile is-all" href="@shopBase"><span class="cat-ic">@Html.Raw(CustomerIcons.Svg("arrow-right", 20))</span><strong>All products</strong><span>@(readyCount > 0 ? $"{readyCount} items to explore" : "Browse everything")</span></a>
+            </div>
+        </div>
+    </section>
+}
+
+@if (featured.Count > 0)
+{
+    <section class="cs-section" style="padding-top:0" aria-labelledby="featHeading">
+        <div class="cs-wrap">
+            <div class="cs-section-head"><div><h2 id="featHeading">Popular right now</h2><p>Ready-to-buy items checkout in a minute; made-to-order items start a quick request.</p></div><a class="cs-link" href="@shopBase">See all →</a></div>
+            <div class="pgrid-scroll" role="list">
+                @foreach (var f in featured.Take(8))
+                {
+                    <partial name="Customer/_ProductCard" model="f" view-data="ViewData" />
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<section class="cs-section" style="padding-top:0" aria-labelledby="pathsHeading">
+    <div class="cs-wrap">
+        <h2 id="pathsHeading" class="cs-visually-hidden">Two ways to order</h2>
+        <div class="hm-paths">
+            <a class="hm-path" href="@shopBase">
+                <span class="hm-path-ic">@Html.Raw(CustomerIcons.Svg("cart", 22))</span>
+                <h3>Ready to buy</h3>
+                <p>Stocked products with a fixed price. Add to cart, pay online with card, transfer or USSD, and choose delivery or pickup.</p>
+                <span class="cs-link">Shop now @Html.Raw(CustomerIcons.Svg("arrow-right", 16))</span>
+            </a>
+            <a class="hm-path is-custom" href="/services">
+                <span class="hm-path-ic">@Html.Raw(CustomerIcons.Svg("brush", 22))</span>
+                <h3>Custom printing &amp; branding</h3>
+                <p>Tell us the job: quantities, colours, artwork. We confirm the price, you approve the design preview, then we produce and deliver.</p>
+                <span class="cs-link">Start a request @Html.Raw(CustomerIcons.Svg("arrow-right", 16))</span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="cs-section" style="padding-top:0" aria-labelledby="howHeading">
+    <div class="cs-wrap">
+        <div class="cs-section-head"><div><h2 id="howHeading">How a custom order works</h2><p>Everything happens in your account. No back-and-forth emails.</p></div></div>
+        <div class="hm-steps">
+            <div class="hm-step"><h4>Send your request</h4><p>Pick a made-to-order product, answer a few questions and attach your logo or reference files.</p></div>
+            <div class="hm-step"><h4>We review &amp; confirm</h4><p>Our team checks the details with you in the order chat and confirms the final price.</p></div>
+            <div class="hm-step"><h4>Approve the design</h4><p>You get a design preview to approve or request changes. Nothing prints until you say so.</p></div>
+            <div class="hm-step"><h4>Pay, produce, deliver</h4><p>Pay securely online, follow production status live, then collect or get it delivered.</p></div>
+        </div>
+    </div>
+</section>
+
+<section class="cs-section" style="padding-top:0" aria-label="Why order with us">
+    <div class="cs-wrap">
+        <div class="hm-trust">
+            <div>@Html.Raw(CustomerIcons.Svg("shield", 20))<div><b>Secure payments</b>Card, bank transfer and USSD via Paystack.</div></div>
+            <div>@Html.Raw(CustomerIcons.Svg("check-circle", 20))<div><b>Approve before print</b>Design previews with version history.</div></div>
+            <div>@Html.Raw(CustomerIcons.Svg("truck", 20))<div><b>Delivery or pickup</b>Nationwide delivery, or collect in Lagos.</div></div>
+            <div>@Html.Raw(CustomerIcons.Svg("chat", 20))<div><b>Real people</b>Chat with the team in your order or on WhatsApp.</div></div>
+        </div>
+    </div>
+</section>
+
+@if (services.Count > 0)
+{
+    <section class="cs-section" style="padding-top:0" aria-labelledby="svcHeading">
+        <div class="cs-wrap">
+            <div class="cs-section-head"><div><h2 id="svcHeading">Printing services</h2><p>Bring your own item or brief and we handle the rest.</p></div><a class="cs-link" href="/services">All services →</a></div>
+            <div class="chips">
+                @foreach (var s in services.Take(10))
+                {
+                    <a class="chip" href="/services#svc-@s.Slug">@s.Name</a>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<section class="cs-section" style="padding-top:0" aria-labelledby="revHeading">
+    <div class="cs-wrap">
+        <div class="cs-section-head"><div><h2 id="revHeading">What customers say</h2></div></div>
+        <div class="hm-reviews">
+            @foreach (var r in reviews)
+            {
+                <blockquote class="hm-review">
+                    <span class="pd-stars" aria-hidden="true">★★★★★</span>
+                    <p>“@r.Text”</p>
+                    <div class="hm-review-who">
+                        <img src="@r.Img" alt="" width="40" height="40" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'cs-avatar',textContent:'@r.Name[0]'}))">
+                        <div><b>@r.Name</b><span>@r.Title</span></div>
+                    </div>
+                </blockquote>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="cs-section" style="padding-top:0">
+    <div class="cs-wrap">
+        <div class="hm-band">
+            <div><h2>Not sure what you need?</h2><p>Send us a message and we'll help you pick the right product, quantity and finish for your budget.</p></div>
+            <div class="hm-band-cta">
+                <a class="btn btn-light btn-lg" href="@waUrl" target="_blank" rel="noopener">@Html.Raw(CustomerIcons.Svg("whatsapp", 18)) WhatsApp us</a>
+                <a class="btn btn-ghost-light btn-lg" href="/contact">Contact form</a>
+            </div>
+        </div>
+    </div>
+</section>

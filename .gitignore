@@ -1,0 +1,11 @@
+# ---- Python tooling caches (never ship; regenerable) ----
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# ---- Local E2E scratch (generated images / captured traffic) ----
+/e2e-dr-wip/
+
+# Build outputs from solution and verification harnesses
+**/bin/
+**/obj/

@@ -1,0 +1,144 @@
+@{
+    Layout = "_AdminLayout";
+    var category = ViewBag.Category as DeChimex.Contracts.Categories.CategoryDto;
+    var options = ViewBag.Options as IReadOnlyList<DeChimex.Contracts.Orders.CategoryOptionDto> ?? new List<DeChimex.Contracts.Orders.CategoryOptionDto>();
+    var typeNames = new[] { "SingleChoice", "MultipleChoice", "Text", "LongText", "FileUpload" };
+}
+<div class="flex items-center gap-3" style="justify-content:space-between;flex-wrap:wrap">
+    <div>
+        <h2 style="margin:0">Ordering options for @category?.Name</h2>
+        <div class="text-muted" style="font-size:13px">Every product in this category shows these questions on its order form. Historical orders are unaffected by changes here.</div>
+    </div>
+    <a class="btn btn-outline btn-sm" asp-action="Index" aria-label="Back to categories">Back to categories</a>
+</div>
+
+<div class="card" style="margin-top:16px">
+    <div class="card-body">
+        <div id="optionsEditor"></div>
+        <button type="button" id="addOption" class="btn btn-outline" style="margin-top:12px">+ Add question</button>
+        <form asp-action="SaveOptions" asp-route-id="@category?.Id" method="post" id="saveForm" style="margin-top:16px">
+            <input type="hidden" name="optionsJson" id="optionsJson" />
+            <button type="submit" class="btn btn-primary btn-lg">Save options</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+  'use strict';
+
+  var existing = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(options.Select(o => new {
+        key = o.Id.ToString(),
+        question = o.Question,
+        type = o.Type,
+        required = o.IsRequired,
+        parentKey = o.ParentOptionId?.ToString(),
+        showWhenValue = o.ShowWhenValue,
+        choices = o.Choices.Select(c => c.Label).ToArray()
+    })));
+
+  var editor = document.getElementById('optionsEditor');
+  var types = ['SingleChoice', 'MultipleChoice', 'Text', 'LongText', 'FileUpload'];
+  var uid = 0;
+  function newKey() { return 'opt-' + (++uid) + '-' + Date.now().toString(36); }
+
+  function rowHtml(o) {
+    var isChoice = o.type === 'SingleChoice' || o.type === 'MultipleChoice';
+    var typeOptions = types.map(function (t) {
+      return '<option value="' + t + '"' + (t === o.type ? ' selected' : '') + '>' + t + '</option>';
+    }).join('');
+    var choices = (o.choices || []).join('\n');
+    return '' +
+      '<div class="opt-row" data-key="' + (o.key || newKey()) + '" style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff">' +
+        '<div class="flex gap-2 items-start" style="flex-wrap:wrap">' +
+          '<input class="input opt-question" type="text" placeholder="Question (e.g. What colour do you want?)" value="' + esc(o.question) + '" style="flex:1;min-width:220px" />' +
+          '<select class="input opt-type" style="width:180px">' + typeOptions + '</select>' +
+          '<label class="flex items-center gap-1 text-sm" style="padding-top:8px"><input type="checkbox" class="opt-required"' + (o.required ? ' checked' : '') + ' /> Required</label>' +
+          '<button type="button" class="btn btn-ghost btn-sm opt-remove" title="Remove">✕</button>' +
+        '</div>' +
+        '<div class="flex gap-2 items-center" style="margin-top:8px;flex-wrap:wrap">' +
+          '<label class="text-xs text-muted">Show only if</label>' +
+          '<select class="input opt-parent" data-current="' + esc(o.parentKey || '') + '" style="width:220px"><option value="">(always shown)</option></select>' +
+          '<input class="input opt-when" type="text" placeholder="e.g. Yes" value="' + esc(o.showWhenValue || '') + '" style="width:180px" />' +
+        '</div>' +
+        '<div class="opt-choices-wrap" style="margin-top:8px;' + (isChoice ? '' : 'display:none') + '">' +
+          '<label class="text-xs text-muted">Choices (one per line)</label>' +
+          '<textarea class="input opt-choices" rows="3" style="font-family:monospace">' + esc(choices) + '</textarea>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s == null ? '' : String(s);
+    return d.innerHTML;
+  }
+
+  function collectRows() {
+    return Array.prototype.slice.call(document.querySelectorAll('.opt-row'));
+  }
+
+  function syncParents() {
+    var rows = collectRows();
+    rows.forEach(function (row) {
+      var parentSelect = row.querySelector('.opt-parent');
+      var current = parentSelect.getAttribute('data-current') || parentSelect.value;
+      var html = '<option value="">(always shown)</option>';
+      rows.forEach(function (other) {
+        if (other === row) return;
+        var type = other.querySelector('.opt-type').value;
+        if (type !== 'SingleChoice' && type !== 'MultipleChoice') return;
+        var q = other.querySelector('.opt-question').value.trim() || '(unnamed)';
+        var key = other.getAttribute('data-key');
+        html += '<option value="' + key + '"' + (key === current ? ' selected' : '') + '>' + esc(q) + '</option>';
+      });
+      parentSelect.innerHTML = html;
+    });
+  }
+
+  function toggleChoices(select) {
+    var row = select.closest('.opt-row');
+    var wrap = row.querySelector('.opt-choices-wrap');
+    var v = select.value;
+    wrap.style.display = (v === 'SingleChoice' || v === 'MultipleChoice') ? '' : 'none';
+  }
+
+  function bindRow(row) {
+    row.querySelector('.opt-type').addEventListener('change', function (e) { toggleChoices(e.target); syncParents(); });
+    row.querySelector('.opt-remove').addEventListener('click', function () { row.remove(); syncParents(); });
+  }
+
+  // Seed existing rows.
+  existing.forEach(function (o) { editor.insertAdjacentHTML('beforeend', rowHtml(o)); });
+  if (existing.length === 0) editor.insertAdjacentHTML('beforeend', rowHtml({ type: 'SingleChoice', choices: [] }));
+  collectRows().forEach(bindRow);
+  syncParents();
+
+  document.getElementById('addOption').addEventListener('click', function () {
+    editor.insertAdjacentHTML('beforeend', rowHtml({ type: 'SingleChoice', choices: [] }));
+    bindRow(collectRows().pop());
+    syncParents();
+  });
+
+  document.getElementById('saveForm').addEventListener('submit', function () {
+    var payload = collectRows().map(function (row) {
+      var type = row.querySelector('.opt-type').value;
+      var isChoice = type === 'SingleChoice' || type === 'MultipleChoice';
+      return {
+        key: row.getAttribute('data-key'),
+        question: row.querySelector('.opt-question').value.trim(),
+        type: type,
+        required: row.querySelector('.opt-required').checked,
+        parentKey: row.querySelector('.opt-parent').value || null,
+        showWhenValue: (row.querySelector('.opt-when').value || '').trim() || null,
+        choices: isChoice
+          ? (row.querySelector('.opt-choices').value || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
+          : []
+      };
+    });
+    document.getElementById('optionsJson').value = JSON.stringify(payload);
+  });
+})();
+</script>
+}

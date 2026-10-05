@@ -1,0 +1,152 @@
+
+===== SETUP: 50% fee purchase, webhooks, Brevo outage =====
+ok 01 - owner logged in
+  PASS owner changes service fee to 50% (preview + confirm)
+PASS 01: category created: DP Cat devfindp
+PASS 01: product created (direct): DP Poster devfindp
+ok 02 - register devbuyer -> verify page
+ok 03 - verification token captured for devbuyer
+ok 04 - brevo api-key header present (key loaded at runtime)
+ok 05 - customer devbuyer signed in
+  PASS customer registered + signed in
+PASS 02: checkout amount visibility (You will pay)
+PASS 03: lands on /checkout/complete/{order}
+PASS 04: paystack stub checkout opened (order 3f6eeb86)
+  PASS customer paid at 50% service fee (Paystack stub)
+  PASS owner restores service fee to 100% (future transactions only)
+PASS 05: checkout amount visibility (You will pay)
+PASS 06: lands on /checkout/complete/{order}
+  PASS second payment initialised and left open
+  PASS duplicate charge.success webhook acknowledged twice (200/200)
+  PASS amount-mismatch webhook acknowledged (200) but not applied
+  PASS invalid-signature webhook acknowledged (200, rejected internally)
+  PASS Brevo refused a real email send during the simulated outage
+
+===== 01-02: login =====
+  PASS anonymous /dev redirects to login
+  PASS invalid developer password is rejected with a message
+  PASS developer lands on /dev after login
+
+===== 03: dashboard =====
+  PASS dashboard shows overall state
+  PASS dashboard has app/db/paystack/email/storage/realtime/jobs tiles
+  PASS every status tile is clickable (href to details)
+  PASS database tile shows live latency
+  PASS dashboard contains no secrets
+  PASS developer sees no admin business navigation
+  PASS DB tile clicks through to Database & migrations
+  PASS /dev/api/status JSON has overall + tiles
+
+===== 04: health =====
+  PASS health shows Uptime
+  PASS health shows Environment
+  PASS health shows Development
+  PASS health shows .NET
+  PASS health shows Migrations
+  PASS diagnostics pipeline lost nothing (0 dropped, 0 failed writes, 0 capture failures)
+  PASS health never shows connection strings/secrets
+
+===== 05-07: technical log =====
+  PASS technical log lists events
+  PASS filter severity≥Warning + category Email finds the Brevo failure
+  PASS recipient email is never shown in full in the log
+  PASS payment reference stays searchable in the log (not over-redacted)
+  PASS search 'signature' finds the rejected webhook
+  PASS log detail shows correlation, route, environment and metadata
+  PASS log detail has no secrets or full recipient email
+  PASS correlation link shows all events of that request
+
+===== 08-09: error center =====
+  PASS error center groups errors (occurrences, first/last seen)
+  PASS expected business rejections (wrong password, cart guard) are not reported as errors
+  PASS client-aborted requests (OperationCanceledException) are not reported as errors
+  PASS no EF 'same entity tracked as different entity types' warning flood
+  PASS error group drill-down lists individual occurrences
+
+===== 10: statistics =====
+  PASS statistics renders for range 1h
+  PASS statistics renders for range 24h
+  PASS statistics renders for range 7d
+  PASS statistics renders for range 30d
+  PASS custom range accepted
+  PASS statistics show requests, error rate and average response time
+
+===== 11: integrations =====
+  PASS integrations show Paystack and Brevo
+  PASS integration config shown as Configured / test mode, never values
+  PASS Brevo failure is visible with last success
+
+===== 12-13: payment + email diagnostics =====
+  PASS payment diagnostics show webhook outcome Duplicate
+  PASS payment diagnostics show webhook outcome AmountMismatch
+  PASS payment diagnostics show webhook outcome Rejected
+  PASS payment diagnostics show refunds
+  PASS payment diagnostics expose no customer emails or raw payloads
+  PASS email diagnostics count attempts/successes/failures
+  PASS email diagnostics show template + recipient category, not contents
+  PASS email diagnostics never show the recipient address
+  PASS no arbitrary send tool on email page
+
+===== 14-17: service fees =====
+  PASS service-fee overview shows All time
+  PASS service-fee overview shows Today
+  PASS service-fee overview shows This month
+  PASS service-fee overview shows Gross
+  PASS service-fee overview shows Net
+  PASS refund rules are stated explicitly
+  PASS ledger lists the 50% payment and 100% payments
+  PASS ledger shows reversed (refunded) fee
+  PASS ledger reconciles (gross − reversed = net)
+  PASS fee detail keeps the historical 50% although config is now 100%
+  PASS fee detail traces order, Paystack fee and status
+  PASS fee detail hides customer PII
+  PASS inverted custom range shows a validation error
+  PASS CSV export downloads with reconciliation columns
+  PASS CSV has no customer PII (no emails/names)
+  PASS CSV row for the 50% payment keeps ServiceFeePercent 50.00
+    CSV rows=6 ΣNetFee=626.19
+  PASS CSV contains refunded (reversed) rows
+
+===== 18-20: jobs, database, configuration =====
+  PASS jobs show status/last run/next run for background jobs
+  PASS database page shows provider, latency and migrations
+  PASS database page is read-only (no forms / destructive buttons)
+  PASS database page never shows the connection string
+  PASS configuration shows Configured / test mode statuses
+  PASS configuration never shows secret values
+
+===== 21-25: maintenance =====
+  PASS maintenance offers exactly the 5 safe tools (no SQL/shell/file/run-anything)
+  PASS maintenance forms carry anti-forgery tokens
+  PASS server refuses maintenance without confirmation
+  PASS maintenance POST without anti-forgery token is rejected (400)
+  PASS clear cache succeeds with confirmation
+  PASS clear cache is idempotent (second run also succeeds)
+  PASS re-run health checks reports overall status
+  PASS re-verify of an already-paid payment is a no-op
+  PASS re-verify with an unknown reference shows an error
+  PASS maintenance actions are audited as 'Developer X ran Y'
+
+===== 26-27: Paystack outage -> Unavailable -> recovery =====
+  PASS health re-run detects Paystack unreachable
+  PASS re-verify during outage fails safely with a message (no crash)
+  PASS dashboard Paystack tile shows Unavailable
+  PASS Paystack tile recovers from Unavailable once the stub returns
+  PASS Paystack health check is Healthy again
+
+===== 28: developer password validation =====
+  PASS password change rejects mismatched confirmation
+
+===== 29-31: access denial =====
+  PASS developer denied /admin/settings
+  PASS developer denied /admin/users
+  PASS developer denied /admin/customers
+  PASS developer denied /admin/orders
+  PASS developer cannot change pricing / service fee (POST refused)
+  PASS customer denied /dev
+  PASS customer navigation has no developer link
+  PASS owner without explicit dev grant is denied /dev
+  PASS owner admin navigation shows no developer portal link
+  PASS customer gets no dev API data
+
+RESULT: 107 passed, 0 failed

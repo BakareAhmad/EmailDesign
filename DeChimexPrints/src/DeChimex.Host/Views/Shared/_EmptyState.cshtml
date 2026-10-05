@@ -1,0 +1,27 @@
+@model DeChimex.Host.Models.EmptyState
+@{
+    var cls = "empty";
+    if (Model.Compact) cls += " sm";
+    if (Model.Muted) cls += " empty-muted";
+}
+<div class="@cls">
+    <div class="empty-ico" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            @foreach (var p in Model.Icon.Split('|'))
+            {
+                <path d="@p" />
+            }
+        </svg>
+    </div>
+    <h4>@Model.Title</h4>
+    @if (!string.IsNullOrWhiteSpace(Model.Subtitle))
+    {
+        <p>@Model.Subtitle</p>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.CtaHref))
+    {
+        <div class="empty-cta">
+            <a class="btn btn-primary btn-sm" href="@Model.CtaHref">@Model.CtaText</a>
+        </div>
+    }
+</div>

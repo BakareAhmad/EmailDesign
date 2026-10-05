@@ -1,0 +1,83 @@
+@model ServiceFeeOverview
+@{
+    var all = Model.Periods.First(p => p.Period.Key == "all").Current;
+}
+<div class="dv-grid dv-g4">
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Naira(all.NetFees)<small>Net service fees, all time</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Naira(all.GrossFees)<small>Gross collected · @all.Transactions txn</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Naira(all.ReversedFees)<small>Reversed by @all.RefundCount refund(s)</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Pct(Model.CurrentPercent)<small>Current configured percentage (new checkouts)</small></div></div>
+</div>
+<div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap">
+    <a class="dv-btn" href="/dev/service-fees/ledger">Open ledger</a>
+    <a class="dv-btn dv-btn-ghost" href="/dev/service-fees/export">Export CSV (all time)</a>
+</div>
+
+<section class="dv-card">
+    <h2>By period <span class="dv-muted dv-small">(@Model.TimeZoneId calendar)</span></h2>
+    <div class="dv-table-wrap"><table class="dv-table">
+        <thead><tr><th>Period</th><th class="num">Txn</th><th class="num">Txn value</th><th class="num">Gross fees</th><th class="num">Avg fee</th><th class="num">Refunds</th><th class="num">Reversed</th><th class="num">Net</th><th class="num">Paystack fee</th><th class="num">Not collected</th><th>Previous period</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var p in Model.Periods)
+        {
+            var c = p.Current;
+            <tr>
+                <td><strong>@p.Period.Label</strong></td>
+                <td class="num">@c.Transactions</td>
+                <td class="num">@DevUi.Naira(c.TransactionValue)</td>
+                <td class="num">@DevUi.Naira(c.GrossFees)</td>
+                <td class="num">@DevUi.Naira(c.AverageFee)</td>
+                <td class="num">@c.RefundCount</td>
+                <td class="num">@DevUi.Naira(c.ReversedFees)</td>
+                <td class="num"><strong>@DevUi.Naira(c.NetFees)</strong></td>
+                <td class="num">@DevUi.Naira(c.PaystackFees)</td>
+                <td class="num dv-muted">@c.NotCollectedAttempts · @DevUi.Naira(c.NotCollectedFees)</td>
+                <td class="dv-small">@if (p.Previous is { } prev) { <span>@p.Period.PreviousLabel: net <strong>@DevUi.Naira(prev.NetFees)</strong> (@prev.Transactions txn)</span> } else { <span class="dv-muted">—</span> }</td>
+                <td class="dv-small"><a href="/dev/service-fees/ledger?from=@(p.Period.Key == "all" ? "" : TimeZoneInfo.ConvertTimeFromUtc(p.Period.FromUtc, TimeZoneInfo.FindSystemTimeZoneById(Model.TimeZoneId)).ToString("yyyy-MM-dd"))">ledger</a></td>
+            </tr>
+        }
+        </tbody>
+    </table></div>
+</section>
+
+<div class="dv-grid dv-g2" style="margin-top:12px">
+    <section class="dv-card">
+        <h2>Custom range</h2>
+        <form method="get" class="dv-filters">
+            <label>From <input type="date" name="from" value="@ViewBag.From" required /></label>
+            <label>To <input type="date" name="to" value="@ViewBag.To" required /></label>
+            <button class="dv-btn" type="submit">Calculate</button>
+        </form>
+        @if (Model.Custom is { } cu)
+        {
+            <p class="dv-small dv-muted">@Model.CustomFromUtc?.ToString("yyyy-MM-dd") → @Model.CustomToUtc?.ToString("yyyy-MM-dd") (UTC bounds of the local days)</p>
+            <partial name="~/Views/Dev/_FeeTotals.cshtml" model="cu" />
+            <p class="dv-small"><a href="/dev/service-fees/ledger?from=@ViewBag.From&to=@ViewBag.To">Ledger for this range →</a> · <a href="/dev/service-fees/export?from=@ViewBag.From&to=@ViewBag.To">Export CSV →</a></p>
+        }
+        else { <p class="dv-muted dv-small">Pick two dates (inclusive, local calendar).</p> }
+    </section>
+    <section class="dv-card">
+        <h2>Percentages used (all time)</h2>
+        @if (all.Percentages.Count == 0) { <p class="dv-muted dv-small">No collected fees yet.</p> }
+        else
+        {
+            <div class="dv-table-wrap"><table class="dv-table"><thead><tr><th>Percentage</th><th class="num">Txn</th><th class="num">Txn value</th><th class="num">Fees</th></tr></thead><tbody>
+            @foreach (var u in all.Percentages) { <tr><td>@DevUi.Pct(u.Percent)</td><td class="num">@u.Transactions</td><td class="num">@DevUi.Naira(u.TransactionValue)</td><td class="num">@DevUi.Naira(u.Fees)</td></tr> }
+            </tbody></table></div>
+            <p class="dv-small dv-muted">Each payment keeps the percentage that applied at its own checkout.</p>
+        }
+    </section>
+</div>
+
+<section class="dv-card" style="margin-top:12px">
+    <h2>Monthly history</h2>
+    @if (Model.Months.Count == 0) { <p class="dv-muted dv-small">No history yet.</p> }
+    else
+    {
+        <div class="dv-table-wrap"><table class="dv-table"><thead><tr><th>Month</th><th class="num">Txn</th><th class="num">Gross</th><th class="num">Reversed</th><th class="num">Net</th></tr></thead><tbody>
+        @foreach (var m in Model.Months) { <tr><td>@m.Label</td><td class="num">@m.Totals.Transactions</td><td class="num">@DevUi.Naira(m.Totals.GrossFees)</td><td class="num">@DevUi.Naira(m.Totals.ReversedFees)</td><td class="num"><strong>@DevUi.Naira(m.Totals.NetFees)</strong></td></tr> }
+        </tbody></table></div>
+    }
+</section>
+@{ ViewData["FeeRulesOpen"] = true; }
+<partial name="~/Views/Dev/_FeeRules.cshtml" />

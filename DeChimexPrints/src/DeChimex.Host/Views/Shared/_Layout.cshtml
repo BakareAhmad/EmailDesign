@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@(ViewData["Title"] ?? "DE-CHIMEX PRINT HUB")</title>
+    <partial name="_BrandHead" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="stylesheet" href="~/css/app.css">
+    <link rel="stylesheet" href="~/css/tailwind.build.css">
+</head>
+<body class="bg-slate-50">
+    <header class="app-topbar" style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#fff;border-bottom:1px solid var(--n-200)">
+        <a href="/" class="flex items-center gap-2" style="text-decoration:none;color:inherit">
+            <span class="brand-badge" style="width:36px;height:36px;border-radius:9px;background:#fff;border:1px solid var(--n-200);display:grid;place-items:center;padding:3px;color:var(--primary);font-weight:800;flex-shrink:0" aria-hidden="true"><img src="/img/logo.png" alt="" width="28" height="28" style="width:100%;height:100%;object-fit:contain" onerror="this.parentElement.textContent='DC'"></span>
+            <span>
+                <span class="font-bold" style="display:block">DE-CHIMEX</span>
+                <span style="font-size:10px;letter-spacing:.2em;color:var(--n-500)">PRINT HUB</span>
+            </span>
+        </a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-muted">@(User.FindFirst("name")?.Value ?? User.Identity?.Name)</span>
+                <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0">
+                    <button type="submit" class="btn btn-outline btn-sm">Sign out</button>
+                </form>
+            </div>
+        }
+    </header>
+    <main style="max-width:1200px;margin:0 auto;padding:24px 20px">
+        @RenderBody()
+    </main>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

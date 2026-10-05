@@ -1,0 +1,85 @@
+@model DeChimex.Contracts.Invoices.ReceiptDocumentDto
+@{
+    string Money(decimal v) => $"\u20a6{v:N2}";
+}
+<style>
+    .doc-print { background:#fff; color:#111827; max-width:640px; margin:0 auto; padding:28px 32px; border:1px solid #e5e7eb; border-radius:12px; }
+    .doc-print .doc-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; border-bottom:3px solid #111827; padding-bottom:16px; }
+    .doc-print .doc-brand { display:flex; align-items:center; gap:10px; }
+    .doc-print .doc-logo { width:44px; height:44px; object-fit:contain; flex-shrink:0; }
+    .doc-print .doc-biz-name { font-size:22px; font-weight:800; letter-spacing:-0.02em; }
+    .doc-print .doc-biz-meta { font-size:12px; color:#4b5563; margin-top:6px; line-height:1.5; }
+    .doc-print .doc-title { font-size:26px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; }
+    .doc-print .doc-meta { font-size:12.5px; color:#374151; text-align:right; line-height:1.6; }
+    .doc-print .doc-meta b { color:#111827; }
+    .doc-print .doc-rows { margin-top:18px; font-size:13.5px; }
+    .doc-print .doc-rows div { display:flex; justify-content:space-between; padding:7px 8px; border-bottom:1px solid #e5e7eb; }
+    .doc-print .doc-rows .k { color:#6b7280; }
+    .doc-print .doc-rows .grand { font-weight:800; font-size:16px; border-bottom:none; border-top:2px solid #111827; margin-top:4px; }
+    .doc-print .doc-refund { margin-top:14px; background:#fef2f2; border:1px solid #fecaca; color:#991b1b; border-radius:8px; padding:10px 12px; font-size:13px; font-weight:700; }
+    .doc-print .doc-foot { margin-top:22px; padding-top:12px; border-top:1px solid #e5e7eb; font-size:11.5px; color:#6b7280; display:flex; justify-content:space-between; }
+    @@media (max-width: 560px) {
+        .doc-print { padding: 14px 10px; overflow-x: auto; }
+        .doc-print .doc-head { flex-wrap: wrap; }
+        .doc-print .doc-meta { text-align: left; }
+        .doc-print .doc-title { font-size: 21px; }
+        .doc-print .doc-totals { width: 100%; }
+        .doc-print table.doc-lines { font-size: 12.5px; }
+        .doc-print table.doc-lines th { letter-spacing: 0; font-size: 10px; }
+        .doc-print table.doc-lines th, .doc-print table.doc-lines td { padding: 6px 3px; }
+    }
+    @@media print {
+        body * { visibility: hidden; }
+        .doc-print, .doc-print * { visibility: visible; }
+        .doc-print { position: absolute; inset: 0; width: 100%; max-width: none; margin: 0; border: none; border-radius: 0; padding: 12mm 14mm; }
+    }
+</style>
+<div class="doc-print">
+    <div class="doc-head">
+        <div>
+            <div class="doc-brand"><img class="doc-logo" src="/img/logo.png" alt="" width="44" height="44" onerror="this.remove()"><div class="doc-biz-name">@(ViewBag.BusinessName as string ?? "DeChimex")</div></div>
+            @if (ViewBag.BusinessMotto is string motto && !string.IsNullOrWhiteSpace(motto))
+            {
+                <div class="text-sm" style="color:#4b5563">@motto</div>
+            }
+            <div class="doc-biz-meta">
+                @if (ViewBag.BusinessAddress is string addr && !string.IsNullOrWhiteSpace(addr)) { <div>@addr</div> }
+                @if (ViewBag.BusinessPhone is string ph && !string.IsNullOrWhiteSpace(ph)) { <div>@ph</div> }
+                @if (ViewBag.BusinessEmail is string em && !string.IsNullOrWhiteSpace(em)) { <div>@em</div> }
+            </div>
+        </div>
+        <div>
+            <div class="doc-title">Receipt</div>
+            <div class="doc-meta">
+                <div><b>@Model.ReceiptNumber</b></div>
+                <div>Paid: @Model.PaidAtUtc.ToLocalTime().ToString("d MMM yyyy")</div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.IsRefunded)
+    {
+        <div class="doc-refund">This payment has been refunded.</div>
+    }
+
+    <div class="doc-rows">
+        <div><span class="k">Customer</span><span style="font-weight:700">@Model.CustomerName</span></div>
+        <div><span class="k">Order</span><span>@Model.OrderNumber</span></div>
+        <div><span class="k">Payment method</span><span>@Model.Method</span></div>
+        @if (!string.IsNullOrWhiteSpace(Model.PaymentReference))
+        {
+            <div><span class="k">Reference</span><span>@Model.PaymentReference</span></div>
+        }
+        <div><span class="k">Order total</span><span>@Money(Model.OrderTotal != 0 ? Model.OrderTotal : Model.Amount - Model.ServiceFee)</span></div>
+        @if (Model.ServiceFee != 0)
+        {
+            <div><span class="k">Service fee</span><span>@Money(Model.ServiceFee)</span></div>
+        }
+        <div class="grand"><span class="k">Amount paid</span><span>@Money(Model.Amount)</span></div>
+    </div>
+
+    <div class="doc-foot">
+        <span>Thank you for your payment.</span>
+        <span>@(ViewBag.BusinessName as string ?? "DeChimex")</span>
+    </div>
+</div>

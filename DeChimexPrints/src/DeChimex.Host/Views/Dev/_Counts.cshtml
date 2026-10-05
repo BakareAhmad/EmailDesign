@@ -1,0 +1,11 @@
+@model IReadOnlyList<CountItem>
+@if (Model.Count == 0)
+{
+    <p class="dv-muted dv-small">None in this range.</p>
+}
+else
+{
+    <div class="dv-table-wrap"><table class="dv-table"><tbody>
+    @foreach (var c in Model) { <tr><td>@DevUi.Status(c.Name)</td><td class="num">@DevUi.Num(c.Count)</td></tr> }
+    </tbody></table></div>
+}

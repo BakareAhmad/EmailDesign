@@ -1,0 +1,45 @@
+@model IReadOnlyList<DeChimex.Contracts.Notifications.NotificationDto>
+@{
+    Layout = "_AdminLayout";
+}
+<div class="toolbar" style="margin-bottom:16px">
+    <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-unreadOnly="@(!(ViewBag.UnreadOnly is true))">
+        @(ViewBag.UnreadOnly is true ? "Show all" : "Unread only")
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Count == 0)
+        {
+            <div class="text-muted">No notifications.</div>
+        }
+        @foreach (var n in Model)
+        {
+            <div class="flex items-start gap-3" style="padding:12px 0;border-bottom:1px solid var(--n-100)">
+                <div class="flex-1">
+                    <div class="font-semibold" style="font-size:14px">@n.Title</div>
+                    <div class="text-sm text-muted">@n.Message</div>
+                    @if (!string.IsNullOrEmpty(n.Link))
+                    {
+                        <div class="mt-1"><a class="btn btn-outline btn-sm" href="@n.Link">Open</a></div>
+                    }
+                    <div class="text-xs text-muted mt-1">@n.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy HH:mm")</div>
+                </div>
+                <div>
+                    @if (!n.IsRead)
+                    {
+                        <span class="badge badge-primary">New</span>
+                        <form asp-action="MarkRead" asp-route-id="@n.Id" method="post" style="display:inline;margin-left:8px">
+                            <button type="submit" class="btn btn-ghost btn-sm">Mark read</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="badge badge-neutral">Read</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

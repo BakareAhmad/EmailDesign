@@ -1,0 +1,312 @@
+ok 01 - asset /img/logo.png served as image/png (29,965 B)
+ok 02 - asset /img/hero.png served as image/png (1,214,751 B)
+ok 03 - asset /img/hero-768.png served as image/png (370,585 B)
+ok 04 - asset /img/hero.webp served as image/webp (186,112 B)
+ok 05 - asset /img/hero-768.webp served as image/webp (71,836 B)
+ok 06 - asset /img/hero-mobile.webp served as image/webp (124,978 B)
+ok 07 - asset /img/hero-mobile.png served as image/png (602,268 B)
+ok 08 - asset /favicon.ico served as image/x-icon (10,255 B)
+ok 09 - asset /img/apple-touch-icon.png served as image/png (9,407 B)
+ok 10 - /img/hero.webp: transparent cut-out (1536, 1024) (RGBA, corners fully transparent)
+/home/user/HeroRestore/e2e/brand/brand_e2e.py:131: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  a = im.getchannel("A"); solid = sum(1 for v in a.getdata() if v == 255) / (im.width * im.height)
+ok 11 - /img/hero.webp: products are solid (51% fully opaque) — no see-through art
+ok 12 - /img/hero-768.webp: transparent cut-out (768, 512) (RGBA, corners fully transparent)
+ok 13 - /img/hero-768.webp: products are solid (50% fully opaque) — no see-through art
+ok 14 - /img/hero-mobile.webp: transparent cut-out (800, 1093) (RGBA, corners fully transparent)
+ok 15 - /img/hero-mobile.webp: products are solid (62% fully opaque) — no see-through art
+ok 16 - /img/hero.png: transparent cut-out (1536, 1024) (RGBA, corners fully transparent)
+ok 17 - /img/hero.png: products are solid (51% fully opaque) — no see-through art
+ok 18 - /img/hero-768.png: transparent cut-out (768, 512) (RGBA, corners fully transparent)
+ok 19 - /img/hero-768.png: products are solid (50% fully opaque) — no see-through art
+ok 20 - /img/hero-mobile.png: transparent cut-out (800, 1093) (RGBA, corners fully transparent)
+ok 21 - /img/hero-mobile.png: products are solid (62% fully opaque) — no see-through art
+ok 22 - /img/hero.jpg: flattened JPG fallback removed (404) — the fallback is the RGBA PNG
+ok 23 - /img/hero-768.jpg: flattened JPG fallback removed (404) — the fallback is the RGBA PNG
+/home/user/HeroRestore/e2e/brand/brand_e2e.py:142: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  lav = sum(1 for (r, g, b, al) in full.getdata() if al > 128 and b > 200 and b - r > 18 and b - g > 18 and r > 150)
+/home/user/HeroRestore/e2e/brand/brand_e2e.py:143: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  dark = sum(1 for (r, g, b, al) in full.getdata() if al > 200 and max(r, g, b) < 20)
+ok 24 - hero art keeps its lavender ring (83,955 px) and has no black swoosh (6,397 near-black px)
+ok 25 - web manifest icons resolve
+ok 26 - home @320px: no horizontal overflow (320 <= 320)
+ok 27 - home @320px: transparent hero cut-out served (hero-mobile.webp; portrait <=720 px)
+ok 28 - home @320px: hero shown whole, not cropped/stretched (ratio 0.732 vs 0.732)
+ok 29 - home @320px: hero inside viewport and decoded
+ok 30 - home @320px: no card around the hero (transparent, no shadow, no radius)
+ok 31 - home @320px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 32 - home @320px: logo loaded (.cs-top .cs-logo img)
+ok 33 - home @320px: logo box 38px
+ok 34 - home @320px: logo inside viewport
+shot 01-home-hero-320px.png
+ok 35 - home @360px: no horizontal overflow (360 <= 360)
+ok 36 - home @360px: transparent hero cut-out served (hero-mobile.webp; portrait <=720 px)
+ok 37 - home @360px: hero shown whole, not cropped/stretched (ratio 0.732 vs 0.732)
+ok 38 - home @360px: hero inside viewport and decoded
+ok 39 - home @360px: no card around the hero (transparent, no shadow, no radius)
+ok 40 - home @360px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 41 - home @360px: logo loaded (.cs-top .cs-logo img)
+ok 42 - home @360px: logo box 38px
+ok 43 - home @360px: logo inside viewport
+shot 02-home-hero-360px.png
+ok 44 - home @375px: no horizontal overflow (375 <= 375)
+ok 45 - home @375px: transparent hero cut-out served (hero-mobile.webp; portrait <=720 px)
+ok 46 - home @375px: hero shown whole, not cropped/stretched (ratio 0.732 vs 0.732)
+ok 47 - home @375px: hero inside viewport and decoded
+ok 48 - home @375px: no card around the hero (transparent, no shadow, no radius)
+ok 49 - home @375px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 50 - home @375px: logo loaded (.cs-top .cs-logo img)
+ok 51 - home @375px: logo box 38px
+ok 52 - home @375px: logo inside viewport
+shot 03-home-hero-375px.png
+ok 53 - home @390px: no horizontal overflow (390 <= 390)
+ok 54 - home @390px: transparent hero cut-out served (hero-mobile.webp; portrait <=720 px)
+ok 55 - home @390px: hero shown whole, not cropped/stretched (ratio 0.732 vs 0.732)
+ok 56 - home @390px: hero inside viewport and decoded
+ok 57 - home @390px: no card around the hero (transparent, no shadow, no radius)
+ok 58 - home @390px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 59 - home @390px: logo loaded (.cs-top .cs-logo img)
+ok 60 - home @390px: logo box 38px
+ok 61 - home @390px: logo inside viewport
+shot 04-home-hero-390px.png
+ok 62 - home @414px: no horizontal overflow (414 <= 414)
+ok 63 - home @414px: transparent hero cut-out served (hero-mobile.webp; portrait <=720 px)
+ok 64 - home @414px: hero shown whole, not cropped/stretched (ratio 0.732 vs 0.732)
+ok 65 - home @414px: hero inside viewport and decoded
+ok 66 - home @414px: no card around the hero (transparent, no shadow, no radius)
+ok 67 - home @414px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 68 - home @414px: logo loaded (.cs-top .cs-logo img)
+ok 69 - home @414px: logo box 38px
+ok 70 - home @414px: logo inside viewport
+shot 05-home-hero-414px.png
+ok 71 - home @768px: no horizontal overflow (768 <= 768)
+ok 72 - home @768px: transparent hero cut-out served (hero-768.webp; portrait <=720 px)
+ok 73 - home @768px: hero shown whole, not cropped/stretched (ratio 1.500 vs 1.500)
+ok 74 - home @768px: hero inside viewport and decoded
+ok 75 - home @768px: no card around the hero (transparent, no shadow, no radius)
+ok 76 - home @768px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 77 - home @768px: logo loaded (.cs-top .cs-logo img)
+ok 78 - home @768px: logo box 38px
+ok 79 - home @768px: logo inside viewport
+shot 06-home-hero-768px.png
+ok 80 - home @1024px: no horizontal overflow (1024 <= 1024)
+ok 81 - home @1024px: transparent hero cut-out served (hero-768.webp; portrait <=720 px)
+ok 82 - home @1024px: hero shown whole, not cropped/stretched (ratio 1.500 vs 1.500)
+ok 83 - home @1024px: hero inside viewport and decoded
+ok 84 - home @1024px: no card around the hero (transparent, no shadow, no radius)
+ok 85 - home @1024px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 86 - home @1024px: logo loaded (.cs-top .cs-logo img)
+ok 87 - home @1024px: logo box 38px
+ok 88 - home @1024px: logo inside viewport
+shot 07-home-hero-1024px.png
+ok 89 - home @1280px: no horizontal overflow (1280 <= 1280)
+ok 90 - home @1280px: transparent hero cut-out served (hero.webp; portrait <=720 px)
+ok 91 - home @1280px: hero shown whole, not cropped/stretched (ratio 1.500 vs 1.500)
+ok 92 - home @1280px: hero inside viewport and decoded
+ok 93 - home @1280px: no card around the hero (transparent, no shadow, no radius)
+ok 94 - home @1280px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 95 - home @1280px: logo loaded (.cs-top .cs-logo img)
+ok 96 - home @1280px: logo box 38px
+ok 97 - home @1280px: logo inside viewport
+shot 08-home-hero-1280px.png
+ok 98 - home @1440px: no horizontal overflow (1440 <= 1440)
+ok 99 - home @1440px: transparent hero cut-out served (hero.webp; portrait <=720 px)
+ok 100 - home @1440px: hero shown whole, not cropped/stretched (ratio 1.500 vs 1.500)
+ok 101 - home @1440px: hero inside viewport and decoded
+ok 102 - home @1440px: no card around the hero (transparent, no shadow, no radius)
+ok 103 - home @1440px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 104 - home @1440px: logo loaded (.cs-top .cs-logo img)
+ok 105 - home @1440px: logo box 38px
+ok 106 - home @1440px: logo inside viewport
+shot 09-home-hero-1440px.png
+ok 107 - home @1920px: no horizontal overflow (1920 <= 1920)
+ok 108 - home @1920px: transparent hero cut-out served (hero.webp; portrait <=720 px)
+ok 109 - home @1920px: hero shown whole, not cropped/stretched (ratio 1.500 vs 1.500)
+ok 110 - home @1920px: hero inside viewport and decoded
+ok 111 - home @1920px: no card around the hero (transparent, no shadow, no radius)
+ok 112 - home @1920px: hero's transparent edges ARE the page background (no box, (247, 246, 242) vs page rgb(247, 246, 242))
+ok 113 - home @1920px: logo loaded (.cs-top .cs-logo img)
+ok 114 - home @1920px: logo box 38px
+ok 115 - home @1920px: logo inside viewport
+shot 10-home-hero-1920px.png
+ok 116 - customer layout: favicon link resolves
+ok 117 - @375px DPR1: browser picks hero-mobile.webp
+ok 118 - @390px DPR3: browser picks hero-mobile.webp
+ok 119 - @768px DPR1: browser picks hero-768.webp
+ok 120 - @768px DPR2: browser picks hero.webp
+ok 121 - @1024px DPR1: browser picks hero-768.webp
+ok 122 - @1440px DPR1: browser picks hero.webp
+ok 123 - @1440px DPR2: browser picks hero.webp
+ok 124 - footer @375px: logo loaded (.cs-foot .cs-logo img)
+ok 125 - footer @375px: logo box 38px
+ok 126 - footer @375px: logo inside viewport
+shot 11-footer-logo-375px.png
+ok 127 - login @320px: no horizontal overflow (320 <= 320)
+ok 128 - login @320px: logo loaded (.au-top .cs-logo img)
+ok 129 - login @320px: logo box 38px
+ok 130 - login @320px: logo inside viewport
+ok 131 - login @1440px: no horizontal overflow (1440 <= 1440)
+ok 132 - login @1440px: logo loaded (.au-top .cs-logo img)
+ok 133 - login @1440px: logo box 38px
+ok 134 - login @1440px: logo inside viewport
+ok 135 - auth layout: favicon link resolves
+ok 136 - login @320px invalid credentials: error shown
+ok 137 - login @320px with error: no horizontal overflow (320 <= 320)
+ok 138 - login @320px with error: logo loaded (.au-top .cs-logo img)
+ok 139 - login @320px with error: logo box 38px
+ok 140 - login @320px with error: logo inside viewport
+shot 12-login-invalid-credentials-320px.png
+shot 13-login-1440px.png
+ok 141 - 404 @360px: error page rendered
+ok 142 - 404 @360px: no horizontal overflow (360 <= 360)
+ok 143 - 404 @360px: logo loaded (.cs-top .cs-logo img)
+ok 144 - 404 @360px: logo box 38px
+ok 145 - 404 @360px: logo inside viewport
+shot 14-error-404-360px.png
+ok 146 - register br -> verify page
+ok 147 - verification token captured for br
+ok 148 - brevo api-key header present (key loaded at runtime)
+ok 149 - customer br signed in
+ok 150 - portal /portal @320px: no horizontal overflow (320 <= 320)
+ok 151 - portal /portal/shop @320px: no horizontal overflow (320 <= 320)
+ok 152 - portal /portal/orders @320px: no horizontal overflow (320 <= 320)
+ok 153 - portal /portal/profile @320px: no horizontal overflow (320 <= 320)
+ok 154 - portal @320px: logo loaded (.cs-top .cs-logo img)
+ok 155 - portal @320px: logo box 38px
+ok 156 - portal @320px: logo inside viewport
+shot 15-customer-portal-320px.png
+ok 157 - portal /portal @768px: no horizontal overflow (768 <= 768)
+ok 158 - portal /portal/shop @768px: no horizontal overflow (768 <= 768)
+ok 159 - portal /portal/orders @768px: no horizontal overflow (768 <= 768)
+ok 160 - portal /portal/profile @768px: no horizontal overflow (768 <= 768)
+ok 161 - portal @768px: logo loaded (.cs-top .cs-logo img)
+ok 162 - portal @768px: logo box 38px
+ok 163 - portal @768px: logo inside viewport
+ok 164 - portal /portal @1440px: no horizontal overflow (1440 <= 1440)
+ok 165 - portal /portal/shop @1440px: no horizontal overflow (1440 <= 1440)
+ok 166 - portal /portal/orders @1440px: no horizontal overflow (1440 <= 1440)
+ok 167 - portal /portal/profile @1440px: no horizontal overflow (1440 <= 1440)
+ok 168 - portal @1440px: logo loaded (.cs-top .cs-logo img)
+ok 169 - portal @1440px: logo box 38px
+ok 170 - portal @1440px: logo inside viewport
+shot 16-customer-portal-1440px.png
+ok 171 - owner logged in
+ok 172 - admin sidebar @1440px: logo loaded (.sidebar-brand img)
+ok 173 - admin sidebar @1440px: logo inside viewport
+ok 174 - admin dashboard @1440px: no horizontal overflow (1440 <= 1440)
+ok 175 - admin layout: favicon link resolves
+shot 17-admin-dashboard-sidebar-logo-1440px.png
+ok 176 - admin /admin/activity @320px: no horizontal overflow (320 <= 320)
+ok 177 - admin /admin/analytics @320px: no horizontal overflow (320 <= 320)
+ok 178 - admin /admin/categories @320px: no horizontal overflow (320 <= 320)
+ok 179 - admin /admin/customers @320px: no horizontal overflow (320 <= 320)
+ok 180 - admin /admin/dashboard @320px: no horizontal overflow (320 <= 320)
+ok 181 - admin /admin/gallery @320px: no horizontal overflow (320 <= 320)
+ok 182 - admin /admin/inventory @320px: no horizontal overflow (320 <= 320)
+ok 183 - admin /admin/invoices @320px: no horizontal overflow (320 <= 320)
+ok 184 - admin /admin/major-categories @320px: no horizontal overflow (320 <= 320)
+ok 185 - admin /admin/marketing @320px: no horizontal overflow (320 <= 320)
+ok 186 - admin /admin/messages @320px: no horizontal overflow (320 <= 320)
+ok 187 - admin /admin/notifications @320px: no horizontal overflow (320 <= 320)
+ok 188 - admin /admin/orders @320px: no horizontal overflow (320 <= 320)
+ok 189 - admin /admin/procurement @320px: no horizontal overflow (320 <= 320)
+ok 190 - admin /admin/products @320px: no horizontal overflow (320 <= 320)
+ok 191 - admin /admin/receipts @320px: no horizontal overflow (320 <= 320)
+ok 192 - admin /admin/reports @320px: no horizontal overflow (320 <= 320)
+ok 193 - admin /admin/sales @320px: no horizontal overflow (320 <= 320)
+ok 194 - admin /admin/services @320px: no horizontal overflow (320 <= 320)
+ok 195 - admin /admin/settings @320px: no horizontal overflow (320 <= 320)
+ok 196 - admin /admin/suppliers @320px: no horizontal overflow (320 <= 320)
+ok 197 - admin /admin/users @320px: no horizontal overflow (320 <= 320)
+ok 198 - admin /admin/activity @768px: no horizontal overflow (768 <= 768)
+ok 199 - admin /admin/analytics @768px: no horizontal overflow (768 <= 768)
+ok 200 - admin /admin/categories @768px: no horizontal overflow (768 <= 768)
+ok 201 - admin /admin/customers @768px: no horizontal overflow (768 <= 768)
+ok 202 - admin /admin/dashboard @768px: no horizontal overflow (768 <= 768)
+ok 203 - admin /admin/gallery @768px: no horizontal overflow (768 <= 768)
+ok 204 - admin /admin/inventory @768px: no horizontal overflow (768 <= 768)
+ok 205 - admin /admin/invoices @768px: no horizontal overflow (768 <= 768)
+ok 206 - admin /admin/major-categories @768px: no horizontal overflow (768 <= 768)
+ok 207 - admin /admin/marketing @768px: no horizontal overflow (768 <= 768)
+ok 208 - admin /admin/messages @768px: no horizontal overflow (768 <= 768)
+ok 209 - admin /admin/notifications @768px: no horizontal overflow (768 <= 768)
+ok 210 - admin /admin/orders @768px: no horizontal overflow (768 <= 768)
+ok 211 - admin /admin/procurement @768px: no horizontal overflow (768 <= 768)
+ok 212 - admin /admin/products @768px: no horizontal overflow (768 <= 768)
+ok 213 - admin /admin/receipts @768px: no horizontal overflow (768 <= 768)
+ok 214 - admin /admin/reports @768px: no horizontal overflow (768 <= 768)
+ok 215 - admin /admin/sales @768px: no horizontal overflow (768 <= 768)
+ok 216 - admin /admin/services @768px: no horizontal overflow (768 <= 768)
+ok 217 - admin /admin/settings @768px: no horizontal overflow (768 <= 768)
+ok 218 - admin /admin/suppliers @768px: no horizontal overflow (768 <= 768)
+ok 219 - admin /admin/users @768px: no horizontal overflow (768 <= 768)
+ok 220 - admin /admin/orders: a detail page exists
+ok 221 - admin /admin/orders/<id> details @320px: no horizontal overflow (320 <= 320)
+ok 222 - admin /admin/customers: a detail page exists
+ok 223 - admin /admin/customers/<id> details @320px: no horizontal overflow (320 <= 320)
+ok 224 - admin /admin/invoices: a detail page exists
+ok 225 - admin /admin/invoices/<id> details @320px: no horizontal overflow (320 <= 320)
+ok 226 - admin products @320px: search box and button share a row inside the screen
+ok 227 - admin topbar @320px: page title no longer slides under the avatar
+ok 228 - admin topbar @320px: logo loaded (.topbar-brand img)
+ok 229 - admin topbar @320px: logo inside viewport
+ok 230 - admin topbar @320px: logo visible and fits its 32px badge
+shot 18-admin-dashboard-topbar-logo-320px.png
+ok 231 - admin @320px: off-canvas menu shows the logo
+shot 19-admin-menu-open-logo-320px.png
+ok 232 - an invoice exists (created by the checkout regression)
+ok 233 - invoice share link available
+ok 234 - shared invoice @320px: logo loaded (.doc-print .doc-logo)
+ok 235 - shared invoice @320px: logo box 44px
+ok 236 - shared invoice @320px: logo inside viewport
+ok 237 - shared invoice @320px: no horizontal overflow (320 <= 320)
+ok 238 - shared invoice @320px: line items fit inside the document (no clipped Amount column)
+ok 239 - shared invoice @320px: bar links readable (white on dark)
+shot 20-shared-invoice-logo-320px.png
+ok 240 - shared invoice @1440px: logo loaded (.doc-print .doc-logo)
+ok 241 - shared invoice @1440px: logo box 44px
+ok 242 - shared invoice @1440px: logo inside viewport
+ok 243 - shared invoice @1440px: no horizontal overflow (1440 <= 1440)
+ok 244 - shared invoice @1440px: line items fit inside the document (no clipped Amount column)
+ok 245 - shared invoice @1440px: bar links readable (white on dark)
+shot 21-shared-invoice-logo-1440px.png
+ok 246 - shared invoice: favicon link resolves
+ok 247 - developer signed in
+ok 248 - developer /dev @375px: no horizontal overflow (375 <= 375)
+ok 249 - developer /dev/health @375px: no horizontal overflow (375 <= 375)
+ok 250 - developer /dev/logs @375px: no horizontal overflow (375 <= 375)
+ok 251 - developer /dev/errors @375px: no horizontal overflow (375 <= 375)
+ok 252 - developer /dev/performance @375px: no horizontal overflow (375 <= 375)
+ok 253 - developer /dev/integrations @375px: no horizontal overflow (375 <= 375)
+ok 254 - developer /dev/payments @375px: no horizontal overflow (375 <= 375)
+ok 255 - developer /dev/email @375px: no horizontal overflow (375 <= 375)
+ok 256 - developer /dev/service-fees @375px: no horizontal overflow (375 <= 375)
+ok 257 - developer /dev/service-fees/ledger @375px: no horizontal overflow (375 <= 375)
+ok 258 - developer /dev/jobs @375px: no horizontal overflow (375 <= 375)
+ok 259 - developer /dev/database @375px: no horizontal overflow (375 <= 375)
+ok 260 - developer /dev/configuration @375px: no horizontal overflow (375 <= 375)
+ok 261 - developer /dev/maintenance @375px: no horizontal overflow (375 <= 375)
+ok 262 - developer /dev/account/password @375px: no horizontal overflow (375 <= 375)
+ok 263 - developer /dev @1024px: no horizontal overflow (1024 <= 1024)
+ok 264 - developer /dev/health @1024px: no horizontal overflow (1024 <= 1024)
+ok 265 - developer /dev/logs @1024px: no horizontal overflow (1024 <= 1024)
+ok 266 - developer /dev/errors @1024px: no horizontal overflow (1024 <= 1024)
+ok 267 - developer /dev/performance @1024px: no horizontal overflow (1024 <= 1024)
+ok 268 - developer /dev/integrations @1024px: no horizontal overflow (1024 <= 1024)
+ok 269 - developer /dev/payments @1024px: no horizontal overflow (1024 <= 1024)
+ok 270 - developer /dev/email @1024px: no horizontal overflow (1024 <= 1024)
+ok 271 - developer /dev/service-fees @1024px: no horizontal overflow (1024 <= 1024)
+ok 272 - developer /dev/service-fees/ledger @1024px: no horizontal overflow (1024 <= 1024)
+ok 273 - developer /dev/jobs @1024px: no horizontal overflow (1024 <= 1024)
+ok 274 - developer /dev/database @1024px: no horizontal overflow (1024 <= 1024)
+ok 275 - developer /dev/configuration @1024px: no horizontal overflow (1024 <= 1024)
+ok 276 - developer /dev/maintenance @1024px: no horizontal overflow (1024 <= 1024)
+ok 277 - developer /dev/account/password @1024px: no horizontal overflow (1024 <= 1024)
+ok 278 - developer /dev @1440px: no horizontal overflow (1440 <= 1440)
+ok 279 - developer layout: favicon link resolves
+ok 280 - developer @375px: nav is a horizontal strip (no 850px sidebar stack)
+ok 281 - developer @375px: current page's nav item scrolled into view
+shot 22-developer-portal-email-375px.png
+ok 282 - developer @1440px: sidebar layout unchanged
+
+RESULT: 282 passed, 0 failed (TAG=copy1br)

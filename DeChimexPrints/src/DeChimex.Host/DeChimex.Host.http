@@ -1,0 +1,47 @@
+@DeChimex.Host_HostAddress = http://localhost:5046
+
+# De-Chimex Print Hub — HTTP request file.
+# The default /weatherforecast template line was removed (2026-09-05): this project has
+# no such endpoint. These are the ONLY three surviving /api/v1 actions (the other 22 API
+# controllers were removed on 2026-08-30/2026-09-01 as superseded by the MVC UI).
+# Everything else is a server-rendered MVC page — open it in a browser, not here.
+
+### Public bootstrap config (anonymous). Exposes the Paystack PUBLIC key only.
+GET {{DeChimex.Host_HostAddress}}/api/v1/config
+Accept: application/json
+
+### Public storefront business info (anonymous).
+GET {{DeChimex.Host_HostAddress}}/api/v1/settings/public
+Accept: application/json
+
+### Paystack server-to-server webhook (anonymous; signature verified from
+### x-paystack-signature before any state change). Always answers 200 to acknowledge.
+### Replace the body with a real signed charge.success payload when testing manually.
+POST {{DeChimex.Host_HostAddress}}/api/v1/payments/webhook/paystack
+Content-Type: application/json
+x-paystack-signature: replace-with-valid-hmac-sha512
+
+{
+  "event": "charge.success",
+  "data": {
+    "reference": "replace-with-payment-reference",
+    "status": "success",
+    "amount": 10000,
+    "currency": "NGN"
+  }
+}
+
+### Health check. 503 with database=Healthy while Paystack/Brevo keys are blank.
+GET {{DeChimex.Host_HostAddress}}/health
+Accept: application/json
+
+### OpenAPI document (Development only).
+GET {{DeChimex.Host_HostAddress}}/swagger/v1/swagger.json
+Accept: application/json
+
+### MVC entry points (browser pages — listed for reference, not JSON APIs):
+###   /                      storefront home
+###   /products  /services  /gallery  /cart  /checkout
+###   /Account/Login         staff + customer sign-in (owner@dechimexprinthub.com)
+###   /admin/dashboard       staff dashboard (302 -> /Account/Login when anonymous)
+###   /portal                customer portal     (302 -> /Account/Login when anonymous)

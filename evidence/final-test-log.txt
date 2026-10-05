@@ -1,0 +1,14 @@
+Test run for /home/user/ContinualDevelopment/DeChimexPrints/tests/DeChimex.UnitTests/bin/Debug/net9.0/DeChimex.UnitTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   467, Skipped:     0, Total:   467, Duration: 6 s - DeChimex.UnitTests.dll (net9.0)
+Test run for /home/user/ContinualDevelopment/DeChimexPrints/tests/DeChimex.IntegrationTests/bin/Debug/net9.0/DeChimex.IntegrationTests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   438, Skipped:     0, Total:   438, Duration: 1 m 34 s - DeChimex.IntegrationTests.dll (net9.0)

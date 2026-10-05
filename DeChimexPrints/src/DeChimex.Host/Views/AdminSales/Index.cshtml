@@ -1,0 +1,99 @@
+@model IReadOnlyList<DeChimex.Contracts.Orders.SalesInboxItemDto>
+@{
+    Layout = "_AdminLayout";
+    var bucket = (string?)ViewBag.Bucket ?? "new";
+    var counts = ViewBag.Counts as DeChimex.Contracts.Orders.SalesBucketCounts;
+    var isLead = ViewBag.IsLead is true;
+    var staffId = (string?)ViewBag.StaffId;
+    var staffOptions = ViewBag.StaffOptions as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+    var unassigned = (int?)ViewBag.UnassignedCount ?? 0;
+    var hasFilter = !string.IsNullOrWhiteSpace((string?)ViewBag.Search) || !string.IsNullOrWhiteSpace(staffId);
+    string Tab(string key, string label, int count) =>
+        $"<a class=\"btn {(key == bucket ? "btn-primary" : "btn-outline")} btn-sm\" href=\"/admin/sales?bucket={key}{(staffId is not null ? $"&staffId={staffId}" : "")}\">{label} <span class=\"badge badge-neutral\">{count}</span></a>";
+}
+@if (isLead && unassigned > 0)
+{
+    <div class="flash flash-error" role="alert" style="margin-bottom:12px">
+        <span>@unassigned unassigned request@(unassigned == 1 ? "" : "s") need@(unassigned == 1 ? "s" : "") a sales owner.</span>
+        <a class="btn btn-outline btn-sm" style="margin-left:8px" href="/admin/sales?bucket=unassigned">Triage now</a>
+    </div>
+}
+
+<div class="toolbar" style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    @Html.Raw(Tab("new", "New", counts?.New ?? 0))
+    @Html.Raw(Tab("active", "Active", counts?.Active ?? 0))
+    @Html.Raw(Tab("waiting-staff", "Waiting for DeChimex", counts?.WaitingForStaff ?? 0))
+    @Html.Raw(Tab("waiting-customer", "Waiting for customer", counts?.WaitingForCustomer ?? 0))
+    @Html.Raw(Tab("resolved", "Resolved", counts?.Resolved ?? 0))
+    @if (isLead)
+    {
+        @Html.Raw(Tab("unassigned", "Unassigned", unassigned))
+    }
+</div>
+
+<div class="toolbar" style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <form method="get" class="flex items-center gap-2" style="flex-wrap:wrap">
+        <input type="hidden" name="bucket" value="@bucket" />
+        <input class="input" type="search" name="search" value="@(ViewBag.Search)" placeholder="Search order number / customer..." style="width:280px;min-width:220px" />
+        @if (isLead)
+        {
+            <select class="select" name="staffId" style="width:220px;min-width:170px">
+                <option value="">All sales staff</option>
+                @foreach (var s in staffOptions)
+                {
+                    <option value="@s.Value" selected="@(s.Value == staffId)">@s.Text</option>
+                }
+            </select>
+        }
+        <button class="btn btn-secondary" type="submit">Filter</button>
+    </form>
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead>
+            <tr><th>Order</th><th>Customer</th><th>Status</th><th>Conversation</th><th>Assigned sales</th><th>Messages</th><th></th></tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                var es = hasFilter || bucket != "new"
+                    ? new EmptyState(EmptyIcons.Search, "Nothing here", "No requests match this view right now.")
+                    : new EmptyState(EmptyIcons.Cart, "Inbox zero", "New custom-order requests will appear here once assigned.");
+                <tr><td colspan="7" class="table-empty">
+                <partial name="_EmptyState" model="es" /></td></tr>
+            }
+            @foreach (var o in Model)
+            {
+                <tr>
+                    <td><a asp-controller="AdminOrderWorkspace" asp-action="Index" asp-route-orderId="@o.OrderId" class="font-semibold">@o.OrderNumber</a></td>
+                    <td>@o.CustomerName</td>
+                    <td><span class="badge badge-neutral">@o.Status</span></td>
+                    <td>
+                        <span class="badge @(o.ConversationState == "WaitingForStaff" ? "badge-warning" : o.ConversationState == "Resolved" ? "badge-success" : "badge-neutral")">@o.ConversationState</span>
+                    </td>
+                    <td>@(o.AssignedSalesName ?? "Unassigned")</td>
+                    <td class="text-muted">
+                        @o.MessageCount
+                        @if (o.LastMessagePreview is not null)
+                        {
+                            <span title="@o.LastMessagePreview">· @o.LastMessageAtUtc?.ToLocalTime().ToString("d MMM, HH:mm")</span>
+                        }
+                    </td>
+                    <td style="text-align:right">
+                        <a class="btn btn-ghost btn-sm" asp-controller="AdminOrderWorkspace" asp-action="Index" asp-route-orderId="@o.OrderId">Open</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.HasPrevious) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)" asp-route-bucket="@bucket" asp-route-staffId="@staffId" asp-route-search="@(ViewBag.Search)">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.HasNext) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)" asp-route-bucket="@bucket" asp-route-staffId="@staffId" asp-route-search="@(ViewBag.Search)">Next</a> }
+    </div>
+}

@@ -1,0 +1,391 @@
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Company settings";
+    ViewData["Heading"] = "Settings";
+    ViewData["ActiveNav"] = "settings";
+
+    var settings = ViewBag.Settings as Dictionary<string, string> ?? new();
+    var canManage = ViewBag.CanManage is true;
+    string Val(string k, string fb = "") => settings.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fb;
+
+    var bizName = Val("business.name", "DE-CHIMEX PRINT HUB");
+    var bizMotto = Val("business.motto", "Creativity with Ease.");
+    var bizEmail = Val("business.email", "chimexgraphics@gmail.com");
+    var bizPhone = Val("business.phone", "+234 906 205 1934, +234 903 424 5882");
+    var bizAddress = Val("business.address", "Nepa Road, Sapon, Abeokuta, Ogun State.");
+    var pickupAddress = Val("business.pickup_address", "Awe Crescent, Elediye, Somolu, Lagos State.");
+    // The setting stores the number only; the wa.me link is generated from it.
+    var waNumber = DeChimex.Shared.WhatsApp.NormalizeNumber(Val("business.whatsapp", "2349062051934"));
+    var waLink = DeChimex.Shared.WhatsApp.BuildUrl(waNumber) ?? "https://wa.me/2349062051934";
+    var statProjects = Val("business.stat_projects", "2,400+");
+    var statBrands = Val("business.stat_brands", "180+");
+    var statServices = Val("business.stat_services", "12+");
+    var statTurnaround = Val("business.stat_turnaround", "48h");
+    var igLink = Val("business.instagram", "https://www.instagram.com/chimex_graphics?igsh=MW16OHkxOWxlajJ4YQ==");
+    var ttLink = Val("business.tiktok", "https://www.tiktok.com/@bosewa?_r=1&_t=ZS-986YrmcyL00");
+    var currency = Val("business.currency", "NGN");
+    var deliveryFee = Val("delivery.default_fee", "1500");
+    var vatRate = Val("tax.vat_rate", "0");
+    var serviceFeePct = DeChimex.Application.Common.ServiceFeeSettings.Format(
+        DeChimex.Application.Common.ServiceFeeSettings.Parse(Val("service_fee.percent", "100")));
+}
+
+<div class="g g-12" style="align-items:flex-start">
+    <!-- Left Column: Settings Form -->
+    <div class="col-7">
+        <!-- Service fee: financially significant — its own confirmed change flow,
+             never editable through the generic settings form below. -->
+        <div class="card" style="margin-bottom:16px">
+            <div class="card-head">
+                <div>
+                    <h3 style="font-size:16px;font-weight:700">Service Fee</h3>
+                    <p class="text-sm text-muted mt-1">The portion of the Paystack transaction fee charged to the customer (a percentage of the Paystack fee, not of the order). Applies to future transactions only.</p>
+                </div>
+            </div>
+            <div class="card-body" style="padding:24px">
+                <div class="field">
+                    <label class="label" for="inp_service_fee">Percentage (0 to 100)</label>
+                    @if (canManage)
+                    {
+                        <form asp-action="ServiceFeePreview" asp-controller="AdminSettings" method="post">
+                            <div class="g g-2" style="align-items:center">
+                                <div class="field" style="margin-bottom:0">
+                                    <input class="input" id="inp_service_fee" name="newValue" value="@serviceFeePct" inputmode="decimal" />
+                                </div>
+                                <button type="submit" class="btn btn-primary">Review change</button>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <input class="input" id="inp_service_fee" value="@serviceFeePct" disabled />
+                    }
+                    <div class="field-hint">Current service fee: <b>@serviceFeePct%</b>. Changing it requires confirmation and affects future transactions only. Existing orders and completed transactions are never recalculated.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <div>
+                    <h3 style="font-size:16px;font-weight:700">Company &amp; Contact Details</h3>
+                    <p class="text-sm text-muted mt-1">Configure the business contact info, location addresses, social profiles, and operational defaults.</p>
+                </div>
+            </div>
+            <div class="card-body" style="padding:24px">
+                <form asp-action="Index" method="post" id="settingsForm">
+                    <h4 class="text-xs uppercase font-bold text-muted mb-3" style="letter-spacing:.08em">Business Identity</h4>
+                    <div class="g g-2 mb-4">
+                        <div class="field">
+                            <label class="label" for="inp_name">Business Name <span class="req">*</span></label>
+                            <input class="input" id="inp_name" name="values[business.name]" value="@bizName" @(canManage ? "" : "disabled") placeholder="DE-CHIMEX PRINT HUB" />
+                        </div>
+                        <div class="field">
+                            <label class="label" for="inp_motto">Brand Motto</label>
+                            <input class="input" id="inp_motto" name="values[business.motto]" value="@bizMotto" @(canManage ? "" : "disabled") placeholder="Creativity with Ease." />
+                        </div>
+                    </div>
+
+                    <h4 class="text-xs uppercase font-bold text-muted mb-3" style="letter-spacing:.08em">Contact Information</h4>
+                    <div class="g g-2 mb-4">
+                        <div class="field">
+                            <label class="label" for="inp_email">Business Email <span class="req">*</span></label>
+                            <input class="input" id="inp_email" name="values[business.email]" type="email" value="@bizEmail" @(canManage ? "" : "disabled") placeholder="chimexgraphics@gmail.com" />
+                            <div class="field-hint">Public contact &amp; notification email.</div>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="inp_phone">Phone Number(s) <span class="req">*</span></label>
+                            <input class="input" id="inp_phone" name="values[business.phone]" value="@bizPhone" @(canManage ? "" : "disabled") placeholder="+234 906 205 1934, +234 903 424 5882" />
+                            <div class="field-hint">Separate multiple numbers with commas.</div>
+                        </div>
+                    </div>
+
+                    <h4 class="text-xs uppercase font-bold text-muted mb-3" style="letter-spacing:.08em">Location Addresses</h4>
+                    <div class="field mb-3">
+                        <label class="label" for="inp_address">Main Studio Location <span class="req">*</span></label>
+                        <input class="input" id="inp_address" name="values[business.address]" value="@bizAddress" @(canManage ? "" : "disabled") placeholder="Nepa Road, Sapon, Abeokuta, Ogun State." />
+                        <div class="field-hint">Primary studio / headquarters address displayed on contact page and footer.</div>
+                    </div>
+                    <div class="field mb-4">
+                        <label class="label" for="inp_pickup">Pickup Office Address</label>
+                        <input class="input" id="inp_pickup" name="values[business.pickup_address]" value="@pickupAddress" @(canManage ? "" : "disabled") placeholder="Awe Crescent, Elediye, Somolu, Lagos State." />
+                        <div class="field-hint">Secondary pickup office / collection center address.</div>
+                    </div>
+
+                    <h4 class="text-xs uppercase font-bold text-muted mb-3" style="letter-spacing:.08em">Social Links &amp; WhatsApp</h4>
+                    <div class="g g-3 mb-4">
+                        <div class="field">
+                            <label class="label" for="inp_wa">WhatsApp Number</label>
+                            <input class="input" id="inp_wa" name="values[business.whatsapp]" value="@waNumber" @(canManage ? "" : "disabled") placeholder="2349062051934" inputmode="tel" />
+                            <div class="field-hint">Digits with country code. The wa.me chat link is generated automatically.</div>
+                        </div>
+                        <div class="field">
+                            <label class="label" for="inp_ig">Instagram URL</label>
+                            <input class="input" id="inp_ig" name="values[business.instagram]" value="@igLink" @(canManage ? "" : "disabled") placeholder="https://instagram.com/..." />
+                        </div>
+                        <div class="field">
+                            <label class="label" for="inp_tt">TikTok URL</label>
+                            <input class="input" id="inp_tt" name="values[business.tiktok]" value="@ttLink" @(canManage ? "" : "disabled") placeholder="https://tiktok.com/..." />
+                        </div>
+                    </div>
+
+                    <h4 class="text-xs uppercase font-bold text-muted mb-3" style="letter-spacing:.08em">Store Operations</h4>
+                    <div class="g g-3 mb-4">
+                        <div class="field">
+                            <label class="label" for="inp_curr">Default Currency</label>
+                            <input class="input" id="inp_curr" name="values[business.currency]" value="@currency" @(canManage ? "" : "disabled") placeholder="NGN" />
+                        </div>
+                        <div class="field">
+                            <label class="label" for="inp_fee">Delivery Fee (₦)</label>
+                            <input class="input" id="inp_fee" name="values[delivery.default_fee]" type="number" step="100" value="@deliveryFee" @(canManage ? "" : "disabled") placeholder="1500" />
+                        </div>
+                        <div class="field">
+                            <label class="label" for="inp_vat">VAT Rate (%)</label>
+                            <input class="input" id="inp_vat" name="values[tax.vat_rate]" type="number" step="0.5" value="@vatRate" @(canManage ? "" : "disabled") placeholder="0" />
+                        </div>
+                    </div>
+
+                    <h4 class="text-xs uppercase font-bold text-muted mb-3" style="letter-spacing:.08em">Marketing Stats</h4>
+                    <div class="field-hint mb-3">Headline numbers shown on the public homepage, about page and sign-in screens. Edit freely; no automatic counting.</div>
+                    <div class="g g-3 mb-4">
+                        <div class="field">
+                            <label class="label" for="inp_stat_projects">Projects delivered</label>
+                            <input class="input" id="inp_stat_projects" name="values[business.stat_projects]" value="@statProjects" @(canManage ? "" : "disabled") placeholder="2,400+" />
+                        </div>
+                        <div class="field">
+                            <label class="label" for="inp_stat_brands">Happy brands</label>
+                            <input class="input" id="inp_stat_brands" name="values[business.stat_brands]" value="@statBrands" @(canManage ? "" : "disabled") placeholder="180+" />
+                        </div>
+                        <div class="field">
+                            <label class="label" for="inp_stat_services">Services offered</label>
+                            <input class="input" id="inp_stat_services" name="values[business.stat_services]" value="@statServices" @(canManage ? "" : "disabled") placeholder="12+" />
+                        </div>
+                        <div class="field">
+                            <label class="label" for="inp_stat_turnaround">Avg. turnaround</label>
+                            <input class="input" id="inp_stat_turnaround" name="values[business.stat_turnaround]" value="@statTurnaround" @(canManage ? "" : "disabled") placeholder="48h" />
+                        </div>
+                    </div>
+
+                    @if (canManage)
+                    {
+                        <div class="flex items-center gap-3 pt-3" style="border-top:1px solid var(--border)">
+                            <button class="btn btn-primary btn-lg" type="submit">Save settings</button>
+                            <span class="text-xs text-muted">Changes immediately update all public storefront pages.</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-muted text-sm mt-2">You have read-only access to settings.</div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Real-Time Live Preview -->
+    <div class="col-5">
+        @if (ViewBag.EmailHealth is DeChimex.Application.Common.Interfaces.EmailHealthResult eh)
+        {
+            <!-- Email delivery health: makes provider-side failures (e.g. Brevo authorised-IP
+                 blocks) visible on the page instead of silently killing every email. -->
+            <div class="card card-body mb-4" style="box-shadow:var(--shadow);padding:20px">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="text-xs font-bold text-muted uppercase" style="letter-spacing:.08em">Email delivery</div>
+                    @if (eh.Healthy)
+                    {
+                        <span class="badge badge-success"><span class="bdot" aria-hidden="true"></span> @eh.Status</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-error"><span class="bdot" aria-hidden="true"></span> @eh.Status</span>
+                    }
+                </div>
+                @if (eh.Detail is not null)
+                {
+                    <p class="text-sm text-muted" style="margin:6px 0 10px">@eh.Detail</p>
+                }
+                @if (eh.FixUrl is not null)
+                {
+                    <p class="text-sm" style="margin:0 0 10px">
+                        <strong>How to fix:</strong>
+                        <a href="@eh.FixUrl" target="_blank" rel="noopener">open the Brevo Authorised IPs page</a>
+                        and switch the IP restriction off (or add this server's public IP, shown in the message above).
+                    </p>
+                }
+                <form asp-action="EmailTest" method="post" style="margin:0">
+                    <button class="btn btn-outline btn-sm" type="submit">Send test email to my address</button>
+                </form>
+            </div>
+        }
+        <div style="position:sticky;top:80px">
+            <div class="flex items-center justify-between mb-3">
+                <h4 style="font-size:14px;font-weight:700;color:var(--n-900)">Live Public Preview</h4>
+                <span class="badge badge-success">
+                    <span class="bdot" aria-hidden="true"></span>
+                    Live Preview
+                </span>
+            </div>
+
+            <!-- Preview 1: Reach Us Directly Card -->
+            <div class="card card-body mb-4" style="box-shadow:var(--shadow);padding:24px">
+                <div class="text-xs font-bold text-muted uppercase mb-3" style="letter-spacing:.08em;border-bottom:1px solid var(--border);padding-bottom:6px">
+                    Contact Page Card Preview
+                </div>
+                <h3 class="mb-4" style="font-size:17px;font-weight:800;color:var(--n-900);letter-spacing:-.015em">Reach us directly</h3>
+
+                <div style="display:flex;flex-direction:column;gap:18px;margin-bottom:22px">
+                    <!-- Main Location -->
+                    <div class="flex items-start" style="gap:15px">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#EEF2FF;color:#4F46E5;display:grid;place-items:center;flex-shrink:0;box-shadow:0 1px 3px rgba(79,70,229,.12)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <div>
+                            <div class="font-bold" style="font-size:14px;color:var(--n-900)" id="prev_name">@bizName</div>
+                            <div class="text-sm text-muted mt-1" style="line-height:1.5" id="prev_address">@bizAddress</div>
+                        </div>
+                    </div>
+
+                    <!-- Pickup Office -->
+                    <div class="flex items-start" style="gap:15px" id="prev_pickup_wrap">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#FEF3C7;color:#D97706;display:grid;place-items:center;flex-shrink:0;box-shadow:0 1px 3px rgba(217,119,6,.12)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <div>
+                            <div class="font-bold" style="font-size:14px;color:var(--n-900)">Pickup Office</div>
+                            <div class="text-sm text-muted mt-1" style="line-height:1.5" id="prev_pickup">@pickupAddress</div>
+                        </div>
+                    </div>
+
+                    <!-- Phone(s) -->
+                    <div class="flex items-start" style="gap:15px">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#ECFDF5;color:#16A34A;display:grid;place-items:center;flex-shrink:0;box-shadow:0 1px 3px rgba(22,163,74,.12)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        </div>
+                        <div style="font-size:14px;line-height:1.75" id="prev_phones">
+                            @foreach (var ph in bizPhone.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+                            {
+                                <div><span class="font-bold text-ink">@ph.Trim()</span></div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="flex items-center" style="gap:15px">
+                        <div style="width:38px;height:38px;border-radius:10px;background:#EEF2FF;color:#4F46E5;display:grid;place-items:center;flex-shrink:0;box-shadow:0 1px 3px rgba(79,70,229,.12)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        </div>
+                        <div class="font-bold text-sm text-ink" id="prev_email">@bizEmail</div>
+                    </div>
+                </div>
+
+                <!-- WhatsApp Button -->
+                <div style="margin-bottom:18px">
+                    <a class="btn-whatsapp block" href="@waLink" target="_blank" rel="noopener" style="display:flex;flex-direction:row;align-items:center;justify-content:center;gap:12px;width:100%;padding:12px 18px;border-radius:11px;text-decoration:none;font-size:14px">
+                        <span class="wa-icon" style="width:26px;height:26px;border-radius:50%;background:#fff;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+                            <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden="true" style="display:block"><path fill="#16A34A" d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm5.8 14.13c-.24.68-1.42 1.32-1.95 1.36-.5.05-.5.4-3.15-.66-2.66-1.05-4.31-3.77-4.44-3.95-.13-.17-1.06-1.41-1.06-2.69 0-1.28.67-1.9.91-2.17.24-.26.52-.33.7-.33.17 0 .35 0 .5.01.16.01.38-.06.59.45.24.57.81 1.97.88 2.11.07.14.12.31.02.5-.09.18-.14.29-.27.45-.14.16-.29.36-.41.48-.14.14-.28.28-.12.55.16.27.72 1.18 1.54 1.92 1.06.94 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.17-.19.7-.81.88-1.09.18-.28.36-.23.61-.14.24.09 1.55.73 1.82.86.27.14.44.2.51.31.07.12.07.66-.17 1.34Z"/></svg>
+                        </span>
+                        <span style="font-weight:700;font-size:14px;color:#fff;white-space:nowrap">Chat on WhatsApp</span>
+                    </a>
+                </div>
+
+                <!-- Social buttons -->
+                <div class="flex gap-3">
+                    <div class="btn btn-secondary btn-sm flex-1 text-center" style="opacity:.85;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                        <span>Instagram</span>
+                    </div>
+                    <div class="btn btn-secondary btn-sm flex-1 text-center" style="opacity:.85;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 3c.3 2.02 1.44 3.4 3.5 3.64v2.3c-1.2.12-2.25-.27-3.47-1v5.9c0 4.02-2.66 6.16-5.72 5.66-3.06-.5-4.28-3.86-2.9-6.4.86-1.6 2.5-2.44 4.4-2.28v2.42c-.3.03-.62.1-.92.2-1.1.4-1.6 1.5-1.2 2.6.4 1.06 1.9 1.4 2.86.6.5-.4.7-.98.7-1.66V3h2.75Z"/></svg>
+                        <span>TikTok</span>
+                    </div>
+                </div>
+
+                <!-- Opening Hours Section -->
+                <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:22px">
+                    <div class="flex items-start" style="gap:15px">
+                        <div style="width:38px;height:38px;border-radius:10px;background:var(--primary-50);color:var(--primary);display:grid;place-items:center;flex-shrink:0;box-shadow:0 1px 3px rgba(79,70,229,.12)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <div>
+                            <div class="font-bold" style="font-size:14px;color:var(--n-900)">Opening hours</div>
+                            <div class="text-sm text-muted mt-1" style="font-size:13.5px;color:var(--n-600);font-weight:500;line-height:1.4">Monday to Saturday: 8am - 6pm</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview 2: Footer Contact Box -->
+            <div class="card card-body" style="background:#0F172A;color:#cbd5e1;padding:22px">
+                <div class="text-xs font-bold uppercase mb-2" style="color:#64748b;letter-spacing:.08em;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:4px">
+                    Public Footer Contact Column Preview
+                </div>
+                <h5 style="color:#fff;font-size:13px;margin-bottom:8px">Get in touch</h5>
+                <div style="font-size:12.5px;color:#94a3b8;line-height:1.6">
+                    <div id="prev_foot_email">@bizEmail</div>
+                    <div id="prev_foot_phone">@bizPhone</div>
+                    <div id="prev_foot_address">@bizAddress</div>
+                    <div id="prev_foot_pickup" style="color:#cbd5e1;font-size:11.5px;margin-top:2px">Pickup: @pickupAddress</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function(){
+    const inpName = document.getElementById('inp_name');
+    const inpMotto = document.getElementById('inp_motto');
+    const inpEmail = document.getElementById('inp_email');
+    const inpPhone = document.getElementById('inp_phone');
+    const inpAddress = document.getElementById('inp_address');
+    const inpPickup = document.getElementById('inp_pickup');
+
+    const prevName = document.getElementById('prev_name');
+    const prevEmail = document.getElementById('prev_email');
+    const prevAddress = document.getElementById('prev_address');
+    const prevPickup = document.getElementById('prev_pickup');
+    const prevPickupWrap = document.getElementById('prev_pickup_wrap');
+    const prevPhones = document.getElementById('prev_phones');
+
+    const prevFootEmail = document.getElementById('prev_foot_email');
+    const prevFootPhone = document.getElementById('prev_foot_phone');
+    const prevFootAddress = document.getElementById('prev_foot_address');
+    const prevFootPickup = document.getElementById('prev_foot_pickup');
+
+    function update(){
+        const nameVal = inpName ? inpName.value.trim() || 'DE-CHIMEX PRINT HUB' : '';
+        const emailVal = inpEmail ? inpEmail.value.trim() || 'chimexgraphics@gmail.com' : '';
+        const phoneVal = inpPhone ? inpPhone.value.trim() || '+234 906 205 1934' : '';
+        const addrVal = inpAddress ? inpAddress.value.trim() || 'Nepa Road, Sapon, Abeokuta, Ogun State.' : '';
+        const pickupVal = inpPickup ? inpPickup.value.trim() : '';
+
+        if (prevName) prevName.textContent = nameVal;
+        if (prevEmail) prevEmail.textContent = emailVal;
+        if (prevAddress) prevAddress.textContent = addrVal;
+        if (prevPickup) prevPickup.textContent = pickupVal;
+        if (prevPickupWrap) prevPickupWrap.style.display = pickupVal ? 'flex' : 'none';
+
+        if (prevPhones){
+            const list = phoneVal.split(/[,;]/).map(s => s.trim()).filter(Boolean);
+            prevPhones.innerHTML = list.length
+                ? list.map(p => `<div><span class="font-bold text-ink">${p}</span></div>`).join('')
+                : `<div><span class="font-bold text-ink">${phoneVal}</span></div>`;
+        }
+
+        if (prevFootEmail) prevFootEmail.textContent = emailVal;
+        if (prevFootPhone) prevFootPhone.textContent = phoneVal;
+        if (prevFootAddress) prevFootAddress.textContent = addrVal;
+        if (prevFootPickup){
+            prevFootPickup.textContent = pickupVal ? 'Pickup: ' + pickupVal : '';
+            prevFootPickup.style.display = pickupVal ? 'block' : 'none';
+        }
+    }
+
+    [inpName, inpMotto, inpEmail, inpPhone, inpAddress, inpPickup].forEach(el => {
+        if (el) el.addEventListener('input', update);
+    });
+    update();
+})();
+</script>
+}

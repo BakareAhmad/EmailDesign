@@ -1,0 +1,140 @@
+@model DeChimex.Contracts.Invoices.InvoiceDocumentDto
+@{
+    var currency = string.IsNullOrWhiteSpace(Model.Currency) ? "NGN" : Model.Currency;
+    string Money(decimal v) => $"\u20a6{v:N2}";
+}
+<style>
+    .doc-print { background:#fff; color:#111827; max-width:820px; margin:0 auto; padding:28px 32px; border:1px solid #e5e7eb; border-radius:12px; }
+    .doc-print .doc-head { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; border-bottom:3px solid #111827; padding-bottom:16px; }
+    .doc-print .doc-brand { display:flex; align-items:center; gap:10px; }
+    .doc-print .doc-logo { width:44px; height:44px; object-fit:contain; flex-shrink:0; }
+    .doc-print .doc-biz-name { font-size:22px; font-weight:800; letter-spacing:-0.02em; }
+    .doc-print .doc-biz-meta { font-size:12px; color:#4b5563; margin-top:6px; line-height:1.5; }
+    .doc-print .doc-title { font-size:26px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; }
+    .doc-print .doc-meta { font-size:12.5px; color:#374151; text-align:right; line-height:1.6; }
+    .doc-print .doc-meta b { color:#111827; }
+    .doc-print table.doc-lines { width:100%; border-collapse:collapse; margin-top:18px; font-size:13.5px; }
+    .doc-print table.doc-lines th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#6b7280; border-bottom:2px solid #111827; padding:6px 8px; }
+    .doc-print table.doc-lines td { border-bottom:1px solid #e5e7eb; padding:8px; vertical-align:top; }
+    .doc-print .doc-num { text-align:right; white-space:nowrap; }
+    .doc-print .doc-totals { margin-top:14px; margin-left:auto; width:280px; font-size:13.5px; }
+    .doc-print .doc-totals div { display:flex; justify-content:space-between; padding:3px 8px; }
+    .doc-print .doc-totals .grand { border-top:2px solid #111827; margin-top:6px; padding-top:8px; font-weight:800; font-size:16px; }
+    .doc-print .doc-notes { margin-top:16px; font-size:13px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; white-space:pre-wrap; }
+    .doc-print .doc-foot { margin-top:22px; padding-top:12px; border-top:1px solid #e5e7eb; font-size:11.5px; color:#6b7280; display:flex; justify-content:space-between; }
+    @@media (max-width: 560px) {
+        .doc-print { padding: 14px 10px; overflow-x: auto; }
+        .doc-print .doc-head { flex-wrap: wrap; }
+        .doc-print .doc-meta { text-align: left; }
+        .doc-print .doc-title { font-size: 21px; }
+        .doc-print .doc-totals { width: 100%; }
+        .doc-print table.doc-lines { font-size: 12.5px; }
+        .doc-print table.doc-lines th { letter-spacing: 0; font-size: 10px; }
+        .doc-print table.doc-lines th, .doc-print table.doc-lines td { padding: 6px 3px; }
+    }
+    @@media print {
+        body * { visibility: hidden; }
+        .doc-print, .doc-print * { visibility: visible; }
+        .doc-print { position: absolute; inset: 0; width: 100%; max-width: none; margin: 0; border: none; border-radius: 0; padding: 12mm 14mm; }
+    }
+</style>
+<div class="doc-print">
+    <div class="doc-head">
+        <div>
+            <div class="doc-brand"><img class="doc-logo" src="/img/logo.png" alt="" width="44" height="44" onerror="this.remove()"><div class="doc-biz-name">@(ViewBag.BusinessName as string ?? "DeChimex")</div></div>
+            @if (ViewBag.BusinessMotto is string motto && !string.IsNullOrWhiteSpace(motto))
+            {
+                <div class="text-sm" style="color:#4b5563">@motto</div>
+            }
+            <div class="doc-biz-meta">
+                @if (ViewBag.BusinessAddress is string addr && !string.IsNullOrWhiteSpace(addr)) { <div>@addr</div> }
+                @if (ViewBag.BusinessPhone is string ph && !string.IsNullOrWhiteSpace(ph)) { <div>@ph</div> }
+                @if (ViewBag.BusinessEmail is string em && !string.IsNullOrWhiteSpace(em)) { <div>@em</div> }
+            </div>
+        </div>
+        <div>
+            <div class="doc-title">@(Model.IsQuote ? "Quote Invoice" : "Invoice")</div>
+            <div class="doc-meta">
+                <div><b>@Model.InvoiceNumber</b></div>
+                <div>Issued: @Model.IssuedAtUtc.ToLocalTime().ToString("d MMM yyyy")</div>
+                @if (Model.PaidAtUtc is not null)
+                {
+                    <div>Paid: @Model.PaidAtUtc.Value.ToLocalTime().ToString("d MMM yyyy")</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;justify-content:space-between;gap:16px;font-size:13.5px">
+        <div>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin-bottom:3px">Billed to</div>
+            <div style="font-weight:700">@Model.CustomerName</div>
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerEmail)) { <div style="color:#4b5563">@Model.CustomerEmail</div> }
+            @if (!string.IsNullOrWhiteSpace(Model.CustomerPhone)) { <div style="color:#4b5563">@Model.CustomerPhone</div> }
+        </div>
+        <div style="text-align:right">
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#6b7280;margin-bottom:3px">Status</div>
+            <div style="font-weight:700">@Model.Status</div>
+            @if (!string.IsNullOrWhiteSpace(Model.OrderNumber))
+            {
+                <div style="color:#4b5563">Order: @Model.OrderNumber</div>
+            }
+            @if (Model.IsQuote)
+            {
+                <div style="color:#4b5563">No order placed yet</div>
+            }
+        </div>
+    </div>
+
+    <table class="doc-lines">
+        <thead>
+            <tr><th>#</th><th>Item</th><th class="doc-num">Unit price</th><th class="doc-num">Qty</th><th class="doc-num">Amount</th></tr>
+        </thead>
+        <tbody>
+            @for (var n = 0; n < Model.Lines.Count; n++)
+            {
+                var l = Model.Lines[n];
+                <tr>
+                    <td style="color:#6b7280" class="doc-num">@(n + 1)</td>
+                    <td>
+                        @l.Name
+                        @if (!string.IsNullOrWhiteSpace(l.Notes))
+                        {
+                            <div style="color:#6b7280;font-size:12px">@l.Notes</div>
+                        }
+                    </td>
+                    <td class="doc-num">@Money(l.UnitPrice)</td>
+                    <td class="doc-num">@l.Quantity</td>
+                    <td class="doc-num">@Money(l.LineTotal)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="doc-totals">
+        <div><span>Subtotal</span><span>@Money(Model.Subtotal)</span></div>
+        @if (Model.Discount > 0)
+        {
+            <div><span>Discount</span><span>-@Money(Model.Discount)</span></div>
+        }
+        @if (Model.DeliveryFee > 0)
+        {
+            <div><span>Delivery fee</span><span>@Money(Model.DeliveryFee)</span></div>
+        }
+        @if (Model.Tax > 0)
+        {
+            <div><span>Tax</span><span>@Money(Model.Tax)</span></div>
+        }
+        <div class="grand"><span>Total</span><span>@Money(Model.GrandTotal)</span></div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Notes))
+    {
+        <div class="doc-notes"><strong>Notes:</strong><br />@Model.Notes</div>
+    }
+
+    <div class="doc-foot">
+        <span>Thank you for your business.</span>
+        <span>@(ViewBag.BusinessName as string ?? "DeChimex")</span>
+    </div>
+</div>

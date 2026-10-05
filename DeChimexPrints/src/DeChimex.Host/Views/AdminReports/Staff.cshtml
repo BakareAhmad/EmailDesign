@@ -1,0 +1,19 @@
+@model IReadOnlyList<DeChimex.Host.Models.Admin.StaffReportRow>
+@{
+    Layout = "_AdminLayout";
+}
+<div class="card">
+    <div class="card-head"><h3>Staff activity</h3></div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>Staff</th><th>Role</th><th>Actions</th></tr></thead>
+            <tbody>
+                @if (Model.Count == 0) { <tr><td colspan="3" class="text-muted">No activity in range.</td></tr> }
+                @foreach (var r in Model)
+                {
+                    <tr><td>@r.Staff</td><td class="text-muted">@r.Role</td><td>@r.Actions</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

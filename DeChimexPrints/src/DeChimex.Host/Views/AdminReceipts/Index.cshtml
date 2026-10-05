@@ -1,0 +1,42 @@
+@model IReadOnlyList<DeChimex.Domain.Entities.Receipt>
+@{
+    Layout = "_AdminLayout";
+    var empty = new EmptyState(EmptyIcons.Receipt, "No receipts yet", "Receipts are generated automatically after an order payment succeeds.");
+}
+<div class="table-wrap">
+    <table class="table">
+        <thead><tr><th>Receipt</th><th>Order</th><th>Customer</th><th>Amount</th><th>Method</th><th>Paid</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="8" class="table-empty">
+                    <partial name="_EmptyState" model="empty" />
+                </td></tr>
+            }
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td class="font-semibold">@r.ReceiptNumber
+                        @if (r.IsRefunded) { <span class="badge badge-error">Refunded</span> }
+                    </td>
+                    <td class="text-muted">@r.OrderNumber</td>
+                    <td>@r.CustomerName</td>
+                    <td>&#8358;@r.Amount.Amount.ToString("N2")</td>
+                    <td class="text-muted">@r.Method</td>
+                    <td class="text-muted">@r.PaidAtUtc.ToLocalTime().ToString("d MMM yyyy")</td>
+                    <td><span class="badge badge-success">Paid</span></td>
+                    <td class="text-right"><a class="btn btn-outline btn-sm" href="/admin/receipts/@r.Id">View</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.Page > 1) { <a class="btn btn-outline btn-sm" href="/admin/receipts?page=@(ViewBag.Page - 1)&search=@Uri.EscapeDataString((string?)ViewBag.Search ?? "")">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.Page < ViewBag.TotalPages) { <a class="btn btn-outline btn-sm" href="/admin/receipts?page=@(ViewBag.Page + 1)&search=@Uri.EscapeDataString((string?)ViewBag.Search ?? "")">Next</a> }
+    </div>
+}

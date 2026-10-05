@@ -1,0 +1,23 @@
+@* Shared time-range selector: 1h / 24h / 7d / 30d / custom (UTC dates). Preserves other query values. *@
+@model DevRange
+@{
+    var q = Context.Request.Query;
+    string Href(string key) => Context.Request.Path + DevUi.Query(q, ("range", key), ("from", null), ("to", null), ("page", null));
+}
+<div class="dv-range" role="group" aria-label="Time range">
+    @foreach (var (k, label) in new[] { ("1h", "1 hour"), ("24h", "24 hours"), ("7d", "7 days"), ("30d", "30 days") })
+    {
+        <a class="dv-chip @(Model.Key == k ? "is-on" : "")" href="@Href(k)">@label</a>
+    }
+    <form method="get" class="dv-range-custom">
+        @foreach (var kv in q.Where(x => x.Key is not ("range" or "from" or "to" or "page")))
+        {
+            <input type="hidden" name="@kv.Key" value="@kv.Value" />
+        }
+        <input type="hidden" name="range" value="custom" />
+        <label>From <input type="date" name="from" value="@(Model.Key == "custom" ? Model.FromUtc.ToString("yyyy-MM-dd") : "")" required /></label>
+        <label>To <input type="date" name="to" value="@(Model.Key == "custom" ? Model.ToUtc.AddSeconds(-1).ToString("yyyy-MM-dd") : "")" required /></label>
+        <button type="submit" class="dv-chip @(Model.Key == "custom" ? "is-on" : "")">Custom</button>
+    </form>
+    <span class="dv-muted dv-range-label">@Model.Label · @DevUi.Utc(Model.FromUtc) → @DevUi.Utc(Model.ToUtc)</span>
+</div>

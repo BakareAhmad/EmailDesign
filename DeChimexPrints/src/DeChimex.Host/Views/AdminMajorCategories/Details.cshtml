@@ -1,0 +1,22 @@
+@model DeChimex.Contracts.Categories.MajorCategoryDto
+@{ Layout = "_AdminLayout"; var categories = (IReadOnlyList<DeChimex.Contracts.Categories.CategoryDto>)ViewBag.Categories; }
+<div class="card card-body mb-4"><h2>@Model.Name</h2><p>@Model.Description</p>
+ <div class="flex gap-2 mt-3">
+ @if (ViewBag.CanManage is true) {
+ <a class="btn btn-primary" href="/admin/categories/create?majorCategoryId=@Model.Id">New subcategory</a>
+ <a class="btn btn-secondary" href="/admin/categories?unassigned=true">Assign existing subcategories</a>
+ <a class="btn btn-secondary" asp-action="Edit" asp-route-id="@Model.Id">Edit major category</a>
+ }
+ <a class="btn btn-secondary" href="/products?majorCategoryId=@Model.Id">Browse products</a>
+ </div>
+</div>
+<div class="table-wrap"><table class="table"><thead><tr><th>Subcategory</th><th>Products</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+@foreach (var c in categories) {
+<tr><td>@c.Name</td><td>@c.ProductCount</td><td>@(c.IsActive ? "Active" : "Inactive")</td><td>
+@if (ViewBag.CanManage is true) {
+<a class="btn btn-ghost btn-sm" href="/admin/categories/edit/@c.Id">Edit / move</a>
+<a class="btn btn-ghost btn-sm" href="/admin/categories/@c.Id/options">Ordering options</a>
+}</td></tr>
+}
+@if (categories.Count == 0) { <tr><td colspan="4">No subcategories assigned yet.</td></tr> }
+</tbody></table></div>

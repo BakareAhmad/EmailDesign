@@ -1,0 +1,41 @@
+@model ErrorGroupDetail
+@{ var g = Model.Group; }
+<p><a href="/dev/errors">← Error center</a></p>
+<section class="dv-card">
+    <div class="dv-card-head"><h2 class="dv-wrap">@g.Message</h2>@DevUi.Severity(g.Severity)</div>
+    <div class="dv-grid dv-g4">
+        <div class="dv-kpi">@g.Count<small>Occurrences (retained)</small></div>
+        <div class="dv-kpi" style="font-size:16px">@DevUi.Utc(g.FirstSeenUtc)<small>First seen</small></div>
+        <div class="dv-kpi" style="font-size:16px">@DevUi.Utc(g.LastSeenUtc)<small>Last seen (@DevUi.Ago(g.LastSeenUtc))</small></div>
+        <div class="dv-kpi" style="font-size:16px">@g.Category<small>Subsystem · @g.EventType</small></div>
+    </div>
+    <dl class="dv-kv" style="margin-top:10px">
+        <dt>Exception type</dt><dd class="dv-mono">@(g.ExceptionType ?? "none")</dd>
+        <dt>Source</dt><dd class="dv-mono">@(g.Source ?? "none")</dd>
+        <dt>Fingerprint</dt><dd class="dv-mono dv-small">@g.Fingerprint</dd>
+    </dl>
+</section>
+<section class="dv-card" style="margin-top:12px">
+    <h2>Occurrences</h2>
+    <div class="dv-table-wrap"><table class="dv-table">
+        <thead><tr><th>Time (UTC)</th><th>Message</th><th>Route</th><th>Correlation</th><th>User</th><th>Order</th></tr></thead>
+        <tbody>
+        @foreach (var e in Model.Occurrences)
+        {
+            <tr>
+                <td class="dv-small dv-nowrap"><a href="/dev/logs/@e.Id">@e.TimestampUtc.ToString("yyyy-MM-dd HH:mm:ss")</a></td>
+                <td class="dv-wrap dv-small">@(e.Message.Length > 140 ? e.Message[..140] + "…" : e.Message)</td>
+                <td class="dv-mono dv-small">@e.Route</td>
+                <td class="dv-mono dv-small">@e.CorrelationId</td>
+                <td class="dv-mono dv-small">@(e.UserId?.ToString()[..8])</td>
+                <td class="dv-mono dv-small">@(e.OrderId?.ToString()[..8])</td>
+            </tr>
+        }
+        </tbody>
+    </table></div>
+    <div class="dv-pager">
+        @if (Model.Page > 1) { <a class="dv-btn dv-btn-ghost" href="?page=@(Model.Page - 1)">← Newer</a> }
+        <span class="dv-muted">Page @Model.Page of @Model.Pages</span>
+        @if (Model.Page < Model.Pages) { <a class="dv-btn dv-btn-ghost" href="?page=@(Model.Page + 1)">Older →</a> }
+    </div>
+</section>

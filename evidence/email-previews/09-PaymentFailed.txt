@@ -1,0 +1,13 @@
+﻿Your payment for order DCX-2026-000123 didn't go through. No charge was recorded.
+
+Payment didn't go through
+Hi O'Neil <b>Attridge-Smith-Worthington the Third</b>, we couldn't process your payment for order DCX-2026-000123.
+Payment failed
+Order number
+DCX-2026-000123
+Amount attempted
+₦1,250,999.50
+Important: No charge was recorded. If your bank declined it, no money has left your account and you can safely try again.
+Try payment again https://dechimexprinthub.com/portal/orders/track?orderNumber=DCX-2026-000123
+Button not working? Copy this link: https://dechimexprinthub.com/portal/orders/track?orderNumber=DCX-2026-000123
+Prefer another way to pay? Contact us at hello@dechimexprinthub.com and we'll help you complete the order.

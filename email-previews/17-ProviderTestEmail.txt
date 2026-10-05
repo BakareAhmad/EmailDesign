@@ -1,0 +1,5 @@
+Test email from your DE-CHIMEX PRINT HUB app.
+
+Test email
+This is a test email from your DE-CHIMEX PRINT HUB app. If you can read it, email delivery is working.
+Note: Sent from the admin provider settings. No customer received this message.

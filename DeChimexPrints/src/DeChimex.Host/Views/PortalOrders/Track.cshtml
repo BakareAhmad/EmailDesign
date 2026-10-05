@@ -1,0 +1,58 @@
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Track an order";
+    ViewData["ActiveNav"] = "track";
+    var order = ViewBag.Order as DeChimex.Contracts.Orders.OrderDto;
+    var found = ViewBag.Found is true;
+    var notFoundNumber = ViewBag.NotFoundNumber as string;
+    var step = order is null ? 0 : CustomerPresentation.TrackStep(order.Status);
+    var isClosed = order is not null && CustomerPresentation.IsClosed(order.Status);
+    var labels = CustomerPresentation.TrackLabels;
+}
+
+<div class="cs-wrap cs-wrap-md">
+    <partial name="Customer/_AccountTabs" model="@("track")" />
+    <div class="cs-page-head">
+        <h1>Track an order</h1>
+        <p class="cs-muted">Enter the order number from your confirmation email or receipt.</p>
+    </div>
+
+    <form method="get" asp-action="Track" class="od-track-form" role="search">
+        <label class="cs-visually-hidden" for="orderNumber">Order number</label>
+        <input class="input" type="text" id="orderNumber" name="orderNumber" value="@notFoundNumber" placeholder="e.g. DCX-2026-000042" autocomplete="off" />
+        <button class="btn btn-primary" type="submit">Track</button>
+    </form>
+
+    @if (found && order is not null)
+    {
+        <section class="cs-card cs-card-pad" style="margin-top:16px" aria-live="polite">
+            <div class="od-hero-top">
+                <div><span class="od-kind">Order</span><div class="od-num">@order.OrderNumber</div></div>
+                <span class="cs-status @CustomerPresentation.StatusTone(order.Status)">@CustomerPresentation.StatusLabel(order.Status)</span>
+            </div>
+            @if (isClosed)
+            {
+                <div class="alert alert-error" role="alert" style="margin-top:12px">This order was @order.Status.ToLowerInvariant(). No further tracking is available.</div>
+            }
+            else
+            {
+                <ol class="od-track @(isClosed ? "is-closed" : "")" style="margin-top:14px">
+                    @for (var i = 1; i <= 4; i++)
+                    {
+                        <li class="@(step > i ? "is-done" : step == i ? "is-on" : "")">@labels[i - 1]</li>
+                    }
+                </ol>
+                <p class="od-next">@CustomerPresentation.NextStep(order.Status)</p>
+            }
+            <div class="cs-row-between" style="margin-top:12px">
+                <span class="od-total">@CustomerPresentation.Money(order.GrandTotal)</span>
+                <a class="btn btn-outline btn-sm" asp-action="Details" asp-route-id="@order.Id">View order details</a>
+            </div>
+        </section>
+    }
+    else if (notFoundNumber is not null)
+    {
+        <div class="alert alert-error" role="alert" style="margin-top:16px">No order with the number <strong>@notFoundNumber</strong> was found for your account.</div>
+    }
+</div>

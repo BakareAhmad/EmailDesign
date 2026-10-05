@@ -1,0 +1,45 @@
+@model IReadOnlyList<ErrorGroup>
+@using DeChimex.Application.Common.Interfaces
+@{
+    var range = (DevRange)ViewBag.Range;
+    var cat = ViewBag.Category as string;
+    var warnings = (bool)ViewBag.Warnings;
+}
+<partial name="~/Views/Dev/_RangePicker.cshtml" model="range" />
+<form method="get" class="dv-filters">
+    <input type="hidden" name="range" value="@range.Key" />
+    @if (range.Key == "custom") { <input type="hidden" name="from" value="@Context.Request.Query["from"]" /><input type="hidden" name="to" value="@Context.Request.Query["to"]" /> }
+    <label>Subsystem
+        <select name="category"><option value="">All subsystems</option>
+            @foreach (var c in TechnicalCategory.All) { <option selected="@(cat == c)">@c</option> }
+        </select>
+    </label>
+    <label style="flex-direction:row;align-items:center;gap:6px"><input type="checkbox" name="warnings" value="true" checked="@warnings" /> include warnings</label>
+    <button class="dv-btn" type="submit">Apply</button>
+</form>
+<section class="dv-card">
+    <div class="dv-card-head"><h2>@Model.Count error group(s)</h2><span class="dv-muted dv-small">Grouped by fingerprint (category + event type + exception type + message template) · top 200 by last seen</span></div>
+    @if (Model.Count == 0)
+    {
+        <p class="dv-muted">No errors in this range@(cat is null ? "" : " for " + cat). </p>
+    }
+    else
+    {
+        <div class="dv-table-wrap"><table class="dv-table">
+            <thead><tr><th>Severity</th><th>Error</th><th>Subsystem</th><th class="num">Occurrences</th><th>First seen</th><th>Last seen</th></tr></thead>
+            <tbody>
+            @foreach (var g in Model)
+            {
+                <tr>
+                    <td>@DevUi.Severity(g.Severity)</td>
+                    <td class="dv-wrap"><a href="/dev/errors/@g.Fingerprint">@(g.Message.Length > 140 ? g.Message[..140] + "…" : g.Message)</a><div class="dv-mono dv-small dv-muted">@(g.ExceptionType ?? g.EventType)@(g.Source is null ? "" : " · " + g.Source)</div></td>
+                    <td>@g.Category</td>
+                    <td class="num"><strong>@g.Count</strong></td>
+                    <td class="dv-small dv-nowrap">@DevUi.Ago(g.FirstSeenUtc)</td>
+                    <td class="dv-small dv-nowrap">@DevUi.Ago(g.LastSeenUtc)</td>
+                </tr>
+            }
+            </tbody>
+        </table></div>
+    }
+</section>

@@ -1,0 +1,80 @@
+@model DevDashboardModel
+@{
+    var perms = ViewBag.DevPerms as HashSet<string> ?? new();
+}
+<section class="dv-card dv-overall dv-tile st-@Model.Overall" aria-label="Overall status">
+    <div>
+        <div class="dv-muted dv-small">Overall platform status</div>
+        <div class="big" data-dv-overall>@Model.Overall</div>
+    </div>
+    <div class="dv-muted dv-small" style="margin-left:auto;text-align:right">
+        Health checked @DevUi.Ago(Model.Health.CheckedAtUtc) (cached 30 s) · <span data-dv-updated>auto-refresh every 30 s</span><br />
+        @Model.System.Environment · v@(Model.System.Version) · up @DevUi.Duration(Model.System.Uptime)
+    </div>
+</section>
+
+<div class="dv-grid dv-g4" data-dv-tiles style="margin-top:12px">
+    @foreach (var t in Model.Tiles)
+    {
+        <a class="dv-card dv-tile st-@t.Status" data-tile="@t.Key" href="@t.Href">
+            <div class="t-title"><span>@t.Title</span>@DevUi.Status(t.Status)</div>
+            <div class="t-sum">@t.Summary</div>
+            <div class="t-reason">@t.Reason</div>
+            <div class="t-more">View details →</div>
+        </a>
+    }
+</div>
+
+<div class="dv-grid dv-g4" style="margin-top:12px">
+    <a class="dv-card dv-tile" href="/dev/errors?range=24h"><div class="dv-kpi">@Model.Last24h.Critical<small>Critical events (24 h)</small></div></a>
+    <a class="dv-card dv-tile" href="/dev/errors?range=24h"><div class="dv-kpi">@Model.Last24h.Errors<small>Error events (24 h)</small></div></a>
+    <a class="dv-card dv-tile" href="/dev/logs?range=24h&severity=Warning"><div class="dv-kpi">@Model.Last24h.Warnings<small>Warnings (24 h)</small></div></a>
+    <a class="dv-card dv-tile" href="/dev/logs?range=24h&category=Security"><div class="dv-kpi">@Model.Last24h.Security<small>Security events (24 h)</small></div></a>
+</div>
+
+<div class="dv-grid dv-g2" style="margin-top:12px">
+    <section class="dv-card">
+        <div class="dv-card-head"><h2>Recent errors</h2><a href="/dev/errors">Error center →</a></div>
+        @if (Model.RecentProblems.Count == 0)
+        {
+            <p class="dv-muted">No Error or Critical events recorded. 🎉</p>
+        }
+        else
+        {
+            <div class="dv-table-wrap"><table class="dv-table"><tbody>
+            @foreach (var e in Model.RecentProblems)
+            {
+                <tr>
+                    <td class="dv-nowrap">@DevUi.Severity(e.Severity)</td>
+                    <td class="dv-wrap"><a href="@(perms.Contains(Permissions.Developer.LogsView) ? "/dev/logs/" + e.Id : "#")">@(e.Message.Length > 110 ? e.Message[..110] + "…" : e.Message)</a><div class="dv-muted dv-small">@e.Category · @e.EventType</div></td>
+                    <td class="dv-nowrap dv-muted dv-small">@DevUi.Ago(e.TimestampUtc)</td>
+                </tr>
+            }
+            </tbody></table></div>
+        }
+    </section>
+    <section class="dv-card">
+        <div class="dv-card-head"><h2>Last hour</h2><a href="/dev/performance?range=1h">Statistics →</a></div>
+        <div class="dv-grid dv-g3">
+            <div class="dv-kpi">@DevUi.Num(Model.LastHour.Requests)<small>Requests</small></div>
+            <div class="dv-kpi">@Model.LastHour.ErrorRatePercent%<small>5xx error rate</small></div>
+            <div class="dv-kpi">@DevUi.Ms(Model.LastHour.AvgMs)<small>Avg response</small></div>
+        </div>
+        <h3>Background jobs</h3>
+        <div class="dv-table-wrap"><table class="dv-table"><tbody>
+        @foreach (var j in Model.Jobs)
+        {
+            <tr><td>@j.Name</td><td>@DevUi.Status(j.State)</td><td class="dv-muted dv-small">last run @DevUi.Ago(j.LastCompletedUtc)</td></tr>
+        }
+        </tbody></table></div>
+        @if (perms.Contains(Permissions.Developer.ServiceFeesView))
+        {
+            <h3>Service fees</h3>
+            <p>Today <strong>@DevUi.Naira(Model.FeesToday.NetFees)</strong> net · This month <strong>@DevUi.Naira(Model.FeesMonth.NetFees)</strong> net · <a href="/dev/service-fees">details →</a></p>
+        }
+        @if (Model.QueueDropped > 0)
+        {
+            <p class="dv-warnbox">@Model.QueueDropped diagnostics entr(ies) were dropped because the in-memory queue was full (burst protection).</p>
+        }
+    </section>
+</div>

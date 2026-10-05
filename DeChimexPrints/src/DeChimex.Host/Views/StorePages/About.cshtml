@@ -1,0 +1,54 @@
+@using DeChimex.Host
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = "About";
+    ViewData["ActiveNav"] = "about";
+    var biz = ViewBag.Business as Dictionary<string, string> ?? new Dictionary<string, string>();
+    string Get(string k) => biz.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v) ? v : "";
+    var stats = new (string val, string label)[]
+    {
+        (Get("business.stat_projects"), "Projects delivered"),
+        (Get("business.stat_brands"), "Brands served"),
+        (Get("business.stat_services"), "Services offered"),
+        (Get("business.stat_turnaround"), "Avg. turnaround"),
+    }.Where(s => !string.IsNullOrWhiteSpace(s.val)).ToList();
+}
+
+<div class="cs-wrap cs-wrap-md">
+    <div class="cs-page-head">
+        <span class="hm-kicker">Our story</span>
+        <h1>Branding and printing for schools, businesses and events</h1>
+    </div>
+
+    <div class="pg-prose">
+        <p>DE-CHIMEX PRINT HUB is a graphics, branding and printing studio. We produce branded mugs, jerseys, flasks, corporate gifts and a full range of print work, and we see each job through from artwork checks to production and delivery.</p>
+        <p>Order ready-to-buy items straight from the shop, or bring your own items for custom branding. Either way, you approve the design before anything prints, and you can follow the job from your account.</p>
+        <p><strong>Our promise stays the same: Creativity with Ease.</strong></p>
+    </div>
+
+    <div class="cs-actions" style="margin-top:16px">
+        <a href="/products" class="btn btn-primary">Shop products</a>
+        <a href="/contact" class="btn btn-outline">Work with us</a>
+    </div>
+
+    @if (stats.Count > 0)
+    {
+        <div class="ac-stats @(stats.Count > 3 ? "is-four" : "")" style="margin-top:24px">
+            @foreach (var s in stats) { <div class="ac-stat"><b>@s.val</b><span>@s.label</span></div> }
+        </div>
+    }
+
+    <section class="cs-section" aria-labelledby="valuesHeading">
+        <div class="cs-section-head"><h2 id="valuesHeading">What we value</h2></div>
+        <div class="pg-values">
+            <div class="pg-value"><span class="hm-path-ic">@Html.Raw(CustomerIcons.Svg("sparkle", 20))</span><h4>Creativity first</h4><p>We treat every job as a design challenge, not a print run.</p></div>
+            <div class="pg-value"><span class="hm-path-ic">@Html.Raw(CustomerIcons.Svg("check-circle", 20))</span><h4>Ease for you</h4><p>Order online, chat with the team, approve designs and track progress from your phone.</p></div>
+            <div class="pg-value"><span class="hm-path-ic">@Html.Raw(CustomerIcons.Svg("shield", 20))</span><h4>Premium quality</h4><p>Quality materials and careful finishing on every item we produce.</p></div>
+        </div>
+    </section>
+
+    <div class="hm-band" style="margin-top:24px">
+        <h2>Have a job in mind?</h2>
+        <div class="hm-band-cta"><a href="/contact" class="btn btn-light btn-lg">Get in touch</a><a href="/products" class="btn btn-ghost-light btn-lg">Browse the shop</a></div>
+    </div>
+</div>

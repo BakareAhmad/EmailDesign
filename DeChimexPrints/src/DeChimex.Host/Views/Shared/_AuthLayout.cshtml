@@ -1,0 +1,52 @@
+@inject DeChimex.Host.Services.CustomerShellService Shell
+@using DeChimex.Host
+@{
+    Layout = null;
+    var title = ViewData["Title"] as string;
+    var pageTitle = string.IsNullOrWhiteSpace(title) ? "DE-CHIMEX PRINT HUB" : $"{title} · DE-CHIMEX PRINT HUB";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <title>@pageTitle</title>
+    <partial name="_BrandHead" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/tailwind.build.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/customer.css" asp-append-version="true">
+</head>
+<body class="cs-body au-body">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="au-top">
+        <a class="cs-back" href="/">@Html.Raw(CustomerIcons.Svg("arrow-left", 18)) Back to store</a>
+        <a class="cs-brand" href="/" aria-label="DE-CHIMEX PRINT HUB home">
+            <span class="cs-logo @(Shell.LogoUrl is null ? "is-text" : "")">@if (Shell.LogoUrl is not null) { <img src="@Shell.LogoUrl" alt="" width="52" height="52"> } else { <text>DC</text> }</span>
+        </a>
+    </header>
+    <main id="main-content" class="au-main">
+        <div class="au-card">
+            @if (TempData["Info"] is string infoMsg && !string.IsNullOrWhiteSpace(infoMsg))
+            {
+                <div class="alert alert-info mb-4" role="status">@infoMsg</div>
+            }
+            @if (TempData["Success"] is string okMsg && !string.IsNullOrWhiteSpace(okMsg))
+            {
+                <div class="alert alert-success mb-4" role="status">@okMsg</div>
+            }
+            @if (TempData["Error"] is string errMsg && !string.IsNullOrWhiteSpace(errMsg))
+            {
+                <div class="alert alert-error mb-4" role="alert">@errMsg</div>
+            }
+            @RenderBody()
+        </div>
+    </main>
+    <script src="~/js/customer-shell.js" asp-append-version="true" defer></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

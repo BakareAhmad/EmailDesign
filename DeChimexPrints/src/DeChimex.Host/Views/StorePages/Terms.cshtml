@@ -1,0 +1,111 @@
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = "Terms & Conditions";
+    ViewData["ActiveNav"] = "";
+    var biz = ViewBag.Business as Dictionary<string, string> ?? new Dictionary<string, string>();
+    string Get(string k, string fb = "") => biz.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fb;
+    // The setting stores the number only; the wa.me link is generated here. Falls back
+    // to the first public phone number when the setting is empty.
+    var waUrl = DeChimex.Shared.WhatsApp.BuildUrl(Get("business.whatsapp"));
+    if (waUrl is null)
+    {
+        var firstPhone = Get("business.phone", "+2349062051935").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? "";
+        waUrl = DeChimex.Shared.WhatsApp.BuildUrl(firstPhone) ?? "https://wa.me/2349062051935";
+    }
+    var bizEmail = Get("business.email", "chimexgraphics@gmail.com");
+    var bizPhone = Get("business.phone", "+234 906 205 1935");
+    var bizAddress = Get("business.address", "Abeokuta, Ogun State, Nigeria");
+}
+
+@section Styles {
+<style>
+.pp-intro{font-size:14px;line-height:1.75;color:#475569;margin-bottom:10px}
+.pp-sec{padding:20px 0;border-top:1px solid var(--border)}
+.pp-sec:first-of-type{border-top:none;padding-top:6px}
+.pp-sec:last-of-type{padding-bottom:4px}
+.pp-sec h3{font-size:15px;font-weight:800;color:#0F172A;letter-spacing:-.01em;margin:0 0 8px}
+.pp-sec p{font-size:13.5px;line-height:1.75;color:#475569;margin:0 0 8px}
+.pp-sec p:last-child{margin-bottom:0}
+.pp-sec ul{margin:6px 0 12px;padding:0;list-style:none}
+.pp-sec li{position:relative;font-size:13.5px;line-height:1.7;color:#475569;padding-left:18px;margin-bottom:6px}
+.pp-sec li::before{content:'';position:absolute;left:2px;top:.62em;width:6px;height:6px;border-radius:2px;background:#4F46E5}
+.pp-sec li:last-child{margin-bottom:0}
+.pp-contact{display:grid;gap:8px;margin-top:4px}
+.pp-contact a{color:#4F46E5;text-decoration:none;font-weight:600}
+.pp-contact a:hover{text-decoration:underline}
+@@media(max-width:720px){
+  .pp-intro{font-size:10.5px}
+  .pp-sec{padding:14px 0}
+  .pp-sec h3{font-size:12px;margin-bottom:6px}
+  .pp-sec p,.pp-sec li{font-size:10px}
+}
+</style>
+}
+
+<div class="cs-wrap cs-wrap-md"><div class="cs-page-head">
+        
+        <h1 id="termsHeading" >Terms &amp; Conditions</h1>
+        <p class="cs-muted" style="max-width:58ch">The rules that govern your use of DE-CHIMEX PRINT HUB, your orders and our services. Effective Date: July 29, 2026</p>
+    </div>
+
+<section class="pg-prose">
+        <div class="card">
+            <div class="card-body">
+                <p class="pp-intro">These Terms &amp; Conditions ("Terms") govern your use of the DE-CHIMEX PRINT HUB website, customer portal and services. By creating an account, placing an order or using this website, you agree to these Terms. DE-CHIMEX PRINT HUB ("we", "us", "our") is a graphics, branding and printing company based in Abeokuta, Ogun State, Nigeria.</p>
+
+                <div class="pp-sec">
+                    <h3>1. Our Services</h3>
+                    <p>We provide graphic design, branding, printing, promotional merchandise and customized products, including:</p>
+                    <ul>
+                        <li>Products from our curated collection (such as mugs, jerseys, flasks and gift items).</li>
+                        <li>Custom printing and branding jobs, whether fully supplied by us or quoted individually.</li>
+                        <li>Branding of items you already own and send or bring to us ("customer-supplied items").</li>
+                        <li>Design services, including free artwork checks by our in-house creative team.</li>
+                        <li>Itemized corporate and bulk quotes on request.</li>
+                    </ul>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>2. Accounts</h3>
+                    <p>Some features, such as order tracking, saved addresses, wishlists and invoices, require an account. You agree to provide accurate information and keep your credentials secure.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>3. Orders</h3>
+                    <p>All orders are subject to acceptance and product availability. Where an item is temporarily out of stock, we may accept your order and procure the stock for production; such made-to-order items simply take a little longer.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>4. Customer-Supplied Items</h3>
+                    <p>When you supply your own shirts, flasks, laptops or other items for branding, you confirm the items are yours and suitable for the process. We handle them with professional care.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>5. Production and Delivery Times</h3>
+                    <p>Most orders are ready within 48 hours, and rush options are available on request; these are estimates provided in good faith. We deliver across Nigeria.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>6. Pricing and Payment</h3>
+                    <p>Prices are shown in Nigerian Naira (NGN). Card payments are processed securely by Paystack. Orders move to production once payment is confirmed.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>7. Reprint Guarantee</h3>
+                    <p>Under our reprint guarantee, if a product has a verified production defect or printing error caused by us, we will reprint the item or offer another appropriate remedy.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>8. Contact Us</h3>
+                    <p>Questions about these Terms:</p>
+                    <div class="pp-contact">
+                        <span>Email: <a href="mailto:@bizEmail">@bizEmail</a> (subject: Terms Enquiry)</span>
+                        <span>Phone or WhatsApp: <a href="@waUrl" target="_blank" rel="noopener">@bizPhone</a></span>
+                        <span>Location: <span>@bizAddress</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+

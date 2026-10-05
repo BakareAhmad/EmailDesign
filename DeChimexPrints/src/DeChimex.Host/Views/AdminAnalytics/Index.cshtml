@@ -1,0 +1,132 @@
+@{
+    Layout = "_AdminLayout";
+    var summary = ViewBag.Summary as DeChimex.Host.Models.Admin.AnalyticsSummaryRow;
+    var trend = ViewBag.RevenueTrend as IReadOnlyList<DeChimex.Contracts.Dashboard.RevenuePointDto> ?? new List<DeChimex.Contracts.Dashboard.RevenuePointDto>();
+    var topProducts = ViewBag.TopProducts as IReadOnlyList<DeChimex.Host.Models.Admin.TopProductRow> ?? new List<DeChimex.Host.Models.Admin.TopProductRow>();
+    var statusMix = ViewBag.StatusMix as IReadOnlyList<DeChimex.Host.Models.Admin.OrderStatusMixRow> ?? new List<DeChimex.Host.Models.Admin.OrderStatusMixRow>();
+    var period = ViewBag.Period as string ?? "30d";
+    var maxTrend = trend.Count > 0 ? trend.Max(t => t.Value) : 0m;
+
+    string ToneClass(string tone) => tone switch
+    {
+        "success" => "badge badge-success",
+        "info" => "badge badge-info",
+        "warning" => "badge badge-warning",
+        "error" => "badge badge-error",
+        _ => "badge badge-neutral"
+    };
+}
+<div class="toolbar" style="display:flex;gap:8px;margin-bottom:16px">
+    <a class="btn @(period == "30d" ? "btn-primary" : "btn-outline") btn-sm" asp-action="Index" asp-route-period="30d">30 days</a>
+    <a class="btn @(period == "q" ? "btn-primary" : "btn-outline") btn-sm" asp-action="Index" asp-route-period="q">Quarter</a>
+    <a class="btn @(period == "y" ? "btn-primary" : "btn-outline") btn-sm" asp-action="Index" asp-route-period="y">Year</a>
+</div>
+
+@if (summary is not null)
+{
+    <div class="g" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+        <div class="card card-body">
+            <div class="text-xs text-muted">Revenue</div>
+            <div class="text-2xl font-extrabold">₦@summary.Revenue.ToString("N2")</div>
+            <div class="text-xs @(summary.RevenueTrend.StartsWith("+") ? "text-success" : "text-error")">@summary.RevenueTrend</div>
+        </div>
+        <div class="card card-body">
+            <div class="text-xs text-muted">Orders</div>
+            <div class="text-2xl font-extrabold">@summary.Orders</div>
+            <div class="text-xs text-muted">@summary.OrdersTrend</div>
+        </div>
+        <div class="card card-body">
+            <div class="text-xs text-muted">Average order value</div>
+            <div class="text-2xl font-extrabold">₦@summary.Aov.ToString("N0")</div>
+            <div class="text-xs text-muted">@summary.AovTrend</div>
+        </div>
+        <div class="card card-body">
+            <div class="text-xs text-muted">Conversion</div>
+            <div class="text-2xl font-extrabold">@summary.Conv.ToString("0.#")%</div>
+            <div class="text-xs text-muted">@summary.ConvTrend</div>
+        </div>
+    </div>
+}
+
+<div class="g" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:16px">
+    <div class="card">
+        <div class="card-head"><h3>Revenue trend</h3></div>
+        <div class="card-body">
+            @if (trend.Count == 0)
+            {
+                
+    var es = new EmptyState(EmptyIcons.Cash, "No revenue recorded yet", "Sales from paid orders will appear here.", Compact: true);
+                <partial name="_EmptyState" model="es" />
+            }
+            else
+            {
+                <div class="flex" style="gap:8px;height:160px;align-items:flex-end">
+                    @foreach (var t in trend)
+                    {
+                        var h = maxTrend > 0 ? (int)Math.Max(2, Math.Round(t.Value / maxTrend * 100)) : 2;
+                        <div class="flex-1" style="text-align:center" title="@t.Label: ₦@t.Value.ToString("N2")">
+                            <div style="background:var(--primary);border-radius:4px 4px 0 0;height:@(h)%;min-height:2px"></div>
+                            <div class="text-xs text-muted mt-1" style="font-size:10px">@t.Label</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><h3>Order status mix</h3></div>
+        <div class="card-body">
+            @if (statusMix.Count == 0)
+            {
+                
+    var es2 = new EmptyState(EmptyIcons.Chart, "No orders in this period", "Order activity for the selected period will appear here.", Compact: true);
+                <partial name="_EmptyState" model="es2" />
+            }
+            else
+            {
+                <table class="table">
+                    <thead><tr><th>Status</th><th>Count</th><th>Share</th></tr></thead>
+                    <tbody>
+                        @foreach (var s in statusMix)
+                        {
+                            <tr>
+                                <td><span class="@ToneClass(s.Tone)">@s.Status</span></td>
+                                <td>@s.Count</td>
+                                <td>@s.Percentage.ToString("0.#")%</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-head"><h3>Top products</h3></div>
+    <div class="card-body">
+        @if (topProducts.Count == 0)
+        {
+            
+    var es3 = new EmptyState(EmptyIcons.Box, "No product sales in this period", "Top sellers will be ranked here after the first paid order.", Compact: true);
+                <partial name="_EmptyState" model="es3" />
+        }
+        else
+        {
+            <table class="table">
+                <thead><tr><th>Product</th><th>Units sold</th><th>Revenue</th></tr></thead>
+                <tbody>
+                    @foreach (var p in topProducts)
+                    {
+                        <tr>
+                            <td>@p.Name</td>
+                            <td>@p.UnitsSold</td>
+                            <td>₦@p.Revenue.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

@@ -1,0 +1,19 @@
+@model IReadOnlyList<DeChimex.Host.Models.Admin.PaymentReportRow>
+@{
+    Layout = "_AdminLayout";
+}
+<div class="card">
+    <div class="card-head"><h3>Payments report</h3></div>
+    <div class="card-body">
+        <table class="table">
+            <thead><tr><th>Status</th><th>Count</th><th>Amount</th></tr></thead>
+            <tbody>
+                @if (Model.Count == 0) { <tr><td colspan="3" class="text-muted">No payments in range.</td></tr> }
+                @foreach (var r in Model)
+                {
+                    <tr><td><span class="badge badge-neutral">@r.Status</span></td><td>@r.Count</td><td>₦@r.Amount.ToString("N2")</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

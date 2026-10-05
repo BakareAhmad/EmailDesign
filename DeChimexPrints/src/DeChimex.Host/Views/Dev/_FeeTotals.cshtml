@@ -1,0 +1,8 @@
+@model FeeTotals
+<dl class="dv-kv dv-small">
+    <dt>Transactions</dt><dd>@Model.Transactions</dd>
+    <dt>Transaction value</dt><dd>@DevUi.Naira(Model.TransactionValue)</dd>
+    <dt>Gross fees</dt><dd>@DevUi.Naira(Model.GrossFees) <span class="dv-muted">(avg @DevUi.Naira(Model.AverageFee))</span></dd>
+    <dt>Reversed</dt><dd>@DevUi.Naira(Model.ReversedFees) <span class="dv-muted">(@Model.RefundCount refund(s))</span></dd>
+    <dt>Net fees</dt><dd><strong>@DevUi.Naira(Model.NetFees)</strong></dd>
+</dl>

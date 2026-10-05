@@ -1,0 +1,66 @@
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Payment result";
+    ViewData["ActiveNav"] = "orders";
+    var payment = ViewBag.Payment as DeChimex.Contracts.Payments.PaymentDto;
+    var order = ViewBag.Order as DeChimex.Contracts.Orders.OrderDto;
+    var verificationError = ViewBag.VerificationError as string;
+    var isCustomer = User.Identity?.IsAuthenticated == true && User.IsInRole(DeChimex.Shared.Constants.RoleNames.Customer);
+    var shopBase = isCustomer ? "/portal/shop" : "/products";
+}
+
+<div class="cs-wrap cs-wrap-sm">
+    <div class="cs-card" style="margin-top:20px">
+        @if (payment != null)
+        {
+            var succeeded = payment.Status == "Succeeded" || payment.Status == "Refunded";
+            var pending = payment.Status == "Initialized" || payment.Status == "Pending";
+            <div class="pay-result">
+                @if (succeeded)
+                {
+                    <div class="pay-ic is-ok">@Html.Raw(CustomerIcons.Svg("check", 34, null, 2.6))</div>
+                    <h1>Payment successful</h1>
+                    <div class="pay-amount">@CustomerPresentation.Money(payment.Amount)</div>
+                    <p>@(order is not null ? $"Order {order.OrderNumber} is paid." : "Your payment was received.") Production starts as soon as the team confirms it. We'll notify you at every step.</p>
+                    <div class="pay-actions">
+                        <a href="@(order is not null ? $"/portal/orders/{order.Id}" : "/portal/orders")" class="btn btn-primary btn-lg">Track my order</a>
+                        <a href="@shopBase" class="btn btn-outline btn-lg">Continue shopping</a>
+                    </div>
+                }
+                else if (pending)
+                {
+                    <div class="pay-ic is-warn">@Html.Raw(CustomerIcons.Svg("clock", 34, null, 2.2))</div>
+                    <h1>Payment pending</h1>
+                    <p>Your payment is still being confirmed. Bank transfers can take a little while. You have <strong>not</strong> been marked as paid yet, and checking again will never charge you twice.</p>
+                    <div class="pay-actions">
+                        <a href="@Context.Request.Path@Context.Request.QueryString" class="btn btn-primary btn-lg">@Html.Raw(CustomerIcons.Svg("refresh", 18)) Check again</a>
+                        <a href="/portal/orders" class="btn btn-outline btn-lg">My orders</a>
+                    </div>
+                }
+                else
+                {
+                    <div class="pay-ic is-bad">@Html.Raw(CustomerIcons.Svg("close", 34, null, 2.6))</div>
+                    <h1>Payment failed</h1>
+                    <p>Your payment didn't go through, so @(order is not null ? $"order {order.OrderNumber}" : "your order") is still awaiting payment. NO-OPry again whenever you're ready.</p>
+                    <div class="pay-actions">
+                        @if (order is not null) { <a href="/checkout/complete/@order.Id" class="btn btn-primary btn-lg">Try again</a> }
+                        <a href="/portal/orders" class="btn btn-outline btn-lg">My orders</a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="pay-result">
+                <div class="pay-ic is-bad">@Html.Raw(CustomerIcons.Svg("alert", 34, null, 2.2))</div>
+                <h1>We couldn't confirm your payment</h1>
+                <p>@(string.IsNullOrEmpty(verificationError) ? "The payment could not be found or verified. If money left your account, contact us with the time and amount and we'll sort it out." : verificationError)</p>
+                <div class="pay-actions">
+                    <a href="/portal/orders" class="btn btn-primary btn-lg">My orders</a>
+                    <a href="/contact" class="btn btn-outline btn-lg">Contact us</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

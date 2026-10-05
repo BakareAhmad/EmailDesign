@@ -1,0 +1,99 @@
+ok 01 - owner logged in
+PASS 01: category created: Activity category waudit1
+PASS 02: product created with category: Activity product waudit1
+PASS 01: SalesStaff account created
+PASS 02: Manager account created
+PASS 03: Staff sign-in completed
+PASS 04: Manager default cannot read business activity
+ok 02 - owner logged in
+PASS 05: Two independently authenticated admin sessions are live
+PASS 06: Routine price edit does not push a live business signal
+PASS 07: Historical-only price event waits for explicit refresh
+PASS 08: Refresh recovers persisted price change
+PASS 09: Identical product edit is silent
+ok 03 - register activity -> verify page
+ok 04 - verification token captured for activity
+ok 05 - brevo api-key header present (key loaded at runtime)
+ok 06 - customer activity signed in
+PASS 10: Customer cannot access the admin feed
+PASS 11: Invalid quantity is rejected without an order workspace redirect
+PASS 12: Invalid quantity is visibly explained
+PASS 13: Order submission reaches both admin sessions through real SignalR hints
+PASS 14: One order-created row per admin, not timeline/notification duplicates
+PASS 15: Automatic sales assignment is recorded
+PASS 16: Invalid submissions did not create false order success
+design forms 1
+PASS 17: Design upload is a live business activity
+PASS 18: Design decision is recorded once
+PASS 19: Finalized pricing is recorded
+PASS 20: Manual payment success appears live once
+PASS 21: Free-text payment note stays out of activity
+PASS 22: Start production persists
+PASS 23: Mark ready persists
+PASS 24: Mark completed persists
+PASS 25: Completed order workflow retained in audit history
+PASS 26: Manual refund wording is truthful
+PASS 27: Repeated refund cannot create another outcome
+PASS 28: Repeated refund creates no duplicate success
+PASS 29: Permission registry offers owner-delegable activity.view
+PASS 30: Offline session detected a real SignalR disconnect
+PASS 31: Reconnect restores committed history missed while offline
+PASS 32: Delegated Manager can now read the feed with refreshed permission checks
+PASS 33: Revoked open session clears sensitive rows
+PASS 34: Combined order/category filter is useful
+PASS 35: Entity link resolves to the existing order workspace
+PASS 36: Human-readable product filter finds the precise price edit
+PASS 37: Empty search has an explicit no-results state
+PASS 38: Invalid date range returns visible validation and HTTP 400
+PASS 39: Malformed ID rejected rather than broadening the query
+PASS 40: Refresh preserves durable activity IDs
+PASS 41: No duplicate IDs after bursts and refresh
+PASS 42: Feed contains no customer email, password, or verification-token fields
+{
+  "passed": 42,
+  "checks": [
+    "SalesStaff account created",
+    "Manager account created",
+    "Staff sign-in completed",
+    "Manager default cannot read business activity",
+    "Two independently authenticated admin sessions are live",
+    "Routine price edit does not push a live business signal",
+    "Historical-only price event waits for explicit refresh",
+    "Refresh recovers persisted price change",
+    "Identical product edit is silent",
+    "Customer cannot access the admin feed",
+    "Invalid quantity is rejected without an order workspace redirect",
+    "Invalid quantity is visibly explained",
+    "Order submission reaches both admin sessions through real SignalR hints",
+    "One order-created row per admin, not timeline/notification duplicates",
+    "Automatic sales assignment is recorded",
+    "Invalid submissions did not create false order success",
+    "Design upload is a live business activity",
+    "Design decision is recorded once",
+    "Finalized pricing is recorded",
+    "Manual payment success appears live once",
+    "Free-text payment note stays out of activity",
+    "Start production persists",
+    "Mark ready persists",
+    "Mark completed persists",
+    "Completed order workflow retained in audit history",
+    "Manual refund wording is truthful",
+    "Repeated refund cannot create another outcome",
+    "Repeated refund creates no duplicate success",
+    "Permission registry offers owner-delegable activity.view",
+    "Offline session detected a real SignalR disconnect",
+    "Reconnect restores committed history missed while offline",
+    "Delegated Manager can now read the feed with refreshed permission checks",
+    "Revoked open session clears sensitive rows",
+    "Combined order/category filter is useful",
+    "Entity link resolves to the existing order workspace",
+    "Human-readable product filter finds the precise price edit",
+    "Empty search has an explicit no-results state",
+    "Invalid date range returns visible validation and HTTP 400",
+    "Malformed ID rejected rather than broadening the query",
+    "Refresh preserves durable activity IDs",
+    "No duplicate IDs after bursts and refresh",
+    "Feed contains no customer email, password, or verification-token fields"
+  ],
+  "screenshots": 16
+}

@@ -1,0 +1,36 @@
+@model DeChimex.Host.Models.Admin.CustomerFormViewModel
+<div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+<div class="field">
+    <label class="label" asp-for="FirstName">First name <span class="req">*</span></label>
+    <input class="input" asp-for="FirstName" />
+    <span asp-validation-for="FirstName" class="field-error"></span>
+</div>
+
+<div class="field">
+    <label class="label" asp-for="LastName">Last name <span class="req">*</span></label>
+    <input class="input" asp-for="LastName" />
+    <span asp-validation-for="LastName" class="field-error"></span>
+</div>
+
+@if (Model.CustomerId is null)
+{
+    <div class="field">
+        <label class="label" asp-for="Email">Email</label>
+        <input class="input" asp-for="Email" type="email" />
+        <div class="text-xs text-muted">Optional - leave blank to create a walk-in guest (no portal account).</div>
+        <span asp-validation-for="Email" class="field-error"></span>
+    </div>
+}
+
+<div class="field">
+    <label class="label" asp-for="Phone">Phone</label>
+    <input class="input" asp-for="Phone" />
+    <span asp-validation-for="Phone" class="field-error"></span>
+</div>
+
+<div class="field">
+    <label class="label" asp-for="Notes">Notes</label>
+    <textarea class="input" asp-for="Notes" rows="3"></textarea>
+    <span asp-validation-for="Notes" class="field-error"></span>
+</div>

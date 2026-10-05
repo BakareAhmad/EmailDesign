@@ -1,0 +1,37 @@
+@model DeChimex.Host.Models.Admin.CategoryFormViewModel
+<div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+<div class="field">
+    <label class="label" asp-for="Name">Name <span class="req">*</span></label>
+    <input class="input" asp-for="Name" />
+    <span asp-validation-for="Name" class="field-error"></span>
+</div>
+
+<div class="field">
+    <label class="label" asp-for="MajorCategoryId">Major category (optional)</label>
+    <select class="input" asp-for="MajorCategoryId">
+        <option value="">Unassigned</option>
+        @foreach (var major in (IReadOnlyList<DeChimex.Contracts.Categories.MajorCategoryDto>)ViewBag.MajorCategories) {
+            <option value="@major.Id">@major.Name</option>
+        }
+    </select>
+    <span asp-validation-for="MajorCategoryId" class="field-error"></span>
+    <p class="field-hint">Moving this category keeps its products, ordering questions and position intact.</p>
+</div>
+<div class="field">
+    <label class="label" asp-for="Description">Description</label>
+    <textarea class="input" asp-for="Description" rows="2"></textarea>
+    <span asp-validation-for="Description" class="field-error"></span>
+</div>
+
+<div class="field">
+    <div class="field-hint">Ordering is automatic: new categories are added to the end of the list, and edits keep the current position.</div>
+</div>
+
+<div class="field">
+    <label class="flex items-center gap-2 text-sm">
+        <input class="input" asp-for="IsActive" type="checkbox" />
+        Active (shown in the store)
+    </label>
+    <span asp-validation-for="IsActive" class="field-error"></span>
+</div>

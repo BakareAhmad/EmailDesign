@@ -1,0 +1,24 @@
+@*
+    Product thumbnail with an honest empty state. Renders the product image when one
+    exists; otherwise a neutral "No image" tile. Products must have at least one image
+    (enforced on create/edit/image removal), so the tile only appears for legacy rows.
+    The old hero-image fallback was removed - a marketing banner is not a product photo.
+
+    Model: (string? Url, string Alt, string CssClass, string CssStyle)
+*@
+@model (string? Url, string Alt, string CssClass, string CssStyle)
+@if (!string.IsNullOrWhiteSpace(Model.Url))
+{
+    <img src="@Model.Url" alt="@Model.Alt" class="@Model.CssClass" style="@Model.CssStyle" loading="lazy">
+}
+else
+{
+    <style>
+        .no-image-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--n-100,#F1F5F9);color:var(--n-500,#64748B);border:1px dashed var(--n-300,#CBD5E1);overflow:hidden}
+        .no-image-tile span{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+    </style>
+    <div class="no-image-tile @Model.CssClass" style="@Model.CssStyle" role="img" aria-label="@Model.Alt - no image yet">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span>No image</span>
+    </div>
+}

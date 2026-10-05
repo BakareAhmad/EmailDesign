@@ -1,0 +1,325 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject DeChimex.Host.Services.CustomerShellService Shell
+@using DeChimex.Host
+@{
+    // ------------------------------------------------------------------
+    // ONE shell for every customer-facing page: public storefront AND the
+    // signed-in customer portal. Admin/staff keep _AdminLayout untouched.
+    // Mobile-first: top bar (logo · search · cart · account) + bottom nav
+    // (Home · Shop · Cart · Orders · Account); desktop adds inline links.
+    // ------------------------------------------------------------------
+    Layout = null;
+    var ct = Context.RequestAborted;
+    var biz = ViewBag.Business as Dictionary<string, string> ?? await Shell.GetBusinessAsync(ct);
+    string Get(string k, string fb = "") => biz.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fb;
+    var majors = ViewBag.NavMajorCategories as IReadOnlyList<DeChimex.Contracts.Categories.MajorCategoryDto>
+                 ?? await Shell.GetMajorCategoriesAsync(ct);
+
+    var isAuth = User.Identity?.IsAuthenticated == true;
+    var isStaff = isAuth && (User.IsInRole("Owner") || User.IsInRole("Manager") || User.IsInRole("SalesStaff")
+                             || User.IsInRole("InventoryStaff") || User.IsInRole("Designer"));
+    // Developer Portal accounts are neither customers nor business staff: they go to /dev.
+    var isDeveloper = isAuth && !isStaff && User.IsInRole("Developer");
+    var isCustomer = isAuth && !isStaff && !isDeveloper;
+    var shopBase = isCustomer ? "/portal/shop" : "/products";
+    var accountHref = isCustomer ? "/portal" : (isStaff ? "/admin/dashboard" : (isDeveloper ? "/dev" : "/Account/Login"));
+
+    var raw = (ViewData["ActiveNav"] as string ?? "").ToLowerInvariant();
+    var active = raw switch
+    {
+        "products" or "shop" or "product" => "shop",
+        "dashboard" or "profile" or "addresses" or "wishlist" or "payments" or "invoices" or "track" or "account" => "account",
+        "" => "home",
+        _ => raw
+    };
+    string Act(string key) => key == active ? "is-active" : "";
+    string Cur(string key) => key == active ? "aria-current=\"page\"" : "";
+
+    var userName = User.FindFirst("name")?.Value ?? User.Identity?.Name ?? "";
+    var initials = string.IsNullOrWhiteSpace(userName) ? "?" :
+        string.Concat(userName.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(p => p[0])).ToUpperInvariant();
+    var userEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? User.FindFirst("email")?.Value ?? "";
+
+    var bizName = Get("business.name", "DE-CHIMEX PRINT HUB");
+    var bizMotto = Get("business.motto", "Creativity with Ease.");
+    var igUrl = Get("business.instagram", "https://www.instagram.com/chimex_graphics");
+    var ttUrl = Get("business.tiktok", "https://www.tiktok.com/@bosewa");
+    var bizEmail = Get("business.email", "chimexgraphics@gmail.com");
+    var bizPhone = Get("business.phone", "+234 906 205 1934, +234 903 424 5882");
+    var bizAddress = Get("business.address", "Nepa Road, Sapon, Abeokuta, Ogun State.");
+    var pickupAddress = Get("business.pickup_address", "Awe Crescent, Elediye, Somolu, Lagos State.");
+    var waUrl = DeChimex.Shared.WhatsApp.BuildUrl(Get("business.whatsapp"));
+    if (waUrl is null)
+    {
+        var firstPhone = bizPhone.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? "";
+        waUrl = DeChimex.Shared.WhatsApp.BuildUrl(firstPhone) ?? "https://wa.me/2349062051934";
+    }
+    var searchValue = ViewBag.Search as string ?? Context.Request.Query["search"].ToString();
+    var showMobileSearch = ViewData["MobileSearch"] is true;
+    var bodyClass = "cs-body " + (ViewData["BodyClass"] as string ?? "");
+    var title = ViewData["Title"] as string;
+    // ------------------------------------------------------------------
+    // Footer treatment is decided by the LAYOUT, never page by page:
+    //   "full" (default) = storefront shell (_CustomerLayout / _PublicLayout)
+    //                      -> branded footer (shop, help, contact, policies, socials);
+    //   "slim"           = customer app + transactional shell (_PortalLayout: portal
+    //                      workspace, cart, checkout) -> one-line legal bar;
+    //   "none"           = no footer (admin/auth/dev have their own layouts).
+    // ------------------------------------------------------------------
+    var footerMode = (ViewData["Footer"] as string ?? "full").ToLowerInvariant();
+    var pageTitle = string.IsNullOrWhiteSpace(title) ? bizName : $"{title} · {bizName}";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#ffffff">
+    <title>@pageTitle</title>
+    <partial name="_BrandHead" />
+    @if (isCustomer)
+    {
+        <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken">
+    }
+    @if (ViewData["MetaDescription"] is string md)
+    {
+        <meta name="description" content="@md">
+    }
+    @if (ViewData["OgImage"] is string og)
+    {
+        <meta property="og:title" content="@(title ?? bizName)">
+        <meta property="og:image" content="@og">
+        <meta property="og:type" content="product">
+    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/tailwind.build.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/customer.css" asp-append-version="true">
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="@bodyClass.Trim()" data-shell="@(isCustomer ? "portal" : "public")">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <header class="cs-top" role="banner">
+        <div class="cs-wrap">
+            <div class="cs-top-inner">
+                <a href="/" class="cs-brand" aria-label="@bizName home">
+                    <span class="cs-logo @(Shell.LogoUrl is null ? "is-text" : "")" id="csLogo">
+                        @if (Shell.LogoUrl is not null) { <img src="@Shell.LogoUrl" alt="" width="38" height="38"> } else { <text>DC</text> }
+                    </span>
+                    <span class="cs-brand-text">
+                        <span class="cs-brand-name">DE-CHIMEX</span>
+                        <span class="cs-brand-sub">PRINT HUB</span>
+                    </span>
+                </a>
+
+                <nav class="cs-links" aria-label="Main">
+                    <a href="@shopBase" class="@Act("shop")" @Html.Raw(Cur("shop"))>Shop</a>
+                    <a href="/services" class="@Act("services")" @Html.Raw(Cur("services"))>Custom printing</a>
+                    <a href="/gallery" class="@Act("gallery")" @Html.Raw(Cur("gallery"))>Our work</a>
+                    <a href="/about" class="@Act("about")" @Html.Raw(Cur("about"))>About</a>
+                    <a href="/contact" class="@Act("contact")" @Html.Raw(Cur("contact"))>Contact</a>
+                </nav>
+
+                <form class="cs-search" role="search" action="@shopBase" method="get">
+                    <div class="cs-search-box">
+                        <span class="cs-search-ic">@Html.Raw(CustomerIcons.Svg("search", 18))</span>
+                        <label for="csSearchDesktop" class="cs-visually-hidden">Search products</label>
+                        <input id="csSearchDesktop" type="search" name="search" value="@searchValue" placeholder="Search mugs, shirts, flyers, gifts…" autocomplete="off">
+                        <button type="submit">Search</button>
+                    </div>
+                </form>
+
+                <div class="cs-actions">
+                    <button type="button" class="cs-iconbtn cs-hide-desktop" id="csSearchToggle" aria-label="Search" aria-expanded="@(showMobileSearch ? "true" : "false")" aria-controls="csMobileSearch">
+                        @Html.Raw(CustomerIcons.Svg("search", 22))
+                    </button>
+                    @if (isCustomer)
+                    {
+                        <div class="portal-notif-wrap">
+                            <button class="cs-iconbtn portal-notif-bell" id="portalNotifBell" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="portalNotifDrop">
+                                @Html.Raw(CustomerIcons.Svg("bell", 22))
+                                <span class="portal-notif-badge" id="portalNotifBadge" hidden>0</span>
+                            </button>
+                            <div class="portal-notif-drop" id="portalNotifDrop" hidden>
+                                <div class="portal-notif-head">Notifications</div>
+                                <div class="portal-notif-list"><div class="portal-notif-empty">Loading…</div></div>
+                                <div id="portalNotifPush"></div>@* PWA push opt-in row (filled by portal-notifications.js) *@
+                            </div>
+                        </div>
+                        <a href="/portal/wishlist" class="cs-iconbtn cs-hide-mobile" aria-label="Wishlist">@Html.Raw(CustomerIcons.Svg("heart", 22))</a>
+                    }
+                    <a href="/cart" class="cs-iconbtn" aria-label="Cart">
+                        @Html.Raw(CustomerIcons.Svg("cart", 22))
+                        @await Component.InvokeAsync("CartBadge")
+                    </a>
+                    @if (isAuth)
+                    {
+                        <div class="cs-menu-wrap">
+                            <button type="button" class="cs-iconbtn" id="csMenuBtn" aria-label="Account menu" aria-expanded="false" aria-controls="csMenu" aria-haspopup="true">
+                                <span class="cs-avatar">@initials</span>
+                            </button>
+                            <div class="cs-menu" id="csMenu" hidden role="menu">
+                                <div class="cs-menu-head">
+                                    <span class="cs-avatar">@initials</span>
+                                    <div style="min-width:0">
+                                        <div class="cs-menu-name cs-truncate">@userName</div>
+                                        @if (!string.IsNullOrEmpty(userEmail)) { <div class="cs-menu-mail cs-truncate">@userEmail</div> }
+                                    </div>
+                                </div>
+                                <div class="cs-menu-sep"></div>
+                                @if (isCustomer)
+                                {
+                                    <a href="/portal" role="menuitem" class="@(raw == "dashboard" ? "is-active" : "")">@Html.Raw(CustomerIcons.Svg("user", 20)) My account</a>
+                                    <a href="/portal/orders" role="menuitem" class="@(raw == "orders" ? "is-active" : "")">@Html.Raw(CustomerIcons.Svg("orders", 20)) My orders</a>
+                                    <a href="/portal/orders/track" role="menuitem" class="@(raw == "track" ? "is-active" : "")">@Html.Raw(CustomerIcons.Svg("truck", 20)) Track an order</a>
+                                    <a href="/portal/wishlist" role="menuitem" class="@(raw == "wishlist" ? "is-active" : "")">@Html.Raw(CustomerIcons.Svg("heart", 20)) Wishlist</a>
+                                    <a href="/portal/addresses" role="menuitem" class="@(raw == "addresses" ? "is-active" : "")">@Html.Raw(CustomerIcons.Svg("pin", 20)) Addresses</a>
+                                    <a href="/portal/payments" role="menuitem" class="@(raw == "payments" ? "is-active" : "")">@Html.Raw(CustomerIcons.Svg("card", 20)) Payments</a>
+                                    <a href="/portal/invoices" role="menuitem" class="@(raw == "invoices" ? "is-active" : "")">@Html.Raw(CustomerIcons.Svg("receipt", 20)) Invoices &amp; receipts</a>
+                                    <a href="/portal/profile" role="menuitem" class="@(raw == "profile" ? "is-active" : "")">@Html.Raw(CustomerIcons.Svg("settings", 20)) Profile &amp; password</a>
+                                }
+                                else if (isDeveloper)
+                                {
+                                    <a href="/dev" role="menuitem">@Html.Raw(CustomerIcons.Svg("settings", 20)) Developer Portal</a>
+                                }
+                                else
+                                {
+                                    <a href="/admin/dashboard" role="menuitem">@Html.Raw(CustomerIcons.Svg("settings", 20)) Admin dashboard</a>
+                                }
+                                <div class="cs-menu-sep"></div>
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit" class="cs-menu-item cs-menu-danger" role="menuitem">@Html.Raw(CustomerIcons.Svg("logout", 20)) Sign out</button>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <a href="/Account/Login" class="btn btn-outline btn-sm cs-signin">Sign in</a>
+                        <a href="/Account/Register" class="btn btn-primary btn-sm cs-getstarted">Create account</a>
+                        <a href="/Account/Login" class="cs-iconbtn cs-hide-desktop" aria-label="Sign in">@Html.Raw(CustomerIcons.Svg("user", 22))</a>
+                    }
+                </div>
+            </div>
+            <form class="cs-msearch" id="csMobileSearch" role="search" action="@shopBase" method="get" hidden="@(!showMobileSearch)">
+                <div class="cs-search-box">
+                    <span class="cs-search-ic">@Html.Raw(CustomerIcons.Svg("search", 18))</span>
+                    <label for="csSearchMobile" class="cs-visually-hidden">Search products</label>
+                    <input id="csSearchMobile" type="search" name="search" value="@searchValue" placeholder="Search products…" autocomplete="off">
+                    <button type="submit">Go</button>
+                </div>
+            </form>
+        </div>
+    </header>
+    <div class="cs-scrim" id="csScrim"></div>
+
+    <main class="cs-main" id="main-content">
+        @if (TempData["Success"] is string successMsg)
+        {
+            <div class="cs-wrap" style="padding-top:12px"><div class="flash flash-success" role="status">@Html.Raw(CustomerIcons.Svg("check-circle", 18))<span>@successMsg</span></div></div>
+        }
+        @if (TempData["Error"] is string errorMsg)
+        {
+            <div class="cs-wrap" style="padding-top:12px"><div class="flash flash-error" role="alert">@Html.Raw(CustomerIcons.Svg("alert", 18))<span>@errorMsg</span></div></div>
+        }
+        @RenderBody()
+    </main>
+
+    @* Storefront footer: only the storefront shell renders it (footerMode == "full").
+       The markup below is unchanged from the pre-audit layout (content, links, classes). *@
+    @if (footerMode == "full")
+    {
+    <footer class="cs-foot" role="contentinfo">
+        <div class="cs-wrap">
+            <div class="cs-foot-grid">
+                <div>
+                    <div class="cs-brand">
+                        <span class="cs-logo @(Shell.LogoUrl is null ? "is-text" : "")">@if (Shell.LogoUrl is not null) { <img src="@Shell.LogoUrl" alt="" width="38" height="38"> } else { <text>DC</text> }</span>
+                        <span class="cs-brand-text"><span class="cs-brand-name">DE-CHIMEX</span><span class="cs-brand-sub">PRINT HUB</span></span>
+                    </div>
+                    <p style="margin-top:12px;max-width:340px">@bizMotto Custom printing, branded merchandise and personalised gifts, ordered online and produced with care.</p>
+                    <div class="cs-foot-socials">
+                        <a href="@igUrl" target="_blank" rel="noopener" aria-label="Instagram">@Html.Raw(CustomerIcons.Svg("instagram", 18))</a>
+                        <a href="@ttUrl" target="_blank" rel="noopener" aria-label="TikTok">@Html.Raw(CustomerIcons.Svg("tiktok", 18))</a>
+                        <a href="mailto:@bizEmail" aria-label="Email">@Html.Raw(CustomerIcons.Svg("mail", 18))</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Shop</h4>
+                    <ul>
+                        <li><a href="@shopBase">All products</a></li>
+                        @foreach (var m in majors.Take(5))
+                        {
+                            <li><a href="@shopBase?majorCategoryId=@m.Id">@m.Name</a></li>
+                        }
+                        <li><a href="/services">Custom printing</a></li>
+                        <li><a href="/gallery">Our work</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="/faq">FAQ</a></li>
+                        <li><a href="/install-help">Install the app</a></li>
+                        <li><a href="/portal/orders/track">Track an order</a></li>
+                        <li><a href="/contact">Contact us</a></li>
+                        <li><a href="/about">About us</a></li>
+                        <li><a href="/privacy">Privacy</a></li>
+                        <li><a href="/terms">Terms</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Talk to us</h4>
+                    <p>@bizPhone<br>@bizEmail</p>
+                    <p style="margin-top:10px"><strong style="color:#fff">Studio:</strong> @bizAddress</p>
+                    <p><strong style="color:#fff">Pickup:</strong> @pickupAddress</p>
+                    <p style="margin-top:14px"><a class="cs-wa" href="@waUrl" target="_blank" rel="noopener">@Html.Raw(CustomerIcons.Svg("whatsapp", 18)) Chat on WhatsApp</a></p>
+                </div>
+            </div>
+            <div class="cs-foot-bottom">
+                <span>&copy; @DateTime.UtcNow.Year @bizName. All rights reserved.</span>
+                <span>Secure payments by Paystack · Prices in NGN</span>
+            </div>
+        </div>
+    </footer>
+    }
+    else if (footerMode == "slim")
+    {
+    @* Slim legal bar for the customer app and transactional pages: policies and payment
+       reassurance without the storefront marketing footer. *@
+    <footer class="cs-foot-slim" role="contentinfo">
+        <div class="cs-wrap">
+            <span>&copy; @DateTime.UtcNow.Year @bizName. All rights reserved.</span>
+            <nav aria-label="Policies">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/contact">Contact</a>
+            </nav>
+            <span>Secure payments by Paystack · Prices in NGN</span>
+        </div>
+    </footer>
+    }
+
+    <nav class="cs-bottom" aria-label="Primary">
+        <a href="/" class="@Act("home")" @Html.Raw(Cur("home"))>@Html.Raw(CustomerIcons.Svg("home", 23))<span>Home</span></a>
+        <a href="@shopBase" class="@Act("shop")" @Html.Raw(Cur("shop"))>@Html.Raw(CustomerIcons.Svg("shop", 23))<span>Shop</span></a>
+        <a href="/cart" class="@Act("cart")" @Html.Raw(Cur("cart"))>@Html.Raw(CustomerIcons.Svg("cart", 23))@await Component.InvokeAsync("CartBadge")<span>Cart</span></a>
+        <a href="/portal/orders" class="@Act("orders")" @Html.Raw(Cur("orders"))>@Html.Raw(CustomerIcons.Svg("orders", 23))<span>Orders</span></a>
+        <a href="@accountHref" class="@Act("account")" @Html.Raw(Cur("account"))>@Html.Raw(CustomerIcons.Svg("user", 23))<span>@(isAuth ? "Account" : "Sign in")</span></a>
+    </nav>
+
+    <script src="~/js/customer-shell.js" asp-append-version="true" defer></script>
+    <script src="~/js/dcx-toast.js" asp-append-version="true" defer></script> @* shared toasts for every storefront page (offline/reconnect + customer events) *@
+    <script src="~/js/pwa-register.js" asp-append-version="true" defer></script> @* AUD-029: installable PWA + offline fallback *@
+    @if (isCustomer)
+    {
+        <script src="~/lib/signalr/signalr.min.js"></script>
+        <script src="~/js/portal-notifications.js"></script> @* dcx-toast.js is loaded for all pages above *@
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

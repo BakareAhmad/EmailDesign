@@ -1,0 +1,57 @@
+@using DeChimex.Host
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = "FAQ";
+    ViewData["ActiveNav"] = "faq";
+    var biz = ViewBag.Business as Dictionary<string, string> ?? new Dictionary<string, string>();
+    string Get(string k, string fb = "") => biz.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fb;
+    var waUrl = DeChimex.Shared.WhatsApp.BuildUrl(Get("business.whatsapp"));
+    if (waUrl is null)
+    {
+        var firstPhone = Get("business.phone", "+2349062051935").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? "";
+        waUrl = DeChimex.Shared.WhatsApp.BuildUrl(firstPhone) ?? "https://wa.me/2349062051935";
+    }
+
+    var faqs = new (string q, string a)[]
+    {
+        ("What's the difference between ready-to-buy and made-to-order items?", "Ready-to-buy items have a fixed price. Add them to your cart and pay right away. Made-to-order items are customised: you tell us what you need, we confirm the details and price with you, you approve the design, then pay."),
+        ("Can I order a product that is out of stock?", "Yes. We accept the order and procure the stock, so you are never blocked. Made-to-order items simply take a little longer."),
+        ("Can you brand items I already own?", "Absolutely. Bring your own shirts, flasks or laptops and we will brand them. These service orders do not require buying from us."),
+        ("How long does an order take?", "Most orders are ready within 48 hours. Rush options are available on request."),
+        ("What payment methods do you accept?", "Card, bank transfer and USSD via Paystack, as well as direct bank transfer (confirmed by our team once the transfer is in)."),
+        ("Do you deliver nationwide?", "Yes, we deliver across Nigeria, with faster options within Lagos. You can also choose free pickup at checkout."),
+        ("Do you offer bulk/corporate pricing?", "Yes. Request a quote and we will prepare itemised corporate pricing."),
+        ("Can I get a design made?", "Our in-house creative team offers graphic design and free artwork checks."),
+        ("How do I track my order?", "Sign in to your account to see every order with its live status, or use the Track page with your order number.")
+    };
+}
+
+<div class="cs-wrap cs-wrap-md">
+    <div class="cs-page-head">
+        <h1>Frequently asked questions</h1>
+        <p class="cs-muted">Quick answers about ordering, payment and delivery.</p>
+    </div>
+
+    <div class="pg-faq">
+        @for (var i = 0; i < faqs.Length; i++)
+        {
+            var f = faqs[i];
+            <details id="f@(i)" open="@(i == 0)">
+                <summary>@f.q</summary>
+                <div class="pg-faq-body">@f.a</div>
+            </details>
+        }
+    </div>
+
+    <div class="cs-callout" style="margin-top:20px">
+        @Html.Raw(CustomerIcons.Svg("chat", 22))
+        <div>
+            <strong>Still have questions?</strong>
+            Chat with us on WhatsApp or send a message through the contact page any time.
+            <div class="cs-row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+                <a href="@waUrl" target="_blank" rel="noopener" class="btn btn-primary btn-sm">@Html.Raw(CustomerIcons.Svg("whatsapp", 16)) WhatsApp us</a>
+                <a href="/contact" class="btn btn-outline btn-sm">Contact page</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,89 @@
+
+Welcome to .NET 9.0!
+---------------------
+SDK Version: 9.0.318
+
+Telemetry
+---------
+The .NET tools collect usage data in order to help us improve your experience. It is collected by Microsoft and shared with the community. You can opt-out of telemetry by setting the DOTNET_CLI_TELEMETRY_OPTOUT environment variable to '1' or 'true' using your favorite shell.
+
+Read more about .NET CLI Tools telemetry: https://aka.ms/dotnet-cli-telemetry
+
+----------------
+Installed an ASP.NET Core HTTPS development certificate.
+To trust the certificate, run 'dotnet dev-certs https --trust'
+Learn about HTTPS: https://aka.ms/dotnet-https
+
+----------------
+Write your first app: https://aka.ms/dotnet-hello-world
+Find out what's new: https://aka.ms/dotnet-whats-new
+Explore documentation: https://aka.ms/dotnet-docs
+Report issues and find source on GitHub: https://github.com/dotnet/core
+Use 'dotnet --help' to see available commands or visit: https://aka.ms/dotnet-cli
+--------------------------------------------------------------------------------------
+  Determining projects to restore...
+  Restored /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/tests/DeChimex.IntegrationTests/DeChimex.IntegrationTests.csproj (in 5.08 sec).
+  Restored /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/DeChimex.Persistence.csproj (in 5.04 sec).
+  6 of 8 projects are up-to-date for restore.
+  DeChimex.Shared -> /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Shared/bin/Debug/net9.0/DeChimex.Shared.dll
+  DeChimex.Domain -> /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Domain/bin/Debug/net9.0/DeChimex.Domain.dll
+  DeChimex.Contracts -> /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Contracts/bin/Debug/net9.0/DeChimex.Contracts.dll
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Application/Features/Orders/CustomOrderValidation.cs(77,17): warning CS8602: Dereference of a possibly null reference. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Application/DeChimex.Application.csproj]
+  DeChimex.Application -> /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Application/bin/Debug/net9.0/DeChimex.Application.dll
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/Migrations/20260820005520_initial.cs(9,26): warning CS8981: The type name 'initial' only contains lower-cased ascii characters. Such names may become reserved for the language. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/DeChimex.Persistence.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/Migrations/20260820005520_initial.Designer.cs(16,19): warning CS8981: The type name 'initial' only contains lower-cased ascii characters. Such names may become reserved for the language. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/DeChimex.Persistence.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/Repositories/BusinessRepositories.cs(239,105): warning CS9107: Parameter 'DeChimexDbContext context' is captured into the state of the enclosing type and its value is also passed to the base constructor. The value might be captured by the base class as well. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/DeChimex.Persistence.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/Repositories/BusinessRepositories.cs(85,45): warning CS8602: Dereference of a possibly null reference. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/DeChimex.Persistence.csproj]
+  DeChimex.Persistence -> /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Persistence/bin/Debug/net9.0/DeChimex.Persistence.dll
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Infrastructure/Storage/LocalFileStorageService.cs(174,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Infrastructure/DeChimex.Infrastructure.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Infrastructure/Storage/LocalFileStorageService.cs(198,24): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Infrastructure/DeChimex.Infrastructure.csproj]
+  DeChimex.Infrastructure -> /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Infrastructure/bin/Debug/net9.0/DeChimex.Infrastructure.dll
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/Views/StoreProducts/Index.cshtml(17,12): warning CS8321: The local function 'CrumbUrl' is declared but never used [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/DeChimex.Host.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/Controllers/Mvc/Store/CheckoutController.cs(42,55): warning CS8602: Dereference of a possibly null reference. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/DeChimex.Host.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/Controllers/Mvc/Store/CheckoutController.cs(85,55): warning CS8602: Dereference of a possibly null reference. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/DeChimex.Host.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/Controllers/Mvc/Store/CheckoutController.cs(167,50): warning CS8602: Dereference of a possibly null reference. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/DeChimex.Host.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/Controllers/Mvc/Portal/PortalShopController.cs(281,57): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'string[]'. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/DeChimex.Host.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/Controllers/Mvc/Store/CheckoutController.cs(186,50): warning CS8602: Dereference of a possibly null reference. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/DeChimex.Host.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/Controllers/Mvc/Store/CheckoutController.cs(250,85): warning CS8602: Dereference of a possibly null reference. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/DeChimex.Host.csproj]
+/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/Views/Checkout/Index.cshtml(148,23): warning CS8602: Dereference of a possibly null reference. [/home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/DeChimex.Host.csproj]
+  DeChimex.Host -> /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/src/DeChimex.Host/bin/Debug/net9.0/DeChimex.Host.dll
+  DeChimex.IntegrationTests -> /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/tests/DeChimex.IntegrationTests/bin/Debug/net9.0/DeChimex.IntegrationTests.dll
+Test run for /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/tests/DeChimex.IntegrationTests/bin/Debug/net9.0/DeChimex.IntegrationTests.dll (.NETCoreApp,Version=v9.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:54.91]     DeChimex.IntegrationTests.Controllers.EmailWorkflowE2ETests.All_email_workflows_deliver_to_target_inbox [FAIL]
+  Failed DeChimex.IntegrationTests.Controllers.EmailWorkflowE2ETests.All_email_workflows_deliver_to_target_inbox [54 s]
+  Error Message:
+   System.Collections.Generic.KeyNotFoundException : The given key was not present in the dictionary.
+  Stack Trace:
+     at System.Text.Json.JsonElement.GetProperty(String propertyName)
+   at DeChimex.IntegrationTests.Controllers.EmailWorkflowE2ETests.<>c__DisplayClass5_0.<<All_email_workflows_deliver_to_target_inbox>g__GetDeliveredAsync|2>d.MoveNext() in /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/tests/DeChimex.IntegrationTests/Controllers/EmailWorkflowE2ETests.cs:line 377
+--- End of stack trace from previous location ---
+   at DeChimex.IntegrationTests.Controllers.EmailWorkflowE2ETests.All_email_workflows_deliver_to_target_inbox() in /home/user/v047-DesignReview-Fixed-v4-Wishlist-Fix/DeChimexPrints/tests/DeChimex.IntegrationTests/Controllers/EmailWorkflowE2ETests.cs:line 411
+--- End of stack trace from previous location ---
+  Standard Output Messages:
+ LIVE E2E: every email workflow will be sent to target@example.com
+ Host environment: Development
+ Brevo configured: True | Marketing armed: True
+ 1. SENT - registration verification email (OTP)
+ 2. SENT - OTP resend
+ 3. SENT - welcome email (after verification)
+ 4. SENT - password reset email
+ 5. SENT - password reset confirmation email
+ 6. SENT - in-app password change security email
+ 7. SENT - order confirmation (DCX-2026-000001)
+ 8. SENT - payment failed email (DCX-2026-000001)
+ 9. SENT - payment receipt email (DCX-2026-000001, staff manual confirmation)
+ 10. SENT - status email InProduction (DCX-2026-000001)
+ 11. SENT - status email Ready (DCX-2026-000001)
+ 12. SENT - status email Completed (DCX-2026-000001)
+ 13. SENT - status email Delivered (DCX-2026-000001)
+ 14/15. SENT - order confirmation + Cancelled status email (DCX-2026-000002)
+ 16/17/18. SENT - confirmation + receipt + Refunded status email (DCX-2026-000003)
+ 19. SENT - contact staff copy (to chimexgraphics@gmail.com)
+ 20. SENT - staff reply emailed to target@example.com
+ 21. SENT - marketing broadcast to target@example.com (background worker, tracked as Sent in the ledger)
+ Waiting for Brevo 'delivered' events to accumulate...
+
+
+
+Failed!  - Failed:     1, Passed:    19, Skipped:     0, Total:    20, Duration: 54 s - DeChimex.IntegrationTests.dll (net9.0)

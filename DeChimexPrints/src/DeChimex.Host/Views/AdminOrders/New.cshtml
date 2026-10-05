@@ -1,0 +1,349 @@
+@model DeChimex.Host.Models.Admin.OrderBuilderViewModel
+@{
+    Layout = "_AdminLayout";
+    var products = ViewBag.Products as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+    var services = ViewBag.Services as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+    var deliveryFee = ViewBag.DeliveryFee is decimal fee ? fee : 1500m;
+    var selectedCustomer = ViewBag.SelectedCustomer as string;
+}
+@{
+    var quote = ViewBag.QuoteInvoice as DeChimex.Contracts.Invoices.InvoiceDocumentDto;
+}
+@if (quote is not null)
+{
+    <div class="alert alert-info mb-4" style="max-width:900px">
+        <strong>Creating order from quote invoice @quote.InvoiceNumber</strong>
+        <span class="text-sm">(customer: @quote.CustomerName, total &#8358;@quote.GrandTotal.ToString("N2")).
+        Add the same lines below to place the order. The quote invoice will be attached to the order and will not be duplicated.</span>
+    </div>
+}
+<div class="card" style="max-width:900px">
+    <div class="card-head"><h3>New order (counter / phone / WhatsApp)</h3></div>
+    <div class="card-body">
+        <form asp-action="New" method="post">
+            <input type="hidden" asp-for="InvoiceId" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+            <h4 class="mb-2">Customer</h4>
+            <div class="field">
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="CustomerMode" value="existing" @(Model.CustomerMode == "existing" ? "checked" : "") /> Existing customer
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="CustomerMode" value="new" @(Model.CustomerMode == "new" ? "checked" : "") /> New customer
+                </label>
+            </div>
+            <div id="existingCustomerRow" class="field">
+                <label class="label">Customer <span class="req">*</span></label>
+                <div style="position:relative">
+                    <input class="input" type="text" id="customerSearch" autocomplete="off"
+                           placeholder="Search by name, email or phone..." value="@(selectedCustomer ?? "")" />
+                    <input type="hidden" asp-for="CustomerId" />
+                    <div id="customerResults" class="picker-results" style="display:none"></div>
+                </div>
+                <span asp-validation-for="CustomerId" class="field-error"></span>
+            </div>
+            <div id="newCustomerRow" class="field" style="display:none">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="field">
+                        <label class="label">First name <span class="req">*</span></label>
+                        <input class="input" asp-for="NewFirstName" />
+                    </div>
+                    <div class="field">
+                        <label class="label">Last name <span class="req">*</span></label>
+                        <input class="input" asp-for="NewLastName" />
+                    </div>
+                    <div class="field">
+                        <label class="label">Email</label>
+                        <input class="input" asp-for="NewEmail" type="email" />
+                        <div class="text-xs text-muted">Optional - leave blank for a walk-in guest (no portal account).</div>
+                        <span asp-validation-for="NewEmail" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label class="label">Phone</label>
+                        <input class="input" asp-for="NewPhone" />
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mt-4 mb-2">Product lines</h4>
+            <div id="productRows">
+                @for (var i = 0; i < Model.Products.Count; i++)
+                {
+                    var idx = i;
+                    <div class="product-row" style="display:grid;grid-template-columns:1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:center">
+                        <select class="select" name="Products[@idx].ProductId">
+                            <option value="">Select product...</option>
+                            @foreach (var p in products)
+                            {
+                                <option value="@p.Value" selected="@(Model.Products[idx].ProductId?.ToString() == p.Value ? "selected" : null)">@p.Text</option>
+                            }
+                        </select>
+                        <input class="input" type="number" min="1" name="Products[@idx].Quantity" value="@Model.Products[idx].Quantity" />
+                        <button type="button" class="btn btn-ghost btn-sm remove-product-row" title="Remove line" aria-label="Remove product line">&times;</button>
+                    </div>
+                }
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="addProductRow">+ Add product line</button>
+
+            <h4 class="mt-4 mb-2">Service lines (branding, design, etc.)</h4>
+            <div id="serviceRows">
+                @for (var i = 0; i < Model.Services.Count; i++)
+                {
+                    var idx = i;
+                    <div class="service-row" style="display:grid;grid-template-columns:1fr 90px 1fr 36px;gap:8px;margin-bottom:8px;align-items:center">
+                        <select class="select" name="Services[@idx].ServiceId">
+                            <option value="">Select service...</option>
+                            @foreach (var s in services)
+                            {
+                                <option value="@s.Value" selected="@(Model.Services[idx].ServiceId?.ToString() == s.Value ? "selected" : null)">@s.Text</option>
+                            }
+                        </select>
+                        <input class="input" type="number" min="1" name="Services[@idx].Quantity" value="@Model.Services[idx].Quantity" />
+                        <input class="input" name="Services[@idx].Notes" placeholder="Notes (optional)" value="@Model.Services[idx].Notes" />
+                        <button type="button" class="btn btn-ghost btn-sm remove-service-row" title="Remove line" aria-label="Remove service line">&times;</button>
+                    </div>
+                }
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="addServiceRow">+ Add service line</button>
+
+            <h4 class="mt-4 mb-2">Fulfilment</h4>
+            <div class="field">
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="Fulfilment" value="delivery" @(Model.Fulfilment == "delivery" ? "checked" : "") />
+                    Delivery <span class="text-muted">(&#8358;@deliveryFee.ToString("N2") fee)</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="Fulfilment" value="pickup" @(Model.Fulfilment == "pickup" ? "checked" : "") />
+                    Pickup
+                </label>
+            </div>
+            <div id="deliveryAddressBlock">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="field" style="grid-column:1/-1">
+                        <label class="label">Street</label>
+                        <input class="input" asp-for="Street" />
+                    </div>
+                    <div class="field">
+                        <label class="label">City</label>
+                        <input class="input" asp-for="City" />
+                    </div>
+                    <div class="field">
+                        <label class="label">State</label>
+                        <input class="input" asp-for="State" />
+                    </div>
+                    <div class="field">
+                        <label class="label">Country</label>
+                        <input class="input" asp-for="Country" value="@(string.IsNullOrWhiteSpace(Model.Country) ? "Nigeria" : Model.Country)" />
+                    </div>
+                    <div class="field">
+                        <label class="label">Postal code</label>
+                        <input class="input" asp-for="PostalCode" />
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mt-4 mb-2">Payment (optional)</h4>
+            <div class="field">
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="PaymentMethod" value="" @(string.IsNullOrWhiteSpace(Model.PaymentMethod) ? "checked" : "") />
+                    Collect later <span class="text-muted">(order awaits payment until "Mark as paid")</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="PaymentMethod" value="Cash" @(Model.PaymentMethod == "Cash" ? "checked" : "") />
+                    Cash
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="PaymentMethod" value="BankTransfer" @(Model.PaymentMethod == "BankTransfer" ? "checked" : "") />
+                    Bank transfer
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="PaymentMethod" value="Paystack" @(Model.PaymentMethod == "Paystack" ? "checked" : "") />
+                    Paystack <span class="text-muted">(reference)</span>
+                </label>
+            </div>
+            <div class="field mt-2">
+                <label class="label" asp-for="PaymentNote">Payment note</label>
+                <input class="input" asp-for="PaymentNote" placeholder="e.g. cash received at the counter, transfer reference..." />
+                <span asp-validation-for="PaymentNote" class="field-error"></span>
+            </div>
+
+            <h4 class="mt-4 mb-2">Pricing adjustments</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="field">
+                    <label class="label" asp-for="Discount">Discount (&#8358;)</label>
+                    <input class="input" asp-for="Discount" type="number" step="0.01" min="0" />
+                    <span asp-validation-for="Discount" class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label class="label" asp-for="Tax">Tax (&#8358;)</label>
+                    <input class="input" asp-for="Tax" type="number" step="0.01" min="0" />
+                    <span asp-validation-for="Tax" class="field-error"></span>
+                </div>
+            </div>
+            <div class="field mt-3">
+                <label class="label" asp-for="Notes">Order notes</label>
+                <textarea class="input" asp-for="Notes" rows="2"></textarea>
+                <span asp-validation-for="Notes" class="field-error"></span>
+            </div>
+
+            <div class="flex items-center gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">Create order</button>
+                <a class="btn btn-outline" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function(){
+    const productTpl = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        "<div class=\"product-row\" style=\"display:grid;grid-template-columns:1fr 110px 36px;gap:8px;margin-bottom:8px;align-items:center\">" +
+        "<select class=\"select\" name=\"Products[__IDX__].ProductId\"><option value=\"\">Select product...</option>__PRODUCTS__</select>" +
+        "<input class=\"input\" type=\"number\" min=\"1\" name=\"Products[__IDX__].Quantity\" value=\"1\" />" +
+        "<button type=\"button\" class=\"btn btn-ghost btn-sm remove-product-row\" title=\"Remove line\" aria-label=\"Remove product row\">&times;</button></div>"));
+    const serviceTpl = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        "<div class=\"service-row\" style=\"display:grid;grid-template-columns:1fr 90px 1fr 36px;gap:8px;margin-bottom:8px;align-items:center\">" +
+        "<select class=\"select\" name=\"Services[__IDX__].ServiceId\"><option value=\"\">Select service...</option>__SERVICES__</select>" +
+        "<input class=\"input\" type=\"number\" min=\"1\" name=\"Services[__IDX__].Quantity\" value=\"1\" />" +
+        "<input class=\"input\" name=\"Services[__IDX__].Notes\" placeholder=\"Notes (optional)\" />" +
+        "<button type=\"button\" class=\"btn btn-ghost btn-sm remove-service-row\" title=\"Remove line\" aria-label=\"Remove service row\">&times;</button></div>"));
+
+    const productOptions = (document.querySelector('#productRows select')?.innerHTML || '').trim();
+    const serviceOptions = (document.querySelector('#serviceRows select')?.innerHTML || '').trim();
+
+    function nextIndex(container, prefix){
+        let max = -1;
+        container.querySelectorAll('[name^="' + prefix + '"]').forEach(el => {
+            const m = el.name.match(new RegExp('^' + prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\d+)\\]'));
+            if (m) max = Math.max(max, parseInt(m[1], 10));
+        });
+        return max + 1;
+    }
+
+    document.getElementById('addProductRow').addEventListener('click', () => {
+        const idx = nextIndex(document.getElementById('productRows'), 'Products[');
+        document.getElementById('productRows').insertAdjacentHTML('beforeend',
+            productTpl.replaceAll('__IDX__', String(idx)).replaceAll('__PRODUCTS__', productOptions));
+        bindRemove();
+    });
+    document.getElementById('addServiceRow').addEventListener('click', () => {
+        const idx = nextIndex(document.getElementById('serviceRows'), 'Services[');
+        document.getElementById('serviceRows').insertAdjacentHTML('beforeend',
+            serviceTpl.replaceAll('__IDX__', String(idx)).replaceAll('__SERVICES__', serviceOptions));
+        bindRemove();
+    });
+
+    function bindRemove(){
+        document.querySelectorAll('.remove-product-row, .remove-service-row').forEach(btn => {
+            if (btn.dataset.bound) return;
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', () => {
+                const rows = btn.closest('#productRows, #serviceRows');
+                if (rows && rows.children.length > 1) btn.closest('.product-row, .service-row').remove();
+                else { window.location.reload(); }
+            });
+        });
+    }
+    bindRemove();
+
+    const modes = document.querySelectorAll('input[name="CustomerMode"]');
+    function toggleMode(){
+        const mode = document.querySelector('input[name="CustomerMode"]:checked')?.value;
+        document.getElementById('existingCustomerRow').style.display = mode === 'existing' ? '' : 'none';
+        document.getElementById('newCustomerRow').style.display = mode === 'new' ? '' : 'none';
+        if (mode === 'new') clearCustomerSelection();
+    }
+    modes.forEach(r => r.addEventListener('change', toggleMode));
+    toggleMode();
+
+    // ---- Searchable customer picker (no fixed list cap) ----
+    const searchInput = document.getElementById('customerSearch');
+    const hiddenId = document.querySelector('#existingCustomerRow input[type="hidden"]');
+    const resultsBox = document.getElementById('customerResults');
+    let pickerTimer = null;
+    let pickerItems = [];
+    let pickerBusy = false;
+
+    function clearCustomerSelection(){
+        hiddenId.value = '';
+        searchInput.value = '';
+        resultsBox.style.display = 'none';
+        resultsBox.innerHTML = '';
+    }
+
+    async function loadPicker(q){
+        if (pickerBusy) return;
+        pickerBusy = true;
+        try {
+            const res = await fetch('/admin/customers/picker?q=' + encodeURIComponent(q || ''),
+                { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            pickerItems = await res.json();
+            renderResults();
+        } catch (e) {
+            // transient failure: leave the current list in place
+        }
+        pickerBusy = false;
+    }
+
+    function renderResults(){
+        resultsBox.innerHTML = '';
+        if (!pickerItems.length) {
+            const empty = document.createElement('div');
+            empty.className = 'picker-empty';
+            empty.textContent = 'No customers found.';
+            resultsBox.appendChild(empty);
+        } else {
+            pickerItems.forEach(c => {
+                const row = document.createElement('div');
+                row.className = 'picker-item';
+                const sub = c.email ? c.email : 'guest (no email)';
+                row.textContent = c.name + (c.phone ? '  -  ' + c.phone : '') + '  -  ' + sub;
+                row.addEventListener('mousedown', ev => { ev.preventDefault(); selectCustomer(c); });
+                resultsBox.appendChild(row);
+            });
+        }
+        resultsBox.style.display = 'block';
+    }
+
+    function selectCustomer(c){
+        hiddenId.value = c.id;
+        searchInput.value = c.name + (c.guest ? ' (guest)' : '');
+        resultsBox.style.display = 'none';
+    }
+
+    searchInput.addEventListener('input', () => {
+        // Editing the box drops the previous selection.
+        hiddenId.value = '';
+        clearTimeout(pickerTimer);
+        pickerTimer = setTimeout(() => loadPicker(searchInput.value.trim()), 250);
+    });
+    searchInput.addEventListener('focus', () => {
+        clearTimeout(pickerTimer);
+        pickerTimer = setTimeout(() => loadPicker(searchInput.value.trim()), 150);
+    });
+    searchInput.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter') {
+            ev.preventDefault();
+            if (pickerItems.length) selectCustomer(pickerItems[0]);
+        } else if (ev.key === 'Escape') {
+            resultsBox.style.display = 'none';
+        }
+    });
+    document.addEventListener('click', ev => {
+        if (!ev.target.closest('#existingCustomerRow')) resultsBox.style.display = 'none';
+    });
+    loadPicker('');
+
+    const fulf = document.querySelectorAll('input[name="Fulfilment"]');
+    function toggleFulfilment(){
+        const f = document.querySelector('input[name="Fulfilment"]:checked')?.value;
+        document.getElementById('deliveryAddressBlock').style.display = f === 'delivery' ? '' : 'none';
+    }
+    fulf.forEach(r => r.addEventListener('change', toggleFulfilment));
+    toggleFulfilment();
+})();
+</script>
+}

@@ -1,0 +1,235 @@
+@model DeChimex.Host.Models.Admin.GalleryFormViewModel
+@{
+    var existingType = string.IsNullOrWhiteSpace(Model.ExistingType) ? "" : Model.ExistingType;
+    var isVideoPost = existingType.Equals("Video", StringComparison.OrdinalIgnoreCase);
+    var isEdit = Model.Id != Guid.Empty;
+}
+<style>
+    .advanced-options{margin-top:4px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+    .advanced-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;padding:11px 14px;font-weight:600;font-size:13px;color:var(--n-700);user-select:none;list-style:none}
+    .advanced-toggle::-webkit-details-marker{display:none}
+    .advanced-toggle .chev{margin-left:auto;color:var(--n-500);transition:transform .15s}
+    .advanced-options[open] .advanced-toggle .chev{transform:rotate(180deg)}
+    .advanced-body{margin:0 14px 14px;display:grid;gap:14px;padding-top:14px;border-top:1px solid var(--border)}
+    #thumbFields{display:none;margin-top:2px}
+    #thumbFields.show{display:grid;gap:14px}
+    .field-note{font-size:12px;color:var(--n-500);margin-top:4px}
+    /* Carousel selection strip: one card per image in post order; first card = cover. */
+    .gstrip{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+    .gstrip:empty{display:none}
+    .gcard{position:relative;width:88px;height:88px;border-radius:10px;overflow:hidden;border:2px solid var(--border);background:var(--n-100)}
+    .gcard.first{border-color:var(--primary)}
+    .gcard img{width:100%;height:100%;object-fit:cover;display:block}
+    .gcard .gcard-vid{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(135deg,#0f172a,#1e293b);color:rgba(255,255,255,.9)}
+    .gcard-cover{position:absolute;top:4px;left:4px;background:var(--primary);color:#fff;font-size:10px;font-weight:700;letter-spacing:.02em;padding:2px 7px;border-radius:999px;display:none}
+    .gcard.first .gcard-cover{display:inline-block}
+    .gcard-idx{position:absolute;bottom:4px;left:4px;background:rgba(15,23,42,.62);color:#fff;font-size:10px;font-weight:600;border-radius:999px;padding:1px 7px}
+    .gcard-tools{position:absolute;top:4px;right:4px;display:flex;flex-direction:column;gap:3px}
+    .gcard-tools button{width:20px;height:20px;border-radius:6px;border:0;background:rgba(15,23,42,.62);color:#fff;font-size:11px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+    .gcard-tools button:hover{background:rgba(15,23,42,.85)}
+    .gstrip-hint{font-size:12px;color:var(--n-500);margin-top:8px}
+</style>
+
+<div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+<div class="field">
+    <label class="label" asp-for="Title">Title <span class="req">*</span></label>
+    <input class="input" asp-for="Title" />
+    <span asp-validation-for="Title" class="field-error"></span>
+</div>
+
+@if (isVideoPost)
+{
+    <!-- Existing video post: videos stay single-media uploads. -->
+    <div class="field">
+        <label class="label" asp-for="MediaFile">Video</label>
+        <input type="file" class="input" asp-for="MediaFile" id="MediaFile" accept=".mp4,.webm" />
+        <div class="field-hint">Video posts are single-media. Upload a new file only to replace the current video.</div>
+        <span asp-validation-for="MediaFile" class="field-error"></span>
+    </div>
+    <div id="thumbFields" class="show">
+        <input type="hidden" id="ExistingType" value="@existingType" />
+        <div class="field">
+            <label class="label" asp-for="ThumbnailFile">Thumbnail (optional)</label>
+            <input type="file" class="input" asp-for="ThumbnailFile" accept=".jpg,.jpeg,.png,.webp,.gif" />
+            <div class="field-note">Used as the poster/preview image.</div>
+            <span asp-validation-for="ThumbnailFile" class="field-error"></span>
+        </div>
+        <div class="field">
+            <label class="label" asp-for="ThumbnailUrl">Or thumbnail URL</label>
+            <input class="input" asp-for="ThumbnailUrl" placeholder="https://... or /uploads/..." />
+        </div>
+    </div>
+}
+else
+{
+    <!-- Image post (new or existing): multi-select becomes ONE carousel post. -->
+    <div class="field">
+        <label class="label" for="MediaFiles">@(isEdit ? "Add images" : "Images")</label>
+        <input type="file" class="input" id="MediaFiles" name="MediaFiles" multiple accept=".jpg,.jpeg,.png,.webp,.gif" onchange="onPick(this)" />
+        <div class="field-hint">
+            @(isEdit ? "New images join the existing carousel; reorder below. " : "")
+            Select one or more images - they are saved as ONE gallery post in the order shown. The first image is the grid cover.
+            A single .mp4/.webm selection creates a video post instead. Max 10 MB per file.
+        </div>
+        <span asp-validation-for="MediaFiles" class="field-error"></span>
+    </div>
+
+    <div class="gstrip" id="strip" aria-label="Images in this post, in order">
+        @for (var i = 0; i < Model.ExistingImages.Count; i++)
+        {
+            var url = Model.ExistingImages[i];
+            <div class="gcard @(i == 0 ? "first" : "")" data-kind="u" data-url="@url">
+                <input type="hidden" name="FinalOrder" value="u:@url" />
+                <img src="@url" alt="Image @(i + 1)" loading="lazy">
+                <span class="gcard-cover">Cover</span>
+                <span class="gcard-idx">@(i + 1)</span>
+                <span class="gcard-tools">
+                    <button type="button" title="Move earlier" aria-label="Move earlier" onclick="gMove(this.closest('.gcard'),-1)">&#8249;</button>
+                    <button type="button" title="Move later" aria-label="Move later" onclick="gMove(this.closest('.gcard'),1)">&#8250;</button>
+                    <button type="button" title="Remove" aria-label="Remove" onclick="gDrop(this.closest('.gcard'))">&times;</button>
+                </span>
+            </div>
+        }
+    </div>
+    <div class="gstrip-hint" id="stripHint" style="display:none">Drag-free reordering: use &#8249; &#8250; to change the order, &times; to remove. The image in position 1 becomes the cover.</div>
+
+    <div id="thumbFields">
+        <input type="hidden" id="ExistingType" value="@existingType" />
+        <div class="field">
+            <label class="label" asp-for="ThumbnailFile">Thumbnail (optional, videos only)</label>
+            <input type="file" class="input" asp-for="ThumbnailFile" accept=".jpg,.jpeg,.png,.webp,.gif" />
+            <span asp-validation-for="ThumbnailFile" class="field-error"></span>
+        </div>
+        <div class="field">
+            <label class="label" asp-for="ThumbnailUrl">Or thumbnail URL</label>
+            <input class="input" asp-for="ThumbnailUrl" placeholder="https://... or /uploads/..." />
+        </div>
+    </div>
+}
+
+<details class="advanced-options" id="advancedOptions">
+    <summary class="advanced-toggle">
+        <span>Advanced options</span>
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </summary>
+    <div class="advanced-body">
+        <div class="field">
+            <label class="label" asp-for="Category">Category</label>
+            <input class="input" asp-for="Category" placeholder="e.g. Branding, Large format" />
+        </div>
+
+        <div class="field">
+            <label class="label" asp-for="DisplayOrder">Display order</label>
+            <input class="input" asp-for="DisplayOrder" type="number" min="0" />
+        </div>
+
+        <div class="field">
+            <label class="flex items-center gap-2 text-sm"><input class="checkbox" asp-for="IsFeatured" /> Featured</label>
+        </div>
+    </div>
+</details>
+
+<script>
+(function(){
+    var strip = document.getElementById('strip');
+    var fileInput = document.getElementById('MediaFiles');
+    var form = fileInput ? fileInput.closest('form') : null;
+    var newFiles = []; // File objects for kind=f cards, referenced by the card node
+
+    function cards(){ return strip ? Array.prototype.slice.call(strip.querySelectorAll('.gcard')) : []; }
+    function refresh(){
+        cards().forEach(function(c, i){
+            c.classList.toggle('first', i === 0);
+            var idx = c.querySelector('.gcard-idx'); if(idx) idx.textContent = String(i + 1);
+        });
+        var hint = document.getElementById('stripHint');
+        if(hint) hint.style.display = cards().length > 0 ? '' : 'none';
+    }
+    function isVideo(f){ return /\.(mp4|webm)$/i.test(f.name); }
+
+    function makeCard(file){
+        var card = document.createElement('div');
+        card.className = 'gcard';
+        card.dataset.kind = 'f';
+        var hid = document.createElement('input');
+        hid.type = 'hidden'; hid.name = 'FinalOrder'; hid.value = 'f:-1';
+        card.appendChild(hid);
+        if(isVideo(file)){
+            var v = document.createElement('span');
+            v.className = 'gcard-vid';
+            v.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+            card.appendChild(v);
+        } else {
+            var img = document.createElement('img');
+            img.alt = file.name;
+            img.src = URL.createObjectURL(file);
+            card.appendChild(img);
+        }
+        var cover = document.createElement('span'); cover.className = 'gcard-cover'; cover.textContent = 'Cover'; card.appendChild(cover);
+        var idx = document.createElement('span'); idx.className = 'gcard-idx'; card.appendChild(idx);
+        var tools = document.createElement('span'); tools.className = 'gcard-tools';
+        tools.innerHTML = '<button type="button" title="Move earlier" onclick="gMove(this.closest(\'.gcard\'),-1)">&#8249;</button>'
+                        + '<button type="button" title="Move later" onclick="gMove(this.closest(\'.gcard\'),1)">&#8250;</button>'
+                        + '<button type="button" title="Remove" onclick="gDrop(this.closest(\'.gcard\'))">&times;</button>';
+        card.appendChild(tools);
+        card._file = file;
+        newFiles.push(file);
+        return card;
+    }
+
+    window.gMove = function(card, dir){
+        if(!strip) return;
+        var list = cards(), i = list.indexOf(card), j = i + dir;
+        if(i < 0 || j < 0 || j >= list.length) return;
+        if(dir < 0) strip.insertBefore(card, list[j]);
+        else strip.insertBefore(card, list[j].nextSibling);
+        refresh();
+    };
+    window.gDrop = function(card){
+        if(!strip) return;
+        if(card._file){ var k = newFiles.indexOf(card._file); if(k >= 0) newFiles.splice(k, 1); }
+        card.remove();
+        refresh();
+    };
+
+    window.onPick = function(input){
+        if(!strip || !input.files || input.files.length === 0) return;
+        var picked = Array.prototype.slice.call(input.files);
+        if(isVideo(picked[0])){
+            // Video rule: single-media post. Keep only the first file, show poster fields.
+            var kept = picked[0];
+            strip.innerHTML = '';
+            newFiles = [];
+            strip.appendChild(makeCard(kept));
+            var tf = document.getElementById('thumbFields');
+            if(tf) tf.classList.add('show');
+            var dt0 = new DataTransfer();
+            dt0.items.add(kept);
+            input.files = dt0.files;
+        } else {
+            picked.forEach(function(f){ if(!isVideo(f)) strip.appendChild(makeCard(f)); });
+            var tf2 = document.getElementById('thumbFields');
+            if(tf2) tf2.classList.remove('show');
+        }
+        refresh();
+    };
+
+    if(form){
+        form.addEventListener('submit', function(){
+            if(!strip) return;
+            var dt = new DataTransfer(), seq = 0;
+            cards().forEach(function(c){
+                var hid = c.querySelector('input[name="FinalOrder"]');
+                if(c.dataset.kind === 'f' && c._file){
+                    if(hid) hid.value = 'f:' + seq;
+                    dt.items.add(c._file);
+                    seq++;
+                }
+            });
+            if(fileInput) fileInput.files = dt.files; // posts new images in carousel order
+        });
+    }
+    refresh();
+})();
+</script>

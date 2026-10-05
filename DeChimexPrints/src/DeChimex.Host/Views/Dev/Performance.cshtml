@@ -1,0 +1,62 @@
+@model PerformanceStats
+@{
+    var max = Math.Max(1, Model.Timeline.Count == 0 ? 1 : Model.Timeline.Max(t => t.Requests));
+}
+<partial name="~/Views/Dev/_RangePicker.cshtml" model="Model.Range" />
+<div class="dv-grid dv-g4">
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Num(Model.Requests)<small>Requests</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Num(Model.ServerErrors) <span class="dv-muted dv-small">/ @DevUi.Num(Model.ClientErrors) 4xx</span><small>Server errors (5xx)</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@Model.ErrorRatePercent%<small>5xx error rate</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Ms(Model.AvgMs) <span class="dv-muted dv-small">max @DevUi.Ms(Model.MaxMs)</span><small>Average response time</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Num(Model.Slow)<small>Slow requests (≥ @Model.SlowThresholdMs ms)</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@Model.AuthenticationFailures<small>Failed sign-ins</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@Model.AuthorizationFailures<small>Access denied (authz)</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@Model.RateLimited<small>Rate-limited requests</small></div></div>
+</div>
+
+<section class="dv-card" style="margin-top:12px">
+    <div class="dv-card-head"><h2>Requests over time</h2><span class="dv-muted dv-small">blue = requests, red = 5xx · metrics recorded since @DevUi.Utc(Model.MetricsSinceUtc)</span></div>
+    @if (Model.Requests == 0)
+    {
+        <p class="dv-muted">No requests recorded in this range.</p>
+    }
+    else
+    {
+        <div class="dv-bars" role="img" aria-label="Requests per interval">
+            @foreach (var p in Model.Timeline)
+            {
+                var h = p.Requests * 100.0 / max;
+                var e = p.Requests == 0 ? 0 : p.ServerErrors * 100.0 / p.Requests;
+                <div class="dv-bar" style="height:@(h.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%" title="@DevUi.Utc(p.StartUtc): @p.Requests req, @p.ServerErrors 5xx, avg @p.AvgMs ms"><span class="err" style="height:@(e.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))%"></span></div>
+            }
+        </div>
+    }
+</section>
+
+<div class="dv-grid dv-g2" style="margin-top:12px">
+    <section class="dv-card"><h2>Busiest endpoints</h2>@await Html.PartialAsync("~/Views/Dev/_RouteTable.cshtml", Model.TopRoutes)</section>
+    <section class="dv-card"><h2>Slowest endpoints (average)</h2>@await Html.PartialAsync("~/Views/Dev/_RouteTable.cshtml", Model.SlowestRoutes)</section>
+    <section class="dv-card"><h2>Endpoints returning errors</h2>@await Html.PartialAsync("~/Views/Dev/_RouteTable.cshtml", Model.ErrorRoutes)</section>
+    <section class="dv-card">
+        <h2>Failures by subsystem</h2>
+        @if (Model.FailuresBySubsystem.Count == 0) { <p class="dv-muted">No Error/Critical events or failed integration calls in this range.</p> }
+        else
+        {
+            <div class="dv-table-wrap"><table class="dv-table"><tbody>
+            @foreach (var f in Model.FailuresBySubsystem)
+            {
+                <tr><td>@f.Name</td><td class="num">@f.Count</td><td><a href="/dev/logs@(DevUi.Query(Context.Request.Query, ("category", f.Name.EndsWith(" calls") ? null : f.Name), ("severity", "Error+")))">view</a></td></tr>
+            }
+            </tbody></table></div>
+        }
+        <h3>Security events</h3>
+        @if (Model.SecurityEvents.Count == 0) { <p class="dv-muted">None.</p> }
+        else
+        {
+            <div class="dv-table-wrap"><table class="dv-table"><tbody>
+            @foreach (var s in Model.SecurityEvents) { <tr><td>@s.Name</td><td class="num">@s.Count</td></tr> }
+            </tbody></table></div>
+        }
+    </section>
+</div>
+<p class="dv-muted dv-small">Counts are exact (every request is counted into 5-minute buckets per route template; nothing is sampled or estimated). Static files and SignalR traffic are excluded.</p>

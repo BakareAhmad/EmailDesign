@@ -1,0 +1,68 @@
+@model IReadOnlyList<DeChimex.Contracts.Services.ServiceDto>
+@using DeChimex.Host
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = "Services";
+    ViewData["ActiveNav"] = "services";
+    var services = Model ?? new List<DeChimex.Contracts.Services.ServiceDto>();
+}
+
+<div class="cs-wrap">
+    <div class="cs-page-head">
+        <span class="hm-kicker">Our services</span>
+        <h1>Printing &amp; branding, done right</h1>
+        <p class="cs-muted">Bring your own items or let us supply them. From a single mug to a full corporate order, tell us the job and we'll quote it.</p>
+    </div>
+
+    <div class="cs-callout">
+        @Html.Raw(CustomerIcons.Svg("brush", 22))
+        <div>
+            <strong>Bring your own item</strong>
+            Already have shirts, flasks or laptops? We brand items you already own, no purchase from us required. You still get an invoice and live order tracking.
+            <div style="margin-top:10px"><a href="/contact" class="btn btn-primary btn-sm">Book a branding job</a></div>
+        </div>
+    </div>
+
+    <section class="cs-section" aria-labelledby="serviceListHeading">
+        <div class="cs-section-head"><h2 id="serviceListHeading">What we do</h2></div>
+        @if (services.Count == 0)
+        {
+            <div class="cs-card">
+                @{ var es = new EmptyState(EmptyIcons.Box, "No services published yet", "Our service menu is still being set up. Tell us what you need and we will quote it the same day.", CtaHref: "/contact", CtaText: "Request a quote"); }
+                <partial name="_EmptyState" model="es" />
+            </div>
+        }
+        else
+        {
+            <div class="pg-services">
+                @foreach (var s in services)
+                {
+                    var color = !string.IsNullOrWhiteSpace(s.IconColor) ? s.IconColor : ServiceIconPalette.DefaultColor;
+                    <article class="pg-service">
+                        <span class="hm-path-ic" style="background:@(color)22;color:@color">@Html.Raw(CustomerIcons.Svg("printer", 20))</span>
+                        <h4>@s.Name</h4>
+                        @if (!string.IsNullOrWhiteSpace(s.Description)) { <p>@s.Description</p> }
+                        <div class="pg-service-price">From @CustomerPresentation.Money(s.BasePrice) <small>· final price on quote</small></div>
+                        <a href="/contact?service=@Uri.EscapeDataString(s.Name)" class="btn btn-outline btn-sm">Request @s.Name</a>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="cs-section" aria-labelledby="processHeading">
+        <div class="cs-section-head"><h2 id="processHeading">How a service order works</h2></div>
+        <div class="hm-steps">
+            <div class="hm-step"><h4>Tell us the job</h4><p>Describe the item and artwork, or bring your own.</p></div>
+            <div class="hm-step"><h4>We confirm the details</h4><p>Your sales specialist confirms requirements and sends the price.</p></div>
+            <div class="hm-step"><h4>Approve &amp; pay</h4><p>Approve the design in your account, then pay securely.</p></div>
+            <div class="hm-step"><h4>Production &amp; delivery</h4><p>We produce, quality-check and deliver, or you pick up.</p></div>
+        </div>
+    </section>
+
+    <div class="hm-band">
+        <h2>Have a custom project in mind?</h2>
+        <p>Planning corporate branding, event merch or a bulk order? Send the brief and we'll take it from there.</p>
+        <div class="hm-band-cta"><a href="/contact" class="btn btn-light btn-lg">Talk to our team</a></div>
+    </div>
+</div>

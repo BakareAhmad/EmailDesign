@@ -1,0 +1,83 @@
+ok 01 - owner logged in
+PASS 01: category created: Wish category wfinal1
+PASS 02: product created with category: Wish custom wfinal1
+PASS 03: product created with category: Wish plain wfinal1
+PASS 04: product created with category: Retired item wfinal1
+ok 02 - register wish -> verify page
+ok 03 - verification token captured for wish
+ok 04 - brevo api-key header present (key loaded at runtime)
+ok 05 - customer wish signed in
+PASS 01: Shop cards expose visible add controls for both product types
+PASS 02: Wishlist forms are outside product navigation links
+PASS 03: Saving from catalog retains category/search/sort/page
+PASS 04: Saved state and success feedback shown
+PASS 05: Repeated add is accepted idempotently
+PASS 06: Repeated add is accepted idempotently
+PASS 07: Only one saved card after replay
+PASS 08: Wishlist opens products within the portal
+PASS 09: Product detail shows remove state and original order action
+PASS 10: Remove on detail returns to same product with add state
+PASS 11: Re-add after soft removal persists on refresh
+PASS 12: Existing public detail reflects portal saved state
+ok 06 - register other -> verify page
+ok 07 - verification token captured for other
+ok 08 - brevo api-key header present (key loaded at runtime)
+ok 09 - customer other signed in
+PASS 13: Another customer cannot see first customer favourites
+PASS 14: Forged remove is scoped to its authenticated customer
+PASS 15: Other customer removal did not touch owner favourite
+PASS 16: New authenticated session recovers stored wishlist
+PASS 17: Saved custom product can still submit an order request
+PASS 18: Saved plain product still enters cart with correct quantity
+PASS 19: Ordering does not remove independent favourites
+PASS 20: Missing antiforgery token rejected
+PASS 21: Unknown product rejected
+PASS 22: External redirect blocked
+PASS 23: Anonymous portal access requires sign-in
+PASS 24: Public anonymous product keeps sign-in-to-save prompt
+PASS 25: Catalog product deletion succeeds
+PASS 26: Stale add receives a visible not-found page
+PASS 27: Rejected save did not create a wishlist entry
+PASS 28: Mobile wishlist labels fit within both product cards
+PASS 29: Wishlist control is keyboard operable on mobile layout
+PASS 30: Wishlist remove leads to empty state
+PASS 31: Empty-state browse link stays in portal
+PASS 32: Customer can immediately browse and save again
+{
+  "passed": 32,
+  "screenshots": 8,
+  "checks": [
+    "Shop cards expose visible add controls for both product types",
+    "Wishlist forms are outside product navigation links",
+    "Saving from catalog retains category/search/sort/page",
+    "Saved state and success feedback shown",
+    "Repeated add is accepted idempotently",
+    "Repeated add is accepted idempotently",
+    "Only one saved card after replay",
+    "Wishlist opens products within the portal",
+    "Product detail shows remove state and original order action",
+    "Remove on detail returns to same product with add state",
+    "Re-add after soft removal persists on refresh",
+    "Existing public detail reflects portal saved state",
+    "Another customer cannot see first customer favourites",
+    "Forged remove is scoped to its authenticated customer",
+    "Other customer removal did not touch owner favourite",
+    "New authenticated session recovers stored wishlist",
+    "Saved custom product can still submit an order request",
+    "Saved plain product still enters cart with correct quantity",
+    "Ordering does not remove independent favourites",
+    "Missing antiforgery token rejected",
+    "Unknown product rejected",
+    "External redirect blocked",
+    "Anonymous portal access requires sign-in",
+    "Public anonymous product keeps sign-in-to-save prompt",
+    "Catalog product deletion succeeds",
+    "Stale add receives a visible not-found page",
+    "Rejected save did not create a wishlist entry",
+    "Mobile wishlist labels fit within both product cards",
+    "Wishlist control is keyboard operable on mobile layout",
+    "Wishlist remove leads to empty state",
+    "Empty-state browse link stays in portal",
+    "Customer can immediately browse and save again"
+  ]
+}

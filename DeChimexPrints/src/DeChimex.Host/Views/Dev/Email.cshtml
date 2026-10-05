@@ -1,0 +1,44 @@
+@model EmailDiagnostics
+<partial name="~/Views/Dev/_RangePicker.cshtml" model="Model.Range" />
+@if (!Model.SendingEnabled)
+{
+    <div class="dv-warnbox" style="margin-bottom:12px">Email sending is disabled in configuration (Email:Enabled=false): sends are recorded as <strong>Skipped</strong>.</div>
+}
+@if (!Model.KeyConfigured)
+{
+    <div class="dv-warnbox" style="margin-bottom:12px">No Brevo API key is configured.</div>
+}
+<div class="dv-grid dv-g4">
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Num(Model.Attempted)<small>Attempted</small></div></div>
+    <div class="dv-card"><div class="dv-kpi" style="color:#86efac">@DevUi.Num(Model.Succeeded)<small>Accepted by Brevo</small></div></div>
+    <div class="dv-card"><div class="dv-kpi" style="color:#fca5a5">@DevUi.Num(Model.Failed)<small>Failed</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Num(Model.Skipped)<small>Skipped (sending disabled)</small></div></div>
+</div>
+<div class="dv-grid dv-g2" style="margin-top:12px">
+    <section class="dv-card">
+        <h2>By template / trigger</h2>
+        @if (Model.ByTemplate.Count == 0) { <p class="dv-muted dv-small">No emails in this range.</p> }
+        else
+        {
+            <div class="dv-table-wrap"><table class="dv-table"><thead><tr><th>Template</th><th class="num">Attempted</th><th class="num">OK</th><th class="num">Failed</th><th class="num">Skipped</th></tr></thead><tbody>
+            @foreach (var t in Model.ByTemplate)
+            {
+                <tr><td class="dv-mono dv-small">@t.Template</td><td class="num">@t.Attempted</td><td class="num">@t.Succeeded</td><td class="num">@t.Failed</td><td class="num">@t.Skipped</td></tr>
+            }
+            </tbody></table></div>
+        }
+    </section>
+    <section class="dv-card">
+        <h2>By recipient category</h2>
+        <partial name="~/Views/Dev/_Counts.cshtml" model="Model.ByRecipientCategory" />
+        <h3>Email queue job</h3>
+        @if (Model.Queue is { } j)
+        {
+            <p class="dv-small">@DevUi.Status(j.State) · @j.SuccessCount sent-attempts completed · @j.FailureCount failed · last @DevUi.Ago(j.LastCompletedUtc)</p>
+        }
+        else { <p class="dv-muted dv-small">Not registered.</p> }
+    </section>
+</div>
+<section class="dv-card" style="margin-top:12px"><h2>Recent failures</h2><partial name="~/Views/Dev/_Calls.cshtml" model="Model.RecentFailures" /></section>
+<section class="dv-card" style="margin-top:12px"><h2>Recent sends</h2><partial name="~/Views/Dev/_Calls.cshtml" model="Model.Recent" /></section>
+<p class="dv-muted dv-small">Recipients are masked (e.g. j***@@g***.com); subjects and message bodies are never stored. There is intentionally no "send test email" tool.</p>

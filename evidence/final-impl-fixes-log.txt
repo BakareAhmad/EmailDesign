@@ -1,0 +1,24 @@
+ok 01 - owner signed in
+ok 02 - quote document carries a QTE- reference
+ok 03 - quote document still offers one-click conversion
+shot 01-quote-qte-document.png
+ok 04 - invoices list labels the quote with its QTE- reference
+shot 02-quote-invoices-list-qte.png
+ok 05 - conversion prefill carries the quote banner
+ok 06 - quote customer resolvable in the picker
+ok 07 - order created from the quote
+ok 08 - conversion routes to the order workspace
+ok 09 - adopted document renumbered onto the INV- sequence
+ok 10 - paid-document path no longer shows the QTE- reference
+ok 11 - adopted invoice links its order
+shot 03-order-from-quote-adopted-inv.png
+ok 12 - unknown order number gets a friendly validation error
+shot 04-procurement-unknown-number-error.png
+ok 13 - form placeholder teaches the real order-number format
+ok 14 - procurement created and linked by order number
+ok 15 - procurement document links the order page
+shot 05-procurement-linked-order.png
+ok 16 - business-activity free-text search matches the linked order number
+shot 06-activity-search-by-order-number.png
+ok 17 - unreferenced prototype ui.js is no longer served
+RESULT: 17 passed, 0 failed

@@ -1,0 +1,14 @@
+@model DeChimex.Host.Models.Admin.MajorCategoryFormViewModel
+@{ Layout = "_AdminLayout"; }
+<div class="card" style="max-width:560px">
+ <div class="card-head"><h3>@(Model.Id is null ? "New major category" : "Edit major category")</h3></div>
+ <div class="card-body">
+ <form method="post" asp-action="@(Model.Id is null ? "Create" : "Edit")" asp-route-id="@Model.Id">
+  <div asp-validation-summary="All" class="alert alert-error" role="alert"></div>
+  <div class="field"><label class="label" asp-for="Name">Name *</label><input class="input" asp-for="Name" required maxlength="120" /></div>
+  <div class="field"><label class="label" asp-for="Description">Description (optional)</label><textarea class="input" asp-for="Description" maxlength="1000" rows="3"></textarea></div>
+  <p class="field-hint">Ordering is automatic. Products and ordering questions stay in their subcategories.</p>
+  <button class="btn btn-primary" type="submit">Save major category</button>
+  <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+ </form></div>
+</div>

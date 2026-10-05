@@ -1,0 +1,66 @@
+@model FeeLedgerPage
+@{
+    var f = Model.Filter;
+    var q = Context.Request.Query;
+    var exportQs = DevUi.Query(q, ("page", null));
+}
+<p><a href="/dev/service-fees">← Service fees</a></p>
+<form method="get" class="dv-filters">
+    <label>From <input type="date" name="from" value="@f.FromLocal?.ToString("yyyy-MM-dd")" /></label>
+    <label>To <input type="date" name="to" value="@f.ToLocal?.ToString("yyyy-MM-dd")" /></label>
+    <label>Fee status
+        <select name="status">
+            <option value="">All</option>
+            <option value="collected" selected="@(f.Status == "collected")">Collected</option>
+            <option value="refunded" selected="@(f.Status == "refunded")">Reversed (refunded)</option>
+            <option value="notcollected" selected="@(f.Status == "notcollected")">Not collected</option>
+        </select>
+    </label>
+    <label>Order no. / reference <input type="search" name="q" value="@f.Search" maxlength="80" /></label>
+    <button class="dv-btn" type="submit">Apply</button>
+    <a class="dv-btn dv-btn-ghost" href="/dev/service-fees/ledger">Reset</a>
+    <a class="dv-btn dv-btn-ghost" href="/dev/service-fees/export@(exportQs)">Export CSV</a>
+</form>
+@if (Model.Reconciliation is { } r)
+{
+    <div class="@(r.Matches ? "dv-note" : "dv-warnbox")" style="margin-bottom:12px">
+        <strong>Reconciliation @(r.Matches ? "✓ matches" : "✗ MISMATCH")</strong>.
+        Ledger rows sum to gross @DevUi.Naira(r.LedgerGross), reversed @DevUi.Naira(r.LedgerReversed), net @DevUi.Naira(r.LedgerNet).
+        Headline totals for the same range: @DevUi.Naira(r.HeadlineGross) / @DevUi.Naira(r.HeadlineReversed) / @DevUi.Naira(r.HeadlineNet).
+    </div>
+}
+<section class="dv-card">
+    <div class="dv-card-head"><h2>@Model.Total payment attempt(s)</h2><span class="dv-muted dv-small">Paystack only · newest first · no customer details</span></div>
+    @if (Model.Items.Count == 0) { <p class="dv-muted">No payments match.</p> }
+    else
+    {
+        <div class="dv-table-wrap"><table class="dv-table">
+            <thead><tr><th>Date</th><th>Order</th><th>Reference</th><th>Payment</th><th>Fee status</th><th class="num">Order amt</th><th class="num">Charged</th><th class="num">%</th><th class="num">Service fee</th><th class="num">Paystack fee</th><th class="num">Net fee</th></tr></thead>
+            <tbody>
+            @foreach (var x in Model.Items)
+            {
+                <tr>
+                    <td class="dv-small dv-nowrap">@((x.PaidUtc ?? x.AttemptUtc).ToString("yyyy-MM-dd HH:mm"))@if (x.RefundedUtc is { } rf) { <div class="dv-muted">refunded @rf.ToString("yyyy-MM-dd")</div> }</td>
+                    <td class="dv-mono dv-small">@x.OrderNumber<div class="dv-muted">@x.OrderKind</div></td>
+                    <td class="dv-mono dv-small"><a href="/dev/service-fees/@x.PaymentId">@x.Reference</a></td>
+                    <td>@DevUi.Status(x.Status)</td>
+                    <td class="dv-small">@x.FeeStatus</td>
+                    <td class="num">@DevUi.Naira(x.OrderAmount)</td>
+                    <td class="num">@DevUi.Naira(x.TransactionAmount)</td>
+                    <td class="num">@DevUi.Pct(x.Percent)</td>
+                    <td class="num">@DevUi.Naira(x.ServiceFee)</td>
+                    <td class="num">@DevUi.Naira(x.PaystackFeeActual ?? x.PaystackFeeExpected)@if (x.PaystackFeeActual is null) { <span class="dv-muted" title="expected (Paystack did not report the actual fee)">*</span> }</td>
+                    <td class="num"><strong>@DevUi.Naira(x.NetFee)</strong></td>
+                </tr>
+            }
+            </tbody>
+        </table></div>
+        <div class="dv-pager">
+            @if (Model.Page > 1) { <a class="dv-btn dv-btn-ghost" href="/dev/service-fees/ledger@(DevUi.Query(q, ("page", (Model.Page - 1).ToString())))">← Newer</a> }
+            <span class="dv-muted">Page @Model.Page of @Model.Pages</span>
+            @if (Model.Page < Model.Pages) { <a class="dv-btn dv-btn-ghost" href="/dev/service-fees/ledger@(DevUi.Query(q, ("page", (Model.Page + 1).ToString())))">Older →</a> }
+        </div>
+        <p class="dv-small dv-muted">* expected Paystack fee (actual not reported by Paystack).</p>
+    }
+</section>
+<partial name="~/Views/Dev/_FeeRules.cshtml" />

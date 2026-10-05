@@ -1,0 +1,13 @@
+Order DCX-2026-9 is confirmed and moving into production.
+
+Your order is confirmed
+Thank you, Ada. We've received your payment and your order is now being prepared.
+Payment received
+Order number
+DCX-2026-9
+Payment status
+Paid
+Amount paid
+We'll email you at every status change. You can follow progress any time:
+Track your order https://dechimexprinthub.com/portal/orders/track?orderNumber=DCX-2026-9
+Button not working? Copy this link: https://dechimexprinthub.com/portal/orders/track?orderNumber=DCX-2026-9

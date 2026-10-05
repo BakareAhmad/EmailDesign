@@ -1,0 +1,10 @@
+﻿There's a new message in the conversation for order DCX-2026-000123.
+
+New message on your order
+Hi O'Neil <b>Attridge-Smith-Worthington the Third</b>, there's a new message about your order:
+DE-CHIMEX team
+“Thanks! <script>alert('x')</script> & "quotes": the teal boxes look great, but can we make the logo 2cm wider on the mugs and still hit Friday? Let me know!”
+Order number
+DCX-2026-000123
+Open conversation https://dechimexprinthub.com/portal/orders/11111111-2222-3333-4444-555555555555/workspace
+Button not working? Copy this link: https://dechimexprinthub.com/portal/orders/11111111-2222-3333-4444-555555555555/workspace

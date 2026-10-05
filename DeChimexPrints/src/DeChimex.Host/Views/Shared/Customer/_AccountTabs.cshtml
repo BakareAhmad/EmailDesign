@@ -1,0 +1,23 @@
+@model string
+@using DeChimex.Host
+@{
+    // Horizontal, scrollable account sub-navigation (pill tabs). Model = active key.
+    var tabs = new (string Key, string Href, string Icon, string Label)[]
+    {
+        ("dashboard", "/portal", "home", "Overview"),
+        ("orders", "/portal/orders", "orders", "Orders"),
+        ("track", "/portal/orders/track", "search", "Track"),
+        ("wishlist", "/portal/wishlist", "heart", "Wishlist"),
+        ("addresses", "/portal/addresses", "pin", "Addresses"),
+        ("payments", "/portal/payments", "card", "Payments"),
+        ("invoices", "/portal/invoices", "receipt", "Invoices"),
+        ("profile", "/portal/profile", "user", "Profile"),
+    };
+}
+<nav class="ac-tabs" aria-label="Account sections">
+    @foreach (var t in tabs)
+    {
+        var on = string.Equals(t.Key, Model, StringComparison.OrdinalIgnoreCase);
+        <a href="@t.Href" class="@(on ? "is-active" : "")" aria-current="@(on ? "page" : null)">@Html.Raw(CustomerIcons.Svg(t.Icon, 16)) @t.Label</a>
+    }
+</nav>

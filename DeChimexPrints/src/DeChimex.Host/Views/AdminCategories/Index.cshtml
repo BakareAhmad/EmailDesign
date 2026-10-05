@@ -1,0 +1,67 @@
+@model IReadOnlyList<DeChimex.Contracts.Categories.CategoryDto>
+@{
+    Layout = "_AdminLayout";
+    var canManage = ViewBag.CanManage is true;
+}
+<div class="toolbar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <form method="get" class="flex items-center gap-2">
+        <input class="input" type="search" name="search" value="@ViewBag.Search" placeholder="Search categories..." style="width:280px;min-width:220px">
+        <select class="input" name="majorCategoryId" aria-label="Major category">
+            <option value="">All major categories</option>
+            @foreach (var m in (IReadOnlyList<DeChimex.Contracts.Categories.MajorCategoryDto>)ViewBag.MajorCategories) {
+                <option value="@m.Id" selected="@(ViewBag.MajorCategoryId as Guid? == m.Id)">@m.Name</option>
+            }
+        </select>
+        <label><input type="checkbox" name="unassigned" value="true" checked="@(ViewBag.Unassigned is true)" /> Unassigned only</label>
+        <button class="btn btn-secondary" type="submit">Search</button>
+        <a class="btn btn-secondary" href="/admin/major-categories">Major categories</a>
+    </form>
+    @if (canManage)
+    {
+        <a class="btn btn-primary" asp-action="Create">New category</a>
+    }
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead><tr><th>Name</th><th>Major category</th><th>Slug</th><th>Products</th><th>Order</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr>
+                    <td colspan="7" class="text-muted">
+                        @if (!string.IsNullOrWhiteSpace((string?)ViewBag.Search))
+                        {
+                            <span>No categories match "@ViewBag.Search".</span>
+                            <a asp-action="Index" style="margin-left:8px">Clear search</a>
+                        }
+                        else
+                        {
+                            <span>No categories found.</span>
+                        }
+                    </td>
+                </tr>
+            }
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td class="font-semibold">@c.Name</td>
+                    <td>@(c.MajorCategoryName ?? "Unassigned")</td><td class="text-muted">@c.Slug</td>
+                    <td>@c.ProductCount</td>
+                    <td>@c.DisplayOrder</td>
+                    <td>@if (c.IsActive) { <span class="badge badge-success">Active</span> } else { <span class="badge badge-neutral">Inactive</span> }</td>
+                    <td style="text-align:right">
+                        @if (canManage)
+                        {
+                            <a class="btn btn-ghost btn-sm" asp-action="Options" asp-route-id="@c.Id">Ordering options</a>
+                            <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@c.Id">Edit</a>
+                            <form asp-action="Delete" asp-route-id="@c.Id" method="post" style="display:inline" onsubmit="return confirm('Delete this category? Products cannot be in this category.');">
+                                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger)">Delete</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

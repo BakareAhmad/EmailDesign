@@ -1,0 +1,41 @@
+ok 01 - service worker active on mobile home
+ok 02 - manifest brand fields
+ok 03 - manifest shortcuts present
+ok 04 - all manifest icons resolve
+ok 05 - shortcut route /portal/orders/track exists
+ok 06 - DcxPwa hooks live (browser mode)
+shot 01-mobile-web.png
+ok 07 - iOS install card auto-shows with Add to Home Screen steps
+shot 02-install-card.png
+ok 08 - card dismissed
+ok 09 - dismissal remembered (no card after reload)
+ok 10 - install help covers Android Chrome menu path
+shot 03-android-install-help.png
+ok 11 - install help covers iPhone Safari Share path
+shot 04-ios-install-help.png
+ok 12 - standalone detected via display-mode
+ok 13 - no install card inside installed app
+shot 05-installed-pwa.png
+ok 14 - standalone navigation works
+shot 06-standalone-mode.png
+ok 15 - offline toast honest (no fake queueing)
+ok 16 - reconnect toast shown
+shot 08-reconnected-state.png
+ok 17 - offline navigation shows offline shell
+ok 18 - offline shell offers retry, no fake success
+shot 07-offline-state.png
+ok 19 - back online: real page served again
+ok 20 - customer note signed in
+ok 21 - notifications granted in test browser (CDP stand-in for the native prompt)
+ok 22 - contextual push row present in bell (not subscribed yet)
+shot 09-notification-permission.png
+ok 23 - row toggle subscribes this device (endpoint persisted server-side)
+ok 24 - notification displayed via service worker
+shot 10-push-notification.png
+ok 25 - notification click deep-links to its route (not homepage)
+shot 11-notification-deep-link.png
+ok 26 - update banner offers Refresh and Later
+shot 12-update-available.png
+ok 27 - 'Later' keeps the current version (never forced)
+RESULT: 27 passed, 0 failed
+PWA E2E PASSED - 27 checks, evidence in /tmp/fx-pwa-shots

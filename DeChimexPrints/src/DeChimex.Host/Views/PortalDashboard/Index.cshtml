@@ -1,0 +1,72 @@
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "My account";
+    ViewData["ActiveNav"] = "dashboard";
+    var profile = ViewBag.Profile as DeChimex.Contracts.Customers.CustomerDto;
+    var orders = ViewBag.Orders as IReadOnlyList<DeChimex.Contracts.Orders.OrderSummaryDto> ?? Array.Empty<DeChimex.Contracts.Orders.OrderSummaryDto>();
+    var wishlistCount = (int)(ViewBag.WishlistCount ?? 0);
+    var active = orders.Where(o => !CustomerPresentation.IsClosed(o.Status) && o.Status is not ("Completed" or "Delivered")).ToList();
+    var needsAction = orders.Where(o => CustomerPresentation.ActionRequired(o.Status)).ToList();
+    var name = profile?.FullName ?? "there";
+    var firstName = name.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? name;
+}
+
+<div class="cs-wrap">
+    <partial name="Customer/_AccountTabs" model="@("dashboard")" />
+
+    <div class="ac-hero">
+        <span class="cs-avatar">@CustomerPresentation.Initials(profile?.FullName)</span>
+        <div>
+            <h1>Hi, @firstName</h1>
+            <p>@(profile?.Email ?? "")</p>
+        </div>
+    </div>
+
+    <div class="ac-stats">
+        <a class="ac-stat" href="/portal/orders"><b>@orders.Count</b><span>Orders</span></a>
+        <a class="ac-stat" href="/portal/orders"><b>@active.Count</b><span>In progress</span></a>
+        <a class="ac-stat" href="/portal/wishlist"><b>@wishlistCount</b><span>Saved</span></a>
+    </div>
+
+    @if (needsAction.Count > 0)
+    {
+        <section class="cs-section" aria-labelledby="actHeading">
+            <div class="cs-section-head"><h2 id="actHeading">Needs your attention</h2></div>
+            <div class="od-list">
+                @foreach (var o in needsAction.Take(3)) { <partial name="Customer/_OrderCard" model="o" /> }
+            </div>
+        </section>
+    }
+
+    <div class="ac-grid">
+        <section class="cs-section" aria-labelledby="recentHeading">
+            <div class="cs-section-head"><h2 id="recentHeading">Recent orders</h2>@if (orders.Count > 0) { <a class="cs-link cs-small" href="/portal/orders">See all</a> }</div>
+            @if (orders.Count == 0)
+            {
+                <div class="cs-card">
+                    @{ var es = new EmptyState(EmptyIcons.Cart, "No orders yet", "Orders you place will appear here with live status updates.", CtaHref: "/portal/shop", CtaText: "Start shopping", Compact: true); }
+                    <partial name="_EmptyState" model="es" />
+                </div>
+            }
+            else
+            {
+                <div class="od-list">
+                    @foreach (var o in orders.Take(4)) { <partial name="Customer/_OrderCard" model="o" /> }
+                </div>
+            }
+        </section>
+
+        <section class="cs-section" aria-labelledby="linksHeading">
+            <div class="cs-section-head"><h2 id="linksHeading">Your account</h2></div>
+            <div class="ac-links">
+                <a href="/portal/orders/track">@Html.Raw(CustomerIcons.Svg("search", 22)) <span>Track an order<small>Check progress by order number</small></span> <span class="ac-chev">@Html.Raw(CustomerIcons.Svg("chev-right", 18))</span></a>
+                <a href="/portal/wishlist">@Html.Raw(CustomerIcons.Svg("heart", 22)) <span>Wishlist<small>@wishlistCount saved item@(wishlistCount == 1 ? "" : "s")</small></span> <span class="ac-chev">@Html.Raw(CustomerIcons.Svg("chev-right", 18))</span></a>
+                <a href="/portal/addresses">@Html.Raw(CustomerIcons.Svg("pin", 22)) <span>Addresses<small>Delivery addresses for faster checkout</small></span> <span class="ac-chev">@Html.Raw(CustomerIcons.Svg("chev-right", 18))</span></a>
+                <a href="/portal/payments">@Html.Raw(CustomerIcons.Svg("card", 22)) <span>Payments<small>History and pending payments</small></span> <span class="ac-chev">@Html.Raw(CustomerIcons.Svg("chev-right", 18))</span></a>
+                <a href="/portal/invoices">@Html.Raw(CustomerIcons.Svg("receipt", 22)) <span>Invoices &amp; receipts<small>Download documents</small></span> <span class="ac-chev">@Html.Raw(CustomerIcons.Svg("chev-right", 18))</span></a>
+                <a href="/portal/profile">@Html.Raw(CustomerIcons.Svg("user", 22)) <span>Profile<small>Name, phone and password</small></span> <span class="ac-chev">@Html.Raw(CustomerIcons.Svg("chev-right", 18))</span></a>
+            </div>
+        </section>
+    </div>
+</div>

@@ -1,0 +1,37 @@
+@model DatabaseInfo
+<div class="dv-note" style="margin-bottom:12px">Read-only view. There are no destructive operations here: no SQL console, no migration runner, no table editing. Row counts are exact and cached briefly with the rest of this page.</div>
+<div class="dv-grid dv-g4">
+    <div class="dv-card"><div class="dv-muted dv-small">Connectivity</div>@DevUi.Status(Model.CanConnect ? "Healthy" : "Unavailable")@if (Model.Error is not null) { <div class="dv-small">@Model.Error</div> }</div>
+    <div class="dv-card"><div class="dv-kpi">@DevUi.Ms(Model.LatencyMs)<small>Probe latency</small></div></div>
+    <div class="dv-card"><div class="dv-kpi">@Model.Migrations.Count(m => m.Applied) / @Model.Migrations.Count<small>Migrations applied</small></div></div>
+    <div class="dv-card"><div class="dv-kpi" style="@(Model.PendingCount > 0 ? "color:#fcd34d" : "")">@Model.PendingCount<small>Pending migrations</small></div></div>
+</div>
+<div class="dv-grid dv-g2" style="margin-top:12px">
+    <section class="dv-card">
+        <h2>Provider</h2>
+        <dl class="dv-kv">
+            <dt>Provider</dt><dd class="dv-mono">@Model.Provider</dd>
+            <dt>Relational</dt><dd>@(Model.Relational ? "Yes" : "No (in-memory)")</dd>
+            <dt>Last applied</dt><dd class="dv-mono">@(Model.LastApplied ?? "none")</dd>
+            <dt>Connection string</dt><dd class="dv-muted">never displayed</dd>
+        </dl>
+        <p class="dv-small dv-muted">@Model.SchemaNote</p>
+        <h3>Row counts (key tables)</h3>
+        <div class="dv-table-wrap"><table class="dv-table"><tbody>
+        @foreach (var t in Model.TableRows) { <tr><td class="dv-mono dv-small">@t.Name</td><td class="num">@DevUi.Num(t.Count)</td></tr> }
+        </tbody></table></div>
+    </section>
+    <section class="dv-card">
+        <h2>Migrations</h2>
+        <div class="dv-table-wrap" style="max-height:560px;overflow:auto"><table class="dv-table">
+            <thead><tr><th>Migration</th><th>State</th></tr></thead>
+            <tbody>
+            @foreach (var m in Model.Migrations)
+            {
+                <tr><td class="dv-mono dv-small">@m.Id</td><td>@(m.Applied ? DevUi.Status("Applied") : DevUi.Status("Pending"))</td></tr>
+            }
+            </tbody>
+        </table></div>
+    </section>
+</div>
+<p class="dv-small dv-muted" style="margin-top:8px"><a href="/dev/logs?category=Database">Database events (slow commands, failures) →</a></p>

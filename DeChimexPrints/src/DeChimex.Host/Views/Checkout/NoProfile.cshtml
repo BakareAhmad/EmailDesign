@@ -1,0 +1,17 @@
+@model string
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Checkout";
+    ViewData["ActiveNav"] = "cart";
+}
+<div class="cs-wrap cs-wrap-sm">
+    <div class="cs-card" style="margin-top:20px">
+        <div class="pay-result">
+            <div class="pay-ic is-warn">@Html.Raw(CustomerIcons.Svg("alert", 34, null, 2.2))</div>
+            <h1>Checkout unavailable</h1>
+            <p>@Model</p>
+            <div class="pay-actions"><a href="/contact" class="btn btn-primary btn-lg">Contact support</a><a href="/" class="btn btn-outline btn-lg">Back to store</a></div>
+        </div>
+    </div>
+</div>

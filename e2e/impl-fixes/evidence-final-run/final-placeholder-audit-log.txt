@@ -1,0 +1,24 @@
+ok 01 - track page is customer-only (redirects anonymous visitors to sign-in)
+ok 02 - register email placeholder
+ok 03 - register password placeholder states the FULL policy (8 chars, A-Z, a-z, 0-9)
+ok 04 - register phone placeholder matches the accepted +… format
+shot 02-register-password-policy.png
+ok 05 - login email placeholder
+ok 06 - contact email example standardised to you@example.com
+shot 03-contact-form.png
+ok 07 - admin orders search placeholder no longer promises a customer search (backend matches the order number only)
+shot 04-admin-orders-search.png
+ok 08 - admin invoices search placeholder lists everything it matches
+ok 09 - activity order-number filter shows the real format
+ok 10 - activity actor filter unchanged (username or the literal System actor)
+ok 11 - activity type filter keeps the real slug example
+ok 12 - audit action filter examples match the stored lowercase values
+ok 13 - procurement linked-order field teaches the business order-number format (GUID input replaced by the fix journey)
+ok 14 - staff-create password shows the same policy as customer registration
+ok 15 - staff username example stays a valid lowercase username
+ok 16 - customer registered and signed in
+ok 17 - signed-in track page shows the real order-number example
+shot 01-track-order-number.png
+ok 18 - dev maintenance payment-reference placeholder uses the real PAY-… format
+shot 05-dev-maintenance-payment-reference.png
+RESULT: 18 passed, 0 failed

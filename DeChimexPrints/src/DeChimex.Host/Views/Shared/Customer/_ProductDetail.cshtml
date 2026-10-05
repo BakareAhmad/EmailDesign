@@ -1,0 +1,285 @@
+@model DeChimex.Contracts.Products.ProductDto
+@using DeChimex.Host
+@{
+    // Shared product page for /products/{id} (public) and /portal/shop/{id} (customer).
+    // Ordering rule (unchanged): UseCustomOrder = IsCustomizable || category has options.
+    var p = Model;
+    var shopBase = ViewData["ShopBase"] as string ?? "/products";
+    var isCustomer = ViewData["IsCustomer"] is true;
+    var useCustom = ViewBag.UseCustomOrder is true;
+    var inWishlist = ViewBag.InWishlist is true;
+    var related = (ViewBag.Related as IReadOnlyList<DeChimex.Contracts.Products.ProductSummaryDto> ?? new List<DeChimex.Contracts.Products.ProductSummaryDto>()).Where(x => x.Id != p.Id).Take(4).ToList();
+    var reviews = ViewBag.Reviews as IReadOnlyList<DeChimex.Contracts.Reviews.ReviewDto> ?? new List<DeChimex.Contracts.Reviews.ReviewDto>();
+    var canReview = ViewBag.CanReview is true;
+    var hasReviewed = ViewBag.HasReviewed is true;
+    var signedIn = ViewBag.SignedIn is true || isCustomer;
+    var avg = reviews.Count > 0 ? reviews.Average(r => (double)r.Rating) : 0.0;
+    var images = (p.Images ?? new List<DeChimex.Contracts.Products.ProductImageDto>()).OrderByDescending(i => i.IsPrimary).ThenBy(i => i.DisplayOrder).ToList();
+    var primary = images.FirstOrDefault();
+    var biz = ViewBag.Business as Dictionary<string, string> ?? new Dictionary<string, string>();
+    string Get(string k, string fb = "") => biz.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fb;
+    var waUrl = DeChimex.Shared.WhatsApp.BuildUrl(Get("business.whatsapp")) ?? DeChimex.Shared.WhatsApp.BuildUrl(Get("business.phone").Split(',')[0]) ?? "https://wa.me/2349062051934";
+    var publicUrl = $"{Context.Request.Scheme}://{Context.Request.Host}/products/{p.Id}";
+    var waAsk = waUrl + (waUrl.Contains('?') ? "&" : "?") + "text=" + Uri.EscapeDataString($"Hello DE-CHIMEX, I have a question about: {p.Name} ({publicUrl})");
+    var waShare = "https://wa.me/?text=" + Uri.EscapeDataString($"{p.Name} ({CustomerPresentation.Money(p.SellingPrice)}) at DE-CHIMEX PRINT HUB: {publicUrl}");
+    var orderHref = $"/portal/shop/{p.Id}";
+    var returnUrl = Context.Request.Path.ToString();
+    string Stars(double v) { var s = ""; for (var i = 1; i <= 5; i++) s += v >= i - 0.25 ? "★" : "☆"; return s; }
+    var canBuy = !useCustom && !p.IsOutOfStock;
+    ViewData["ShopBase"] = shopBase;
+    ViewData["IsCustomer"] = isCustomer;
+}
+
+<div class="cs-wrap">
+    <div style="padding-top:12px"><a class="cs-back" href="@shopBase@(p.CategoryId != Guid.Empty ? "?categoryId=" + p.CategoryId : "")">@Html.Raw(CustomerIcons.Svg("arrow-left", 16)) @p.CategoryName</a></div>
+
+    <div class="pd">
+        <div class="pd-gallery" id="pdGallery">
+            <div class="pd-stage">
+                @if (primary is not null)
+                {
+                    <img id="pdStageImg" src="@primary.Url" alt="@(primary.AltText ?? p.Name)" width="800" height="800" decoding="async" fetchpriority="high">
+                    <button type="button" class="pd-zoom" id="pdZoom" aria-label="Zoom image">@Html.Raw(CustomerIcons.Svg("zoom", 20))</button>
+                    @if (images.Count > 1)
+                    {
+                        <div class="pd-dots" id="pdDots" aria-hidden="true">
+                            @for (var i = 0; i < images.Count; i++) { <i class="@(i == 0 ? "is-on" : "")"></i> }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <span class="pc-noimg">@Html.Raw(CustomerIcons.Svg("image", 56, null, 1.4))<span style="margin-top:6px">No image yet</span></span>
+                }
+            </div>
+            @if (images.Count > 1)
+            {
+                <div class="pd-thumbs" role="tablist" aria-label="Product images">
+                    @for (var i = 0; i < images.Count; i++)
+                    {
+                        var im = images[i];
+                        <button type="button" class="pd-thumb @(i == 0 ? "is-on" : "")" data-src="@im.Url" data-alt="@(im.AltText ?? p.Name)" role="tab" aria-selected="@(i == 0 ? "true" : "false")" aria-label="Image @(i + 1) of @images.Count">
+                            <img src="@im.Url" alt="" loading="lazy" width="64" height="64">
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="pd-info">
+            <div>
+                <div class="pd-cat">@p.CategoryName</div>
+                <h1 class="pd-title">@p.Name</h1>
+                @if (reviews.Count > 0)
+                {
+                    <a class="pd-rating" href="#reviews" style="margin-top:6px"><span class="pd-stars" aria-hidden="true">@Stars(avg)</span> <span><strong>@avg.ToString("0.#")</strong> · @reviews.Count review@(reviews.Count == 1 ? "" : "s")</span></a>
+                }
+            </div>
+
+            <div class="pd-price">
+                @if (useCustom) { <span class="cs-muted" style="font-size:14px;font-weight:600">From </span> }@CustomerPresentation.Money(p.SellingPrice)
+                <small>@(useCustom ? "Final price confirmed after we review your request" : "Price includes production · delivery or pickup chosen at checkout")</small>
+            </div>
+
+            @if (!useCustom)
+            {
+                if (p.IsOutOfStock) { <span class="pd-avail is-out">Out of stock</span> }
+                else if (p.IsLowStock) { <span class="pd-avail is-low">Only @p.AvailableQuantity left</span> }
+                else { <span class="pd-avail is-ok">In stock · ready to ship</span> }
+            }
+
+            @if (!string.IsNullOrWhiteSpace(p.Description))
+            {
+                <p class="pd-desc">@p.Description</p>
+            }
+
+            @* ---------------- Buy box ---------------- *@
+            <div class="pd-buy">
+                @if (useCustom)
+                {
+                    <ol class="pd-custom-steps">
+                        <li><div><strong>Tell us what you need</strong>Quantity, colours, sizes, artwork. All in one short form.</div></li>
+                        <li><div><strong>We confirm the details &amp; price</strong>Chat with our team, approve the design preview.</div></li>
+                        <li><div><strong>Pay securely, we produce &amp; deliver</strong>Track everything from your orders page.</div></li>
+                    </ol>
+                    @if (isCustomer)
+                    {
+                        <a class="btn btn-primary btn-lg" href="@orderHref/order" id="pdPrimaryCta">@Html.Raw(CustomerIcons.Svg("brush", 18)) Order / Customize</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary btn-lg" href="@orderHref" id="pdPrimaryCta">@Html.Raw(CustomerIcons.Svg("brush", 18)) Order / Customize</a>
+                        <div class="cs-xs cs-muted" style="text-align:center">You'll be asked to sign in or create a free account first.</div>
+                    }
+                }
+                else if (isCustomer)
+                {
+                    <form asp-controller="PortalShop" asp-action="AddToCart" asp-route-id="@p.Id" method="post" id="pdBuyForm">
+                        <div class="cs-row-between" style="margin-bottom:12px">
+                            <label for="pdQty" class="cs-strong">Quantity</label>
+                            <div class="pd-qty">
+                                <button type="button" data-qty="-" aria-label="Decrease quantity">−</button>
+                                <input id="pdQty" type="number" name="quantity" value="1" min="1" max="@(p.IsOutOfStock ? 1 : 10000)" inputmode="numeric" aria-label="Quantity">
+                                <button type="button" data-qty="+" aria-label="Increase quantity">+</button>
+                            </div>
+                        </div>
+                        <div class="pd-actions">
+                            <button type="submit" class="btn btn-outline btn-lg" id="pdAddBtn" disabled="@(!canBuy)">@Html.Raw(CustomerIcons.Svg("cart", 18)) Add to cart</button>
+                            <button type="submit" class="btn btn-primary btn-lg" name="buyNow" value="true" id="pdPrimaryCta" disabled="@(!canBuy)">Buy now</button>
+                        </div>
+                    </form>
+                    @if (p.IsOutOfStock)
+                    {
+                        <div class="cs-callout is-warn">@Html.Raw(CustomerIcons.Svg("info", 18))<div>This item is out of stock right now. <a class="cs-link" href="@waAsk" target="_blank" rel="noopener">Ask us when it's back</a>.</div></div>
+                    }
+                    else
+                    {
+                        <div class="cs-xs cs-muted" style="text-align:center">No quote or design approval needed. Check out and pay online in a minute.</div>
+                    }
+                }
+                else
+                {
+                    <div class="pd-actions">
+                        <a class="btn btn-outline btn-lg" href="@orderHref">@Html.Raw(CustomerIcons.Svg("cart", 18)) Add to cart</a>
+                        <a class="btn btn-primary btn-lg" href="@orderHref" id="pdPrimaryCta">Buy now</a>
+                    </div>
+                    <div class="cs-xs cs-muted" style="text-align:center">No quote or design approval needed. Sign in (free) to check out and pay online.</div>
+                }
+
+                <div class="cs-row-between">
+                    @if (isCustomer)
+                    {
+                        <form asp-controller="PortalWishlist" asp-action="@(inWishlist ? "Remove" : "Add")" asp-route-productId="@p.Id" method="post">
+                            <input type="hidden" name="returnUrl" value="@returnUrl">
+                            <button type="submit" class="pd-wish @(inWishlist ? "is-saved" : "")" aria-pressed="@(inWishlist ? "true" : "false")" title="@(inWishlist ? "Remove from wishlist" : "Add to wishlist")">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="@(inWishlist ? "currentColor" : "none")" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+                                @(inWishlist ? "Saved" : "Add to wishlist")
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="pd-wish" href="/Account/Login?returnUrl=@Uri.EscapeDataString(orderHref)">@Html.Raw(CustomerIcons.Svg("heart", 20)) Sign in to save</a>
+                    }
+                    <div class="pd-share">
+                        <button type="button" class="btn btn-ghost btn-sm" data-copy="@publicUrl" id="pdCopy">@Html.Raw(CustomerIcons.Svg("share", 16)) Copy link</button>
+                        <a class="btn btn-ghost btn-sm" href="@waShare" target="_blank" rel="noopener">@Html.Raw(CustomerIcons.Svg("whatsapp", 16)) Share</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pd-trust">
+                <ul>
+                    <li>@Html.Raw(CustomerIcons.Svg("shield", 18)) Secure online payment (card, transfer, USSD) via Paystack</li>
+                    <li>@Html.Raw(CustomerIcons.Svg("truck", 18)) Delivery nationwide or free pickup at our Lagos point</li>
+                    <li>@Html.Raw(CustomerIcons.Svg("chat", 18)) <a class="cs-link" href="@waAsk" target="_blank" rel="noopener">Questions? Chat with us on WhatsApp</a></li>
+                </ul>
+            </div>
+            <div class="pd-meta"><span>SKU @p.Sku</span>@if (p.IsCustomizable) { <span>Customisable</span> }</div>
+        </div>
+    </div>
+</div>
+
+@* ---------------- Reviews ---------------- *@
+<section class="pd-reviews" id="reviews" aria-labelledby="reviewsHeading">
+    <div class="cs-wrap">
+        <div class="cs-section-head">
+            <div>
+                <h2 id="reviewsHeading">Reviews</h2>
+                @if (reviews.Count > 0) { <p><span class="pd-stars" aria-hidden="true">@Stars(avg)</span> <strong>@avg.ToString("0.#")</strong> from @reviews.Count verified customer@(reviews.Count == 1 ? "" : "s")</p> }
+                else { <p>No reviews yet. Verified buyers can be the first.</p> }
+            </div>
+        </div>
+        <div class="ac-grid">
+            <div>
+                @foreach (var r in reviews)
+                {
+                    <article class="pd-review">
+                        <div class="pd-review-head">
+                            <span class="cs-avatar">@CustomerPresentation.Initials(r.CustomerName)</span>
+                            <div>
+                                <div class="pd-review-name">@r.CustomerName <span class="cs-xs cs-muted" style="font-weight:500">· Verified purchase</span></div>
+                                <div class="pd-review-when"><span class="pd-stars" aria-label="@r.Rating out of 5">@Stars(r.Rating)</span> @r.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy")</div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(r.Title)) { <div class="cs-strong" style="margin-bottom:2px">@r.Title</div> }
+                        @if (!string.IsNullOrWhiteSpace(r.Comment)) { <p>@r.Comment</p> }
+                    </article>
+                }
+            </div>
+            <div class="cs-card cs-card-pad" id="writeReview">
+                <h3 class="cs-card-title">Write a review</h3>
+                @if (hasReviewed)
+                {
+                    <p class="cs-card-sub">You've already reviewed this product. Thank you!</p>
+                }
+                else if (!signedIn)
+                {
+                    <p class="cs-card-sub"><a class="cs-link" href="/Account/Login?returnUrl=@Uri.EscapeDataString("/products/" + p.Id)">Sign in</a> to share your experience with this product.</p>
+                }
+                else if (!canReview)
+                {
+                    <p class="cs-card-sub">Only customers who have purchased this product can review it. Once your order is paid, you can share your experience here.</p>
+                }
+                else
+                {
+                    <form asp-controller="StoreProducts" asp-action="AddReview" asp-route-id="@p.Id" method="post">
+                        <div class="field">
+                            <span class="label">Your rating <span class="req">*</span></span>
+                            <div class="pd-rate" role="radiogroup" aria-label="Rating">
+                                @for (var i = 5; i >= 1; i--)
+                                {
+                                    <input type="radio" id="rate@(i)" name="Rating" value="@i" checked="@(i == 5)"><label for="rate@(i)" title="@i star@(i == 1 ? "" : "s")">★</label>
+                                }
+                            </div>
+                        </div>
+                        <div class="field"><label class="label" for="rvTitle">Title</label><input class="input" id="rvTitle" name="Title" maxlength="200" placeholder="Sum up your experience"></div>
+                        <div class="field"><label class="label" for="rvComment">Review</label><textarea class="input" id="rvComment" name="Comment" rows="3" maxlength="4000" placeholder="What did you like? How was the quality?"></textarea></div>
+                        <button type="submit" class="btn btn-primary btn-block">Submit review</button>
+                        <p class="cs-xs cs-muted" style="margin-top:10px">Reviews are checked by our team before they appear publicly.</p>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (related.Count > 0)
+{
+    <section class="cs-section" style="padding-top:0" aria-labelledby="relatedHeading">
+        <div class="cs-wrap">
+            <div class="cs-section-head"><h2 id="relatedHeading">You may also like</h2><a class="cs-link" href="@shopBase">Shop all</a></div>
+            <div class="pgrid-scroll" role="list">
+                @foreach (var r in related)
+                {
+                    <partial name="Customer/_ProductCard" model="r" view-data="ViewData" />
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@* Sticky mobile CTA (mirrors the buy box) *@
+<div class="pd-sticky" id="pdSticky">
+    <div>
+        <div class="pd-sticky-price">@(useCustom ? "From " : "")@CustomerPresentation.Money(p.SellingPrice)</div>
+        <div class="pd-sticky-sub">@(useCustom ? "Custom quote" : p.IsOutOfStock ? "Out of stock" : "In stock")</div>
+    </div>
+    @if (useCustom)
+    {
+        <a class="btn btn-primary" href="@(isCustomer ? orderHref + "/order" : orderHref)">Order / Customize</a>
+    }
+    else if (isCustomer)
+    {
+        <button type="submit" class="btn btn-primary" form="pdBuyForm" name="buyNow" value="true" disabled="@(!canBuy)">@(p.IsOutOfStock ? "Out of stock" : "Buy now")</button>
+    }
+    else
+    {
+        <a class="btn btn-primary" href="@orderHref">Buy now</a>
+    }
+</div>
+
+<div class="pd-lightbox" id="pdLightbox" role="dialog" aria-modal="true" aria-label="Image preview">
+    <button type="button" id="pdLightboxClose" aria-label="Close">×</button>
+    <img id="pdLightboxImg" src="" alt="@p.Name">
+</div>

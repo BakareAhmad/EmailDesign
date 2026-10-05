@@ -1,0 +1,23 @@
+@{
+    Layout = "_AdminLayout";
+    var reports = new (string title, string desc, string url)[]
+    {
+        ("Sales", "Revenue and orders by period", Url.Action("Sales", "AdminReports")!),
+        ("Inventory", "Stock in, out and adjustments", Url.Action("Inventory", "AdminReports")!),
+        ("Low stock", "Products at or below threshold", Url.Action("LowStock", "AdminReports")!),
+        ("Customers", "Orders and spend per customer", Url.Action("Customers", "AdminReports")!),
+        ("Products", "Units sold and revenue per product", Url.Action("Products", "AdminReports")!),
+        ("Services", "Bookings and revenue per service", Url.Action("Services", "AdminReports")!),
+        ("Staff activity", "Actions per staff member", Url.Action("Staff", "AdminReports")!),
+        ("Payments", "Count and amount by status", Url.Action("Payments", "AdminReports")!)
+    };
+}
+<div class="g" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+    @foreach (var r in reports)
+    {
+        <a href="@r.url" class="card card-body" style="text-decoration:none;color:inherit">
+            <div class="font-semibold">@r.title</div>
+            <div class="text-sm text-muted mt-1">@r.desc</div>
+        </a>
+    }
+</div>

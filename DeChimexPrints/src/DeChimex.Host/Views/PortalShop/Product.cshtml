@@ -1,0 +1,10 @@
+@model DeChimex.Contracts.Products.ProductDto
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = Model.Name;
+    ViewData["ActiveNav"] = "shop";
+    ViewData["ShopBase"] = "/portal/shop";
+    ViewData["IsCustomer"] = true;
+}
+<partial name="Customer/_ProductDetail" model="Model" view-data="ViewData" />
+@section Scripts { <script src="~/js/customer-product.js" asp-append-version="true" defer></script> }

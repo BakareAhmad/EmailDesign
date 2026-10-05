@@ -1,0 +1,117 @@
+@model DeChimex.Contracts.Orders.OrderDto
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = $"Order {Model.OrderNumber}";
+    ViewData["ActiveNav"] = "orders";
+    var status = Model.Status;
+    var canPay = status is "PendingPayment" or "Draft";
+    var isCustom = CustomerPresentation.IsCustomStatus(status) || Model.Kind == "Custom";
+    var closed = CustomerPresentation.IsClosed(status);
+    var step = CustomerPresentation.TrackStep(status);
+    var labels = CustomerPresentation.TrackLabels;
+}
+
+<div class="cs-wrap cs-wrap-md">
+    <a class="cs-back" href="/portal/orders" style="margin-top:12px">@Html.Raw(CustomerIcons.Svg("arrow-left", 18)) My orders</a>
+
+    <div class="od-hero">
+        <div class="od-hero-top">
+            <div>
+                <span class="od-kind">@(isCustom ? "Custom order" : "Order")</span>
+                <h1>@Model.OrderNumber</h1>
+                <span class="od-when">Placed @Model.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy, HH:mm")</span>
+            </div>
+            <span class="cs-status @CustomerPresentation.StatusTone(status)">@CustomerPresentation.StatusLabel(status)</span>
+        </div>
+
+        @if (canPay)
+        {
+            <div class="cs-callout is-warn">
+                @Html.Raw(CustomerIcons.Svg("card", 22))
+                <div>
+                    <strong>Payment required</strong>
+                    Complete payment to start production. Order total @CustomerPresentation.Money(Model.GrandTotal). A small payment service fee is added at checkout.
+                    <form asp-controller="Checkout" asp-action="Pay" asp-route-orderId="@Model.Id" method="post" style="margin-top:10px">
+                        <button type="submit" class="btn btn-primary">Pay with Paystack</button>
+                    </form>
+                </div>
+            </div>
+        }
+        else if (isCustom && !closed)
+        {
+            <div class="cs-callout @(CustomerPresentation.ActionRequired(status) ? "is-warn" : "")">
+                @Html.Raw(CustomerIcons.Svg("chat", 22))
+                <div>
+                    <strong>@CustomerPresentation.NextStep(status)</strong>
+                    Chat with your sales specialist, share files and approve designs in the order conversation.
+                    <div style="margin-top:10px"><a class="btn btn-primary" href="/portal/orders/@Model.Id/workspace">Open conversation</a></div>
+                </div>
+            </div>
+        }
+        else if (!closed)
+        {
+            <p class="od-next">@CustomerPresentation.NextStep(status)</p>
+        }
+    </div>
+
+    <section class="cs-card cs-card-pad" style="margin-top:16px" aria-labelledby="progressHeading">
+        <h2 id="progressHeading" class="cs-card-title">Progress</h2>
+        @if (closed)
+        {
+            <p class="cs-card-sub">This order was @status.ToLowerInvariant(). If you have questions, <a class="cs-link" href="/contact">contact us</a>.</p>
+        }
+        else
+        {
+            <ol class="od-track">
+                @for (var i = 1; i <= 4; i++)
+                {
+                    <li class="@(step > i ? "is-done" : step == i ? "is-on" : "")">@labels[i - 1]</li>
+                }
+            </ol>
+        }
+    </section>
+
+    <div class="od-layout" style="margin-top:16px">
+        <section class="cs-card cs-card-pad" aria-labelledby="itemsHeading">
+            <h2 id="itemsHeading" class="cs-card-title">Items</h2>
+            @if (Model.Items.Count == 0 && Model.Services.Count == 0)
+            {
+                <p class="cs-card-sub">Items will be confirmed with you during the order conversation.</p>
+            }
+            else
+            {
+                <div class="od-items" style="margin-top:6px">
+                    @foreach (var i in Model.Items)
+                    {
+                        <div class="od-item"><div><div class="od-item-name">@i.ProductName</div><div class="od-item-meta">Qty @i.Quantity × @CustomerPresentation.Money(i.UnitPrice)</div></div><div class="od-item-total">@CustomerPresentation.Money(i.LineTotal)</div></div>
+                    }
+                    @foreach (var s in Model.Services)
+                    {
+                        <div class="od-item"><div><div class="od-item-name">@s.ServiceName</div><div class="od-item-meta">Service · Qty @s.Quantity</div></div><div class="od-item-total">@CustomerPresentation.Money(s.LineTotal)</div></div>
+                    }
+                </div>
+            }
+        </section>
+
+        <aside class="od-side">
+            <section class="cs-card cs-card-pad" aria-labelledby="totalsHeading">
+                <h2 id="totalsHeading" class="cs-card-title">Summary</h2>
+                <div class="ck-sum-row" style="margin-top:6px"><span>Subtotal</span><span>@CustomerPresentation.Money(Model.Subtotal)</span></div>
+                <div class="ck-sum-row"><span>Delivery</span><span>@(Model.DeliveryFee > 0 ? CustomerPresentation.Money(Model.DeliveryFee) : "Free (pickup)")</span></div>
+                @if (Model.Discount > 0) { <div class="ck-sum-row"><span>Discount</span><span>−@CustomerPresentation.Money(Model.Discount)</span></div> }
+                @if (Model.Tax > 0) { <div class="ck-sum-row"><span>Tax</span><span>@CustomerPresentation.Money(Model.Tax)</span></div> }
+                <div class="ck-sum-row is-total"><span>Total</span><span>@CustomerPresentation.Money(Model.GrandTotal)</span></div>
+                @if (Model.PaidAtUtc is not null)
+                {
+                    <div class="ck-secure" style="justify-content:flex-start;margin-top:10px">@Html.Raw(CustomerIcons.Svg("check-circle", 14)) Paid @Model.PaidAtUtc.Value.ToLocalTime().ToString("d MMM yyyy")</div>
+                }
+            </section>
+            <div class="cs-card cs-card-pad">
+                <div class="cs-card-title">Need help with this order?</div>
+                <p class="cs-card-sub">Our team is happy to help.</p>
+                <a class="btn btn-outline btn-block" href="/contact" style="margin-top:8px">Contact us</a>
+            </div>
+        </aside>
+    </div>
+</div>

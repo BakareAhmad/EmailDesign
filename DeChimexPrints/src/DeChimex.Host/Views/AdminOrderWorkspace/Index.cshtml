@@ -1,0 +1,543 @@
+@model DeChimex.Contracts.Orders.OrderWorkspaceDto
+@using DeChimex.Domain.Enums
+@{
+    Layout = "_AdminLayout";
+    var canFinalize = ViewBag.CanFinalize is true;
+    var payment = ViewBag.Payment as DeChimex.Domain.Entities.Payment;
+    var invoice = ViewBag.InvoiceDocument as DeChimex.Contracts.Invoices.InvoiceDocumentDto;
+    var receipt = ViewBag.ReceiptDocument as DeChimex.Contracts.Invoices.ReceiptDocumentDto;
+    var latestEvent = Model.Timeline.Count > 0 ? Model.Timeline[0] : null;
+    var latestProofVersion = Model.Proofs.Count > 0 ? Model.Proofs.Max(p => p.Version) : 0;
+    string RenderValue(string type, string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return "none";
+        if (type is "SingleChoice" or "MultipleChoice" or "FileUpload")
+        {
+            try
+            {
+                var arr = System.Text.Json.JsonSerializer.Deserialize<string[]>(value);
+                if (arr is not null && arr.Length > 0)
+                    return type == "FileUpload"
+                        ? string.Join(" · ", arr.Select(u => $"<a href=\"{u}\" target=\"_blank\" rel=\"noopener\">view file</a>"))
+                        : string.Join(", ", arr);
+            }
+            catch { /* fall through */ }
+        }
+        return System.Net.WebUtility.HtmlEncode(value);
+    }
+    
+    // Design Review helper functions
+    string GetDesignReviewStatusBadge(DesignReviewStatus status)
+    {
+        return status switch
+        {
+            DesignReviewStatus.Approved => "badge-success",
+            DesignReviewStatus.Rejected => "badge-danger",
+            _ => "badge-warning"
+        };
+    }
+    
+    string GetFileIcon(string fileName)
+    {
+        var ext = System.IO.Path.GetExtension(fileName).ToLowerInvariant();
+        return ext switch
+        {
+            ".png" or ".jpg" or ".jpeg" or ".webp" or ".gif" or ".tif" or ".tiff" => "🖼️",
+            ".pdf" => "📄",
+            ".svg" => "📐",
+            ".psd" or ".ai" or ".eps" => "🎨",
+            ".zip" => "🗄️",
+            _ => "📎"
+        };
+    }
+    
+    string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{(bytes / 1024):N0} KB";
+        if (bytes < 1024 * 1024 * 1024) return $"{(bytes / (1024.0 * 1024.0)):N1} MB";
+        return $"{(bytes / (1024.0 * 1024.0 * 1024.0)):N2} GB";
+    }
+}
+<div class="flex items-center gap-3" style="justify-content:space-between;flex-wrap:wrap">
+    <div>
+        <h2 style="margin:0">@Model.OrderNumber</h2>
+        <div class="text-muted" style="font-size:13px">@Model.CustomerName · @Model.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy")</div>
+    </div>
+    <div class="flex items-center gap-2">
+        <span class="badge badge-neutral" data-ws-status>@Model.Status</span>
+        <a class="btn btn-outline btn-sm" asp-controller="AdminOrders" asp-action="Index" aria-label="Back to orders">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            Orders
+        </a>
+    </div>
+</div>
+
+<div class="grid-2" style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-top:16px;align-items:start">
+    <div class="stack" style="display:flex;flex-direction:column;gap:16px">
+        @* ---------------- Chat (shared partial: Views/Shared/_WorkspaceChat.cshtml) ---------------- *@
+        @{ ViewData["ChatMyRole"] = "staff"; }
+        <partial name="_WorkspaceChat" model="Model" />
+
+        @* ---------------- Requirements (structured request) ---------------- *@
+        <div class="card">
+            <div class="card-head"><h3 style="margin:0">Customer requirements</h3></div>
+            <div class="card-body">
+                @if (Model.Responses.Count == 0)
+                {
+                    <div class="text-muted">No option responses (this product has no ordering options).</div>
+                }
+                else
+                {
+                    <table class="table">
+                        <tbody>
+                            @foreach (var r in Model.Responses)
+                            {
+                                <tr>
+                                    <td style="width:38%"><span class="text-muted">@r.Question</span></td>
+                                    <td>@Html.Raw(RenderValue(r.Type, r.Value))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                @* Always rendered so live uploads have a list to land in. *@
+                <h4 class="mt-3 mb-2">Attached files</h4>
+                <ul style="list-style:none;padding:0;margin:0" id="fileList">
+                    @foreach (var f in Model.Files)
+                    {
+                        <li style="padding:6px 0;border-bottom:1px solid var(--border)" data-file-id="@f.Id">
+                            <a href="@f.Url" target="_blank" rel="noopener" data-preview data-content-type="@f.ContentType" data-name="@f.OriginalFileName" data-size="@f.SizeBytes">@f.OriginalFileName</a>
+                            <span class="text-xs text-muted"> · @(f.Purpose ?? f.UploadedByRole)</span>
+                            <form asp-action="DeleteFile" asp-route-orderId="@Model.Id" asp-route-fileId="@f.Id" method="post" style="display:inline;margin-left:8px" onsubmit="return confirm('Remove this file?');">
+                                <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);padding:0 6px">Remove</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+                @if (Model.Files.Count == 0)
+                {
+                    <div class="text-muted text-sm" id="fileEmpty">No files attached yet.</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.CustomerNotes))
+                {
+                    <h4 class="mt-3 mb-2">Customer notes</h4>
+                    <div style="white-space:pre-wrap;background:var(--surface,#f7f7f8);border:1px solid var(--border);border-radius:8px;padding:10px 12px">@Model.CustomerNotes</div>
+                }
+                <form asp-action="UploadFile" asp-route-orderId="@Model.Id" method="post" enctype="multipart/form-data" class="flex gap-2 items-center" style="margin-top:12px">
+                    <input class="input" type="file" name="file" required style="flex:1" />
+                    <input class="input" type="text" name="purpose" placeholder="Note (optional)" style="width:180px" />
+                    <button type="submit" class="btn btn-outline">Attach</button>
+                </form>
+            </div>
+        </div>
+
+        @* ---------------- Design proof ---------------- *@
+        <div class="card">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                <h3 style="margin:0">Design proof</h3>
+                @* AUD-015: the authoritative approval — only THIS gates production. *@
+                <span class="badge @(Model.Proofs.Any(p => p.Status == "Approved") ? "badge-success" : "badge-warning")"
+                      data-proof-gate-chip>Proof: @(Model.Proofs.Any(p => p.Status == "Approved") ? "approved" : "pending") · gates production</span>
+            </div>
+            <div class="card-body">
+                <div id="proofList">
+                    @foreach (var p in Model.Proofs)
+                    {
+                        var isLatest = p.Version == latestProofVersion;
+                        var isImage = p.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+                        <details class="ws-details proof-details" data-proof-id="@p.Id" style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px" @(isLatest ? "open" : "")>
+                            <summary style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+                                <span><span class="chev" aria-hidden="true">▸</span> <span class="font-bold">Version @p.Version</span></span>
+                                <span class="badge @(p.Status == "Approved" ? "badge-success" : p.Status == "Superseded" ? "badge-neutral" : "badge-warning")" data-proof-status>@p.Status</span>
+                            </summary>
+                            <div style="margin-top:10px">
+                                <div class="text-xs text-muted">Submitted @p.CreatedDateUtc.ToLocalTime().ToString("d MMM, HH:mm")</div>
+                                @if (p.ApprovedAtUtc is not null)
+                                {
+                                    <div class="text-xs text-muted proof-approved-at">Approved @p.ApprovedAtUtc.Value.ToLocalTime().ToString("d MMM, HH:mm")</div>
+                                }
+                                <div class="proof-media" style="margin-top:10px">
+                                    @if (isImage)
+                                    {
+                                        <a href="@p.Url" data-preview data-content-type="@p.ContentType" data-name="@p.OriginalFileName">
+                                            <img src="@p.Url" alt="Proof v@p.Version" style="width:100%;border-radius:8px;border:1px solid var(--border)" />
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <div style="border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center">
+                                            <div>@(p.ContentType == "application/pdf" ? "📄" : "📎")</div>
+                                            <a class="font-bold" style="display:inline-block;margin:6px 0" href="@p.Url" target="_blank" rel="noopener" data-preview data-content-type="@p.ContentType" data-name="@p.OriginalFileName">@p.OriginalFileName</a>
+                                            <div class="text-xs text-muted">@p.ContentType. Click to preview or open.</div>
+                                        </div>
+                                    }
+                                </div>
+                                @if (p.StaffNotes is not null) { <div class="text-sm" style="margin-top:8px"><span class="text-muted">Your note:</span> @p.StaffNotes</div> }
+                                @if (p.CustomerFeedback is not null) { <div class="text-sm proof-feedback" style="margin-top:4px"><span class="text-muted">Customer:</span> @p.CustomerFeedback</div> }
+                            </div>
+                        </details>
+                    }
+                </div>
+                @if (Model.Proofs.Count == 0)
+                {
+                    <div class="text-muted" id="proofEmpty">No proof uploaded yet.</div>
+                }
+                <form asp-action="UploadProof" asp-route-orderId="@Model.Id" method="post" enctype="multipart/form-data" style="margin-top:8px">
+                    <div class="flex gap-2 items-center">
+                        <input class="input" type="file" name="file" accept="image/*" required style="flex:1" />
+                    </div>
+                    <div class="flex gap-2 items-center" style="margin-top:8px">
+                        <input class="input" type="text" name="staffNotes" placeholder="Note for the customer (optional)" style="flex:1" />
+                        <button type="submit" class="btn btn-primary">Upload proof</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @* ---------------- Design Reviews (customer/staff document uploads) ---------------- *@
+        <div class="card">
+            <div class="card-head" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                <h3 style="margin:0">Design Reviews</h3>
+                @* AUD-015: advisory only — an approved review must never be read as production sign-off. *@
+                <span class="badge badge-neutral">Advisory only · does not approve production</span>
+            </div>
+            <div class="card-body">
+                <div id="designReviewList">
+                    @foreach (var dr in Model.DesignReviews)
+                    {
+                        var isPreviewable = !string.IsNullOrWhiteSpace(dr.PreviewUrl);
+                        var isImage = dr.ContentType != null && dr.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+                        var isPdf = dr.ContentType != null && dr.ContentType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase);
+                        
+                        <details class="ws-details design-review-details" data-design-review-id="@dr.Id" 
+                                style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px" open>
+                            <summary style="display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap">
+                                <span><span class="chev" aria-hidden="true">▸</span> <span class="font-bold">@dr.OriginalFileName</span></span>
+                                <span class="badge @GetDesignReviewStatusBadge(dr.Status)" data-dr-status>@dr.Status</span>
+                            </summary>
+                            <div style="margin-top:10px">
+                                <div class="text-xs text-muted">
+                                    Uploaded @dr.CreatedDateUtc.ToLocalTime().ToString("d MMM, HH:mm") 
+                                    by <span class="text-capitalize">@dr.UploadedByRole</span>
+                                    @if (dr.SizeBytes > 0)
+                                    {
+                                        <text> · @FormatFileSize(dr.SizeBytes)</text>
+                                    }
+                                </div>
+                                
+                                @if (isPreviewable)
+                                {
+                                    <div class="design-review-preview" style="margin-top:10px">
+                                        @if (isImage)
+                                        {
+                                            <a href="@dr.Url" target="_blank" rel="noopener" data-preview data-content-type="@dr.ContentType" data-name="@dr.OriginalFileName">
+                                                <img src="@dr.PreviewUrl" alt="Design Review: @dr.OriginalFileName" 
+                                                     style="width:100%;max-height:300px;object-fit:contain;border-radius:8px;border:1px solid var(--border)" />
+                                            </a>
+                                        }
+                                        else if (isPdf)
+                                        {
+                                            <a href="@dr.Url" target="_blank" rel="noopener" data-preview data-content-type="@dr.ContentType" data-name="@dr.OriginalFileName">
+                                                <img src="@dr.PreviewUrl" alt="PDF Preview: @dr.OriginalFileName" 
+                                                     style="width:100%;max-height:300px;object-fit:contain;border-radius:8px;border:1px solid var(--border)" />
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <div style="border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;background:#f9f9f9">
+                                                <div style="font-size:24px">🖼️</div>
+                                                <div class="text-sm text-muted" style="margin-top:4px">Preview</div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="design-review-document" style="margin-top:10px;border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center;background:#f9f9f9">
+                                        <div style="font-size:24px">@GetFileIcon(dr.OriginalFileName)</div>
+                                        <div class="text-xs text-muted" style="margin-top:4px">@dr.ContentType</div>
+                                    </div>
+                                }
+                                
+                                @if (!string.IsNullOrWhiteSpace(dr.Notes))
+                                {
+                                    <div class="text-sm" style="margin-top:8px"><span class="text-muted">Notes:</span> @dr.Notes</div>
+                                }
+                                
+                                @if (dr.Status == DesignReviewStatus.Rejected && !string.IsNullOrWhiteSpace(dr.RejectionReason))
+                                {
+                                    <div class="text-sm design-review-reason" style="margin-top:8px;color:var(--danger)">
+                                        <span class="text-muted">Rejected:</span> @dr.RejectionReason
+                                    </div>
+                                }
+                                
+                                @if (dr.Status == DesignReviewStatus.Pending)
+                                {
+                                    <div class="flex gap-2 design-review-actions" style="margin-top:12px;flex-wrap:wrap">
+                                        <form asp-action="ApproveDesignReview" asp-route-orderId="@Model.Id" asp-route-designReviewId="@dr.Id" method="post" style="display:inline">
+                                            <input type="hidden" name="approvalNotes" />
+                                            <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                        </form>
+                                        <button type="button" class="btn btn-outline btn-sm" 
+                                                onclick="showRejectDesignReviewModal('@dr.Id', '@dr.OriginalFileName')">
+                                            Reject
+                                        </button>
+                                    </div>
+                                }
+                                @if (dr.Status == DesignReviewStatus.Approved && dr.ApprovedAtUtc is not null)
+                                {
+                                    <div class="text-xs text-muted design-review-approved-at" style="margin-top:8px">
+                                        Approved @dr.ApprovedAtUtc.Value.ToLocalTime().ToString("d MMM, HH:mm")
+                                    </div>
+                                }
+                            </div>
+                        </details>
+                    }
+                </div>
+                @if (Model.DesignReviews.Count == 0)
+                {
+                    <div class="text-muted" id="designReviewEmpty">No design reviews yet.</div>
+                }
+                <form asp-action="UploadDesignReview" asp-route-orderId="@Model.Id" method="post" enctype="multipart/form-data" style="margin-top:8px">
+                    <div class="flex gap-2 items-center">
+                        <input class="input" type="file" name="file" required style="flex:1" 
+                               accept=".png,.jpg,.jpeg,.webp,.gif,.tif,.tiff,.pdf,.svg,.psd,.ai,.eps,.zip" />
+                    </div>
+                    <div class="flex gap-2 items-center" style="margin-top:8px">
+                        <input class="input" type="text" name="notes" placeholder="Note (optional)" style="flex:1" />
+                        <button type="submit" class="btn btn-primary">Upload Design Review</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @* ---------------- Timeline ---------------- *@
+        <div class="card">
+            <details class="ws-details" id="timelineCard">
+                <summary class="card-head ws-summary">
+                    <span class="chev" aria-hidden="true">▸</span>
+                    <h3 style="margin:0">Timeline</h3>
+                    <span class="ws-count">@Model.Timeline.Count</span>
+                    @if (latestEvent is not null)
+                    {
+                        <span class="ws-latest" title="@latestEvent.Description">Latest: @latestEvent.Description</span>
+                    }
+                </summary>
+                <div class="card-body">
+                    <ol style="margin:0;padding-left:18px" id="timelineList">
+                        @foreach (var t in Model.Timeline)
+                        {
+                            <li style="margin-bottom:8px" data-entry-id="@t.Id">
+                                <span class="text-xs text-muted">@t.CreatedDateUtc.ToLocalTime().ToString("d MMM, HH:mm")</span>
+                                <div>@t.Description</div>
+                            </li>
+                        }
+                    </ol>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    @* ---------------- Review / finalize / payment ---------------- *@
+    <div class="stack" style="display:flex;flex-direction:column;gap:16px">
+        <div class="card">
+            <div class="card-head"><h3 style="margin:0">Assigned Sales</h3></div>
+            <div class="card-body">
+                <div class="font-bold">@(Model.AssignedSalesName ?? "Unassigned")</div>
+                <div class="text-xs text-muted" style="margin:2px 0 8px">Conversation: @Model.ConversationState</div>
+                @if (ViewBag.CanReassign is true)
+                {
+                    <form asp-action="Reassign" asp-route-orderId="@Model.Id" method="post" class="flex gap-2 items-center">
+                        <select class="select" name="salesUserId" style="flex:1;min-width:0" required>
+                            <option value="">Choose sales staff…</option>
+                            @foreach (var s in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.EligibleSales)
+                            {
+                                <option value="@s.Value">@s.Text</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-outline btn-sm">@(Model.AssignedSalesName is null ? "Assign" : "Reassign")</button>
+                    </form>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head"><h3 style="margin:0">Finalize &amp; price</h3></div>
+            <div class="card-body">
+                <form asp-action="Finalize" asp-route-orderId="@Model.Id" method="post">
+                    <h4 class="mb-2">Product lines</h4>
+                    @foreach (var i in Model.Items)
+                    {
+                        <div class="flex gap-2 items-center" style="margin-bottom:8px">
+                            <span class="text-sm" style="flex:1">@i.ProductName</span>
+                            <input class="input" type="number" name="line_@(i.ProductId)_qty" value="@i.Quantity" min="1" style="width:80px" title="Quantity" />
+                            <input class="input" type="number" name="line_@(i.ProductId)_price" value="@i.UnitPrice" min="0" step="0.01" style="width:120px" title="Unit price" />
+                        </div>
+                    }
+                    <h4 class="mb-2" style="margin-top:12px">Extra charge lines</h4>
+                    <div id="customLines">
+                        @foreach (var c in Model.CustomLines)
+                        {
+                            <div class="flex gap-2 items-center custom-line" style="margin-bottom:8px">
+                                <input class="input" type="text" name="custom_desc" value="@c.Description" placeholder="Description" style="flex:1" maxlength="250" />
+                                <input class="input" type="number" name="custom_price" value="@c.UnitPrice" min="0" step="0.01" style="width:120px" title="Unit price" />
+                                <input class="input" type="number" name="custom_qty" value="@c.Quantity" min="1" max="10000" style="width:80px" title="Quantity" />
+                                <button type="button" class="btn btn-outline btn-sm remove-line" title="Remove this line" aria-label="Remove this line">&times;</button>
+                            </div>
+                        }
+                        <div class="flex gap-2 items-center custom-line" style="margin-bottom:8px">
+                            <input class="input" type="text" name="custom_desc" placeholder="Add a line (e.g. Design preparation)" style="flex:1" maxlength="250" />
+                            <input class="input" type="number" name="custom_price" placeholder="0" min="0" step="0.01" style="width:120px" />
+                            <input class="input" type="number" name="custom_qty" value="1" min="1" max="10000" style="width:80px" />
+                            <button type="button" class="btn btn-outline btn-sm remove-line" title="Remove this line" aria-label="Remove this line">&times;</button>
+                        </div>
+                    </div>
+                    <button type="button" id="addCustomLine" class="btn btn-outline btn-sm" style="margin-top:2px">+ Add another line</button>
+                    <div class="flex gap-2" style="margin-top:12px">
+                        <label class="label" style="flex:1">Delivery fee<input class="input" type="number" name="deliveryFee" value="@Model.DeliveryFee" min="0" step="0.01" /></label>
+                        <label class="label" style="flex:1">Discount<input class="input" type="number" name="discount" value="@Model.Discount" min="0" step="0.01" /></label>
+                        <label class="label" style="flex:1">Tax<input class="input" type="number" name="tax" value="@Model.Tax" min="0" step="0.01" /></label>
+                    </div>
+                    <label class="label" style="margin-top:8px">Notes to customer
+                        <textarea class="input" name="customerNotes" rows="2"></textarea>
+                    </label>
+                    <div id="finalizeFoot">
+                        @if (canFinalize)
+                        {
+                            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:12px">Finalize requirements &amp; pricing</button>
+                            <div class="text-xs text-muted" style="margin-top:6px">The customer will review the quote and pay via Paystack.</div>
+                        }
+                        else
+                        {
+                            <div class="text-muted text-sm" style="margin-top:10px">Finalization is locked while the order is @Model.Status.</div>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head"><h3 style="margin:0">Payment</h3></div>
+            <div class="card-body" id="paymentBody">
+                @if (payment is not null)
+                {
+                    <div><span class="text-muted">Status:</span> <span class="badge @(payment.Status.ToString() == "Succeeded" ? "badge-success" : "badge-neutral")">@payment.Status</span></div>
+                    <div class="text-sm" style="margin-top:4px">₦@payment.Amount.Amount.ToString("N2") · @payment.Reference</div>
+                }
+                else
+                {
+                    <div class="text-muted">No payment yet.</div>
+                }
+                @if (invoice is not null)
+                {
+                    <a class="btn btn-outline btn-sm" style="margin-top:10px;width:100%" href="/i/@invoice.ShareToken" target="_blank" rel="noopener">View invoice</a>
+                }
+                @if (receipt is not null)
+                {
+                    <a class="btn btn-outline btn-sm" style="margin-top:8px;width:100%" href="/r/@receipt.ShareToken" target="_blank" rel="noopener">View receipt</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Design Review Reject Modal -->
+<div id="rejectDesignReviewModal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+    <div class="modal-content card" style="max-width:500px;width:90%;padding:24px">
+        <h3 style="margin:0 0 16px">Reject Design Review</h3>
+        <form id="rejectDesignReviewForm" method="post">
+            <input type="hidden" id="rejectDesignReviewId" name="designReviewId" />
+            <input type="hidden" id="rejectOrderId" name="orderId" />
+            <label class="label">Reason for rejection (required)
+                <textarea class="input" id="rejectReason" name="reason" rows="4" required style="margin-top:4px"></textarea>
+            </label>
+            <div class="flex gap-2" style="margin-top:16px">
+                <button type="button" class="btn btn-outline" onclick="closeRejectDesignReviewModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger">Reject</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+@* Live sync config: signalR + toasts load from the admin layout; the workspace
+   module below joins this order's group and patches cards in place. *@
+<div id="wsConfig" hidden data-order-id="@Model.Id" data-state-url="@Url.Action("WorkspaceState", new { orderId = Model.Id })" data-my-role="staff" data-delete-url="@Url.Action("DeleteFile", new { orderId = Model.Id, fileId = Guid.Empty })" data-mark-read-url="@Url.Action("MarkRead", new { orderId = Model.Id })" data-dr-approve-url="@Url.Action("ApproveDesignReview", new { orderId = Model.Id, designReviewId = Guid.Empty })" data-dr-reject-url="@Url.Action("RejectDesignReview", new { orderId = Model.Id, designReviewId = Guid.Empty })"></div>
+<script src="~/js/attachment-preview.js"></script>
+<script src="~/js/order-workspace.js"></script>
+<script src="~/js/workspace-chat.js"></script>
+<script>
+
+/* Finalize & price: multiple extra charge lines (add / remove before submit).
+   The form posts repeated custom_desc / custom_price / custom_qty triplets, and
+   the finalize action already parses them as a full set — removing a row simply
+   drops that line from the posted set. */
+(function () {
+  'use strict';
+  var wrap = document.getElementById('customLines');
+  var add = document.getElementById('addCustomLine');
+  if (!wrap || !add) return;
+
+  add.addEventListener('click', function () {
+    var row = document.createElement('div');
+    row.className = 'flex gap-2 items-center custom-line';
+    row.style.marginBottom = '8px';
+    var d = document.createElement('input');
+    d.className = 'input'; d.type = 'text'; d.name = 'custom_desc';
+    d.placeholder = 'Add a line (e.g. Design preparation)';
+    d.style.flex = '1'; d.maxLength = 250;
+    var p = document.createElement('input');
+    p.className = 'input'; p.type = 'number'; p.name = 'custom_price';
+    p.placeholder = '0'; p.min = '0'; p.step = '0.01'; p.style.width = '120px';
+    var q = document.createElement('input');
+    q.className = 'input'; q.type = 'number'; q.name = 'custom_qty';
+    q.value = '1'; q.min = '1'; q.max = '10000'; q.style.width = '80px';
+    var rm = document.createElement('button');
+    rm.type = 'button'; rm.className = 'btn btn-outline btn-sm remove-line';
+    rm.title = 'Remove this line'; rm.setAttribute('aria-label', 'Remove this line');
+    rm.innerHTML = '&times;';
+    rm.addEventListener('click', function () { row.remove(); });
+    row.appendChild(d); row.appendChild(p); row.appendChild(q); row.appendChild(rm);
+    wrap.appendChild(row);
+    d.focus();
+  });
+
+  wrap.querySelectorAll('.custom-line .remove-line').forEach(function (btn) {
+    btn.addEventListener('click', function () { btn.closest('.custom-line').remove(); });
+  });
+})();
+
+/* Design Review reject modal */
+(function () {
+  'use strict';
+  window.showRejectDesignReviewModal = function(designReviewId, fileName) {
+    var modal = document.getElementById('rejectDesignReviewModal');
+    var form = document.getElementById('rejectDesignReviewForm');
+    var orderIdInput = document.getElementById('rejectOrderId');
+    var designReviewIdInput = document.getElementById('rejectDesignReviewId');
+    
+    if (!modal || !form) return;
+    
+    orderIdInput.value = '@Model.Id';
+    designReviewIdInput.value = designReviewId;
+    form.action = '/admin/orders/@Model.Id/workspace/designreview/' + designReviewId + '/reject';
+    modal.style.display = 'flex';
+  };
+  
+  window.closeRejectDesignReviewModal = function() {
+    var modal = document.getElementById('rejectDesignReviewModal');
+    if (modal) modal.style.display = 'none';
+  };
+  
+  // Close modal on outside click
+  var modal = document.getElementById('rejectDesignReviewModal');
+  if (modal) {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) closeRejectDesignReviewModal();
+    });
+  }
+})();
+</script>
+
+}

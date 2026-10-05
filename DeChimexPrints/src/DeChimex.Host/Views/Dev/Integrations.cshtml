@@ -1,0 +1,30 @@
+@model IReadOnlyList<IntegrationSummary>
+@{ var range = (DevRange)ViewBag.Range; }
+<partial name="~/Views/Dev/_RangePicker.cshtml" model="range" />
+@foreach (var i in Model)
+{
+    <section class="dv-card" id="@i.Name.ToLowerInvariant()" style="margin-bottom:12px">
+        <div class="dv-card-head">
+            <h2>@i.Name</h2>
+            <div>@DevUi.Status(i.Health?.Status ?? "Unknown") <span class="dv-muted dv-small">reachability</span></div>
+        </div>
+        <div class="dv-grid dv-g4">
+            <div><div class="dv-muted dv-small">Configuration</div>@DevUi.Status(i.ConfigStatus) <span class="dv-small">@i.Mode</span><div class="dv-small dv-muted">@i.ConfigDetail</div></div>
+            <div><div class="dv-muted dv-small">Health check</div><div class="dv-small">@(i.Health?.Description ?? "none")</div>@if (i.Health?.Error is not null) { <div class="dv-small" style="color:#fca5a5">@i.Health.Error</div> }</div>
+            <div class="dv-kpi">@i.Failures <span class="dv-muted dv-small">/ @i.Calls calls</span><small>Failures (@i.FailureRatePercent%) · avg @DevUi.Ms(i.AvgMs)</small></div>
+            <div><div class="dv-muted dv-small">Last success</div><strong>@DevUi.Ago(i.LastSuccessUtc)</strong><div class="dv-muted dv-small" style="margin-top:6px">Last failure</div><strong>@DevUi.Ago(i.LastFailureUtc)</strong><div class="dv-small dv-wrap">@i.LastFailureDetail</div></div>
+        </div>
+        <h3>Calls by operation and outcome</h3>
+        @if (i.ByOperation.Count == 0) { <p class="dv-muted dv-small">No calls in this range.</p> }
+        else
+        {
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+                @foreach (var o in i.ByOperation) { <span class="dv-chip">@o.Name: <strong>@o.Count</strong></span> }
+            </div>
+        }
+        <h3>Recent failures</h3>
+        <partial name="~/Views/Dev/_Calls.cshtml" model="i.RecentFailures" />
+        <p class="dv-small" style="margin-top:8px"><a href="/dev/@(i.Name == "Paystack" ? "payments" : "email")">@(i.Name == "Paystack" ? "Payment" : "Email") diagnostics →</a> · <a href="/dev/logs?integration=@i.Name&range=@range.Key">technical log for @i.Name →</a></p>
+    </section>
+}
+<p class="dv-muted dv-small">Keys are never displayed. "Configured" means a value of the right shape is present; test vs live is inferred from the key prefix. "Skipped" email sends (sending disabled) are not counted as failures.</p>

@@ -1,0 +1,35 @@
+@model DeChimex.Contracts.Orders.OrderSummaryDto
+@using DeChimex.Host
+@{
+    var status = Model.Status;
+    var isCustom = CustomerPresentation.IsCustomStatus(status);
+    var canPay = status is "PendingPayment" or "Draft";
+    var kind = Model.Kind == "Custom" || isCustom ? "Custom order" : "Order";
+    var detailsUrl = $"/portal/orders/{Model.Id}";
+    var workspaceUrl = $"/portal/orders/{Model.Id}/workspace";
+}
+<article class="od-card">
+    <div class="od-card-top">
+        <div>
+            <span class="od-kind">@kind</span>
+            <div class="od-num"><a href="@detailsUrl">@Model.OrderNumber</a></div>
+        </div>
+        <span class="cs-status @CustomerPresentation.StatusTone(status)">@CustomerPresentation.StatusLabel(status)</span>
+    </div>
+    <div class="od-card-mid">
+        <span class="od-when">Placed @Model.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy")</span>
+        <span class="od-total">@CustomerPresentation.Money(Model.GrandTotal)</span>
+    </div>
+    <p class="od-next">@CustomerPresentation.NextStep(status)</p>
+    <div class="od-card-foot">
+        @if (canPay)
+        {
+            <a class="btn btn-primary btn-sm" href="/checkout/complete/@Model.Id">Pay now</a>
+        }
+        @if (isCustom)
+        {
+            <a class="btn btn-primary btn-sm" href="@workspaceUrl">@Html.Raw(CustomerIcons.Svg("chat", 15)) Open conversation</a>
+        }
+        <a class="btn btn-outline btn-sm" href="@detailsUrl">View details</a>
+    </div>
+</article>

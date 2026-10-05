@@ -1,0 +1,17 @@
+@model IReadOnlyList<RouteStat>
+@if (Model.Count == 0)
+{
+    <p class="dv-muted">No data in this range.</p>
+}
+else
+{
+    <div class="dv-table-wrap"><table class="dv-table">
+        <thead><tr><th>Endpoint</th><th class="num">Req</th><th class="num">5xx</th><th class="num">4xx</th><th class="num">Slow</th><th class="num">Avg</th><th class="num">Max</th></tr></thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr><td class="dv-mono dv-wrap">@r.Method @r.Route</td><td class="num">@r.Requests</td><td class="num">@r.ServerErrors</td><td class="num">@r.ClientErrors</td><td class="num">@r.Slow</td><td class="num">@DevUi.Ms(r.AvgMs)</td><td class="num">@DevUi.Ms(r.MaxMs)</td></tr>
+        }
+        </tbody>
+    </table></div>
+}

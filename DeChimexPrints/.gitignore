@@ -1,0 +1,24 @@
+# ---- .NET build artifacts ----
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# ---- Logs ----
+logs/
+*.log
+
+# ---- Secrets / environment-specific production config (HIGH-004) ----
+# Production configuration must never be committed; provide it via environment
+# variables or secret management at deploy time.
+appsettings.Production.json
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+
+# ---- User-uploaded gallery/product media (runtime data, not source) ----
+src/DeChimex.Host/wwwroot/uploads/
+wwwroot/uploads/

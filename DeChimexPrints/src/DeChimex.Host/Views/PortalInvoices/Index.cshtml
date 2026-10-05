@@ -1,0 +1,37 @@
+@model IReadOnlyList<DeChimex.Host.Controllers.InvoiceListDto>
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Invoices";
+    ViewData["ActiveNav"] = "invoices";
+}
+<div class="cs-wrap cs-wrap-md">
+    <partial name="Customer/_AccountTabs" model="@("invoices")" />
+    <div class="cs-page-head"><h1>Invoices &amp; receipts</h1></div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="cs-card">
+            @{ var es = new EmptyState(EmptyIcons.Receipt, "No invoices yet", "Invoices and receipts for your orders will appear here."); }
+            <partial name="_EmptyState" model="es" />
+        </div>
+    }
+    else
+    {
+        <div class="ac-list">
+            @foreach (var i in Model)
+            {
+                <div class="ac-item">
+                    <div class="ac-item-main">
+                        <div class="ac-item-title">@(i.IsQuote ? "Quote" : "Invoice") @i.InvoiceNumber <span class="cs-status @(i.PaidAtUtc is not null || i.Status == "Paid" ? "is-ok" : "is-muted")" style="margin-left:6px">@i.Status</span></div>
+                        <div class="ac-item-sub">@(string.IsNullOrEmpty(i.OrderNumber) ? "" : $"Order {i.OrderNumber} · ")Issued @i.IssuedAtUtc.ToLocalTime().ToString("d MMM yyyy") · @CustomerPresentation.Money(i.GrandTotal)</div>
+                    </div>
+                    <div class="cs-row" style="gap:8px">
+                        @if (!string.IsNullOrWhiteSpace(i.DocumentUrl)) { <a class="btn btn-outline btn-sm" href="@i.DocumentUrl" target="_blank" rel="noopener">@Html.Raw(CustomerIcons.Svg("download", 15)) Download</a> }
+                        @if (i.OrderId is Guid oid) { <a class="btn btn-ghost btn-sm" href="/portal/orders/@oid">Order</a> }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

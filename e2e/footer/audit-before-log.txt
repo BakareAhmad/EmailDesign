@@ -1,0 +1,185 @@
+footer placement E2E — mode=audit tag=before shots=e2e/footer/evidence-before
+
+===== setup: owner creates a catalogue, customer registers =====
+ok 01 - owner logged in
+ok 02 - major category created: Footer Majors before
+PASS 01: category created: Footer Cat before
+ok 03 - product created: Footer Mug before
+ok 04 - product created: Footer Tee before
+ok 05 - register footer -> verify page
+ok 06 - verification token captured for footer
+ok 07 - brevo api-key header present (key loaded at runtime)
+ok 08 - customer footer signed in
+ok 09 - customer registered + verified + signed in
+
+===== A. public storefront keeps the full footer =====
+info footer[public home @390px] = full
+shot 01-public-home-full-footer-mobile.png
+info footer[public home @1440px] = full
+shot 02-public-home-full-footer-desktop.png
+ok 10 - public home @1440px: footer renders its 4 columns
+info footer[public /products @390px] = full
+shot 03-public-products-full-footer.png
+info footer[public /services @390px] = full
+info footer[public /gallery @390px] = full
+info footer[public /about @390px] = full
+info footer[public /contact @390px] = full
+shot 04-public-contact-full-footer.png
+info footer[public /faq @390px] = full
+shot 05-public-faq-full-footer.png
+info footer[public /privacy @390px] = full
+info footer[public /terms @390px] = full
+info footer[public /install-help @390px] = full
+info footer[public /products @1440px] = full
+info footer[public /faq @1440px] = full
+info footer[public /contact @1440px] = full
+
+===== A2. storefront footer links still work =====
+ok 11 - footer link 'Privacy' opens /privacy
+ok 12 - footer link 'Terms' opens /terms
+ok 13 - footer link 'About us' opens /about
+ok 14 - footer link 'FAQ' opens /faq
+ok 15 - footer link 'Contact us' opens /contact
+shot 06-public-footer-links-work.png
+ok 16 - footer link 'Custom printing' opens /services
+
+===== B. guest transactional pages are focused (slim bar) =====
+info footer[guest /cart @390px] = full
+shot 07-guest-cart-slim-footer.png
+ok 17 - guest /cart still offers a way to the catalogue
+ok 18 - guest /checkout redirects to the clean auth page
+info footer[guest /checkout -> login (auth layout)] = none
+
+===== C. customer shop browsing keeps the storefront footer =====
+info footer[customer /portal/shop @390px] = full
+shot 08-customer-shop-storefront-footer.png
+ok 19 - customer shop footer links back into the portal catalogue
+info footer[customer /portal/shop/{id} @390px] = full
+
+===== D. customer workspace pages have no storefront footer =====
+info footer[customer /portal (dashboard)] = full
+shot 09-customer-dashboard-slim-footer.png
+info footer[customer /portal/orders] = full
+shot 10-customer-orders-slim-footer.png
+info footer[customer /portal/orders/track] = full
+info footer[customer /portal/profile] = full
+info footer[customer /portal/profile/password] = full
+info footer[customer /portal/addresses] = full
+info footer[customer /portal/addresses/add] = full
+info footer[customer /portal/wishlist] = full
+shot 11-customer-wishlist-slim-footer.png
+info footer[customer /portal/payments] = full
+info footer[customer /portal/invoices] = full
+info footer[customer custom-order form /portal/shop/{id}/order] = full
+shot 12-customer-order-form-slim-footer.png
+info footer[customer /portal @1440px] = full
+shot 13-customer-dashboard-slim-footer-desktop.png
+
+===== E. transactional checkout funnel (slim, focused) =====
+info footer[customer /cart with an item] = full
+shot 14-customer-cart-slim-footer.png
+info footer[customer /checkout] = full
+shot 15-customer-checkout-slim-footer.png
+ok 20 - order placed, lands on the confirmation page
+info footer[order confirmation /checkout/complete/{id}] = full
+shot 16-order-confirmation-slim-footer.png
+ok 21 - Paystack stub checkout opened
+info footer[payment return /checkout/return] = full
+shot 17-payment-return-slim-footer.png
+info footer[staff account /checkout (no customer profile)] = full
+info footer[customer order details /portal/orders/{id}] = full
+shot 18-order-details-slim-footer.png
+info footer[customer order workspace] = full
+shot 19-order-workspace-slim-footer.png
+
+===== F. admin/staff pages render no footer =====
+info footer[admin /admin/dashboard @1440px] = none
+shot 20-admin-dashboard-no-footer.png
+info footer[admin /admin/orders @1440px] = none
+shot 21-admin-orders-no-footer.png
+info footer[admin /admin/products @1440px] = none
+info footer[admin /admin/customers @1440px] = none
+info footer[admin /admin/settings @1440px] = none
+shot 22-admin-settings-no-footer.png
+info footer[admin /admin/notifications @1440px] = none
+info footer[admin /admin/inventory @1440px] = none
+info footer[admin /admin/reports @1440px] = none
+info footer[admin order workspace] = none
+ok 22 - guest hitting an admin page is redirected to the clean auth page
+info footer[guest /admin/dashboard -> login] = none
+
+===== G. authentication pages stay clean =====
+info footer[auth /Account/Login @390px] = none
+shot 23-auth-login-no-footer.png
+ok 23 - auth /Account/Login: no customer bottom nav either
+info footer[auth /Account/Register @390px] = none
+shot 24-auth-register-no-footer.png
+ok 24 - auth /Account/Register: no customer bottom nav either
+info footer[auth /Account/ForgotPassword @390px] = none
+shot 25-auth-forgot-password-no-footer.png
+ok 25 - auth /Account/ForgotPassword: no customer bottom nav either
+info footer[auth /Account/ResetPassword @390px] = none
+shot 26-auth-reset-password-no-footer.png
+ok 26 - auth /Account/ResetPassword: no customer bottom nav either
+info footer[auth /Account/AccessDenied] = none
+info footer[auth /Account/Login @1440px] = none
+info footer[auth /Account/Login desktop] = none
+
+===== H. no console/page/network problems on any page visited =====
+
+AUDIT COMPLETE — 54 page groups recorded (no assertions)
+  full  public home @390px
+  full  public home @1440px
+  full  public /products @390px
+  full  public /services @390px
+  full  public /gallery @390px
+  full  public /about @390px
+  full  public /contact @390px
+  full  public /faq @390px
+  full  public /privacy @390px
+  full  public /terms @390px
+  full  public /install-help @390px
+  full  public /products @1440px
+  full  public /faq @1440px
+  full  public /contact @1440px
+  full  guest /cart @390px
+  none  guest /checkout -> login (auth layout)
+  full  customer /portal/shop @390px
+  full  customer /portal/shop/{id} @390px
+  full  customer /portal (dashboard)
+  full  customer /portal/orders
+  full  customer /portal/orders/track
+  full  customer /portal/profile
+  full  customer /portal/profile/password
+  full  customer /portal/addresses
+  full  customer /portal/addresses/add
+  full  customer /portal/wishlist
+  full  customer /portal/payments
+  full  customer /portal/invoices
+  full  customer custom-order form /portal/shop/{id}/order
+  full  customer /portal @1440px
+  full  customer /cart with an item
+  full  customer /checkout
+  full  order confirmation /checkout/complete/{id}
+  full  payment return /checkout/return
+  full  staff account /checkout (no customer profile)
+  full  customer order details /portal/orders/{id}
+  full  customer order workspace
+  none  admin /admin/dashboard @1440px
+  none  admin /admin/orders @1440px
+  none  admin /admin/products @1440px
+  none  admin /admin/customers @1440px
+  none  admin /admin/settings @1440px
+  none  admin /admin/notifications @1440px
+  none  admin /admin/inventory @1440px
+  none  admin /admin/reports @1440px
+  none  admin order workspace
+  none  guest /admin/dashboard -> login
+  none  auth /Account/Login @390px
+  none  auth /Account/Register @390px
+  none  auth /Account/ForgotPassword @390px
+  none  auth /Account/ResetPassword @390px
+  none  auth /Account/AccessDenied
+  none  auth /Account/Login @1440px
+  none  auth /Account/Login desktop
+RESULT: audit complete, 0 failed

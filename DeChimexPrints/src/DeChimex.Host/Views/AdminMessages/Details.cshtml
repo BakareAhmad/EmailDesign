@@ -1,0 +1,102 @@
+@model DeChimex.Contracts.Contacts.ContactMessageDto
+@{
+    Layout = "_AdminLayout";
+}
+<div class="card" style="max-width:720px">
+    <div class="card-head">
+        <h3>Message from @Model.Name</h3>
+        <span style="flex:1"></span>
+        @if (Model.IsResolved)
+        {
+            <span class="badge badge-success">Resolved@(Model.ResolvedAtUtc.HasValue ? " on " + Model.ResolvedAtUtc.Value.ToLocalTime().ToString("d MMM yyyy") : "")</span>
+        }
+        else
+        {
+            <span class="badge badge-warning">Open</span>
+        }
+    </div>
+    <div class="card-body">
+        <div class="g g-3 mb-4" style="font-size:14px">
+            <div>
+                <div class="text-xs uppercase text-muted font-bold mb-1" style="letter-spacing:.06em">From</div>
+                <div class="font-semibold">@Model.Name</div>
+                <div class="text-muted">@Model.Email</div>
+                @if (!string.IsNullOrEmpty(Model.Phone))
+                {
+                    <div class="text-muted">@Model.Phone</div>
+                }
+            </div>
+            <div>
+                <div class="text-xs uppercase text-muted font-bold mb-1" style="letter-spacing:.06em">Interested in</div>
+                <div>@(Model.Service ?? "General enquiry")</div>
+            </div>
+            <div>
+                <div class="text-xs uppercase text-muted font-bold mb-1" style="letter-spacing:.06em">Received</div>
+                <div class="text-muted">@Model.CreatedUtc.ToLocalTime().ToString("d MMM yyyy, HH:mm")</div>
+            </div>
+        </div>
+
+        <div class="text-xs uppercase text-muted font-bold mb-1" style="letter-spacing:.06em">Message</div>
+        <div class="p-4 mb-4" style="background:var(--n-50);border:1px solid var(--border);border-radius:10px;white-space:pre-wrap;line-height:1.6">@Model.Details</div>
+
+        @{
+            var replyForm = ViewData["Reply"] as DeChimex.Host.Models.Admin.ReplyContactMessageFormViewModel
+                            ?? new DeChimex.Host.Models.Admin.ReplyContactMessageFormViewModel();
+            var replyErrors = ViewData["ReplyErrors"] as System.Collections.Generic.List<string>;
+        }
+        <div class="text-xs uppercase text-muted font-bold mb-1" style="letter-spacing:.06em">Reply by email</div>
+        <form asp-action="Reply" asp-route-id="@Model.Id" method="post" id="replyForm" class="mb-4">
+            @if (replyErrors is { Count: > 0 })
+            {
+                <div class="alert alert-error mb-2" role="alert">
+                    @foreach (var err in replyErrors)
+                    {
+                        <div>@err</div>
+                    }
+                </div>
+            }
+            <div class="mb-2">
+                <label class="label" for="replySubject">Subject</label>
+                <input class="input" id="replySubject" name="Subject" value="@replyForm.Subject" placeholder="Re: your enquiry" aria-required="true" />
+            </div>
+            <div class="mb-2">
+                <label class="label" for="replyBody">Response</label>
+                <textarea class="input" id="replyBody" name="Body" rows="6" style="min-height:120px" aria-required="true" placeholder="Write your response to @Model.Name…">@replyForm.Body</textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">Send reply to @Model.Email</button>
+        </form>
+
+        @if (Model.Replies.Count > 0)
+        {
+            <div class="text-xs uppercase text-muted font-bold mb-1" style="letter-spacing:.06em">Reply history</div>
+            @foreach (var r in Model.Replies)
+            {
+                <div class="p-4 mb-2" style="background:var(--n-50);border:1px solid var(--border);border-radius:10px">
+                    <div class="font-semibold" style="font-size:14px">@r.Subject</div>
+                    <div class="text-xs text-muted mb-2">
+                        Sent to @Model.Email on @r.SentAtUtc.ToLocalTime().ToString("d MMM yyyy, HH:mm")@(r.SentByName is null ? "" : " by " + r.SentByName)
+                    </div>
+                    <div class="text-sm" style="white-space:pre-wrap;line-height:1.6">@r.Body</div>
+                </div>
+            }
+        }
+
+        <div class="flex items-center gap-3">
+            <a class="btn btn-outline" asp-action="Index">Back to messages</a>
+            @if (Model.IsResolved)
+            {
+                <form asp-action="Resolve" asp-route-id="@Model.Id" method="post">
+                    <input type="hidden" name="resolve" value="false" />
+                    <button class="btn btn-secondary" type="submit">Reopen</button>
+                </form>
+            }
+            else
+            {
+                <form asp-action="Resolve" asp-route-id="@Model.Id" method="post">
+                    <input type="hidden" name="resolve" value="true" />
+                    <button class="btn btn-primary" type="submit">Mark as resolved</button>
+                </form>
+            }
+        </div>
+    </div>
+</div>

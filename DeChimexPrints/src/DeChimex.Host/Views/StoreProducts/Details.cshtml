@@ -1,0 +1,15 @@
+@model DeChimex.Contracts.Products.ProductDto
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = Model.Name;
+    ViewData["ActiveNav"] = "shop";
+    ViewData["MetaDescription"] = string.IsNullOrWhiteSpace(Model.Description) ? $"{Model.Name}: {Model.CategoryName} from DE-CHIMEX PRINT HUB." : (Model.Description.Length > 150 ? Model.Description[..150] + "…" : Model.Description);
+    var og = Model.Images?.OrderByDescending(i => i.IsPrimary).FirstOrDefault()?.Url;
+    if (!string.IsNullOrWhiteSpace(og)) { ViewData["OgImage"] = og.StartsWith("http") ? og : $"{Context.Request.Scheme}://{Context.Request.Host}{og}"; }
+    // A signed-in customer who lands on the public link gets the real ordering
+    // controls right here (same partial as /portal/shop/{id}); guests get sign-in CTAs.
+    ViewData["ShopBase"] = "/products";
+    ViewData["IsCustomer"] = User.Identity?.IsAuthenticated == true && User.IsInRole(DeChimex.Shared.Constants.RoleNames.Customer) && ViewBag.SignedIn is true;
+}
+<partial name="Customer/_ProductDetail" model="Model" view-data="ViewData" />
+@section Scripts { <script src="~/js/customer-product.js" asp-append-version="true" defer></script> }

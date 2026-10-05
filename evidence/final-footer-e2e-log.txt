@@ -1,0 +1,458 @@
+footer placement E2E — mode=verify tag=emailfft shots=/tmp/fx-ft-shots
+
+===== setup: owner creates a catalogue, customer registers =====
+ok 01 - owner logged in
+ok 02 - major category created: Footer Majors emailfft
+PASS 01: category created: Footer Cat emailfft
+ok 03 - product created: Footer Mug emailfft
+ok 04 - product created: Footer Tee emailfft
+ok 05 - register footer -> verify page
+ok 06 - verification token captured for footer
+ok 07 - brevo api-key header present (key loaded at runtime)
+ok 08 - customer footer signed in
+ok 09 - customer registered + verified + signed in
+
+===== A. public storefront keeps the full footer =====
+ok 10 - public home @390px: footer variant = full
+ok 11 - public home @390px: no horizontal overflow (390px viewport)
+ok 12 - public home @390px: footer shows the brand block and motto
+ok 13 - public home @390px: footer shows the Shop / Help / Talk to us columns
+ok 14 - public home @390px: footer shows contact details + studio/pickup addresses
+ok 15 - public home @390px: footer shows the social + WhatsApp links
+ok 16 - public home @390px: footer keeps the legal line
+ok 17 - public home @390px: footer keeps its policy/help links
+ok 18 - public home @390px: footer keeps the category links into the catalogue
+shot 01-public-home-full-footer-mobile.png
+ok 19 - public home @1440px: footer variant = full
+ok 20 - public home @1440px: no horizontal overflow (1440px viewport)
+ok 21 - public home @1440px: footer shows the brand block and motto
+ok 22 - public home @1440px: footer shows the Shop / Help / Talk to us columns
+ok 23 - public home @1440px: footer shows contact details + studio/pickup addresses
+ok 24 - public home @1440px: footer shows the social + WhatsApp links
+ok 25 - public home @1440px: footer keeps the legal line
+ok 26 - public home @1440px: footer keeps its policy/help links
+ok 27 - public home @1440px: footer keeps the category links into the catalogue
+shot 02-public-home-full-footer-desktop.png
+ok 28 - public home @1440px: footer renders its 4 columns
+ok 29 - public /products @390px: footer variant = full
+ok 30 - public /products @390px: no horizontal overflow (390px viewport)
+ok 31 - public /products @390px: footer shows the brand block and motto
+ok 32 - public /products @390px: footer shows the Shop / Help / Talk to us columns
+ok 33 - public /products @390px: footer shows contact details + studio/pickup addresses
+ok 34 - public /products @390px: footer shows the social + WhatsApp links
+ok 35 - public /products @390px: footer keeps the legal line
+ok 36 - public /products @390px: footer keeps its policy/help links
+ok 37 - public /products @390px: footer keeps the category links into the catalogue
+shot 03-public-products-full-footer.png
+ok 38 - public /services @390px: footer variant = full
+ok 39 - public /services @390px: no horizontal overflow (390px viewport)
+ok 40 - public /services @390px: footer shows the brand block and motto
+ok 41 - public /services @390px: footer shows the Shop / Help / Talk to us columns
+ok 42 - public /services @390px: footer shows contact details + studio/pickup addresses
+ok 43 - public /services @390px: footer shows the social + WhatsApp links
+ok 44 - public /services @390px: footer keeps the legal line
+ok 45 - public /services @390px: footer keeps its policy/help links
+ok 46 - public /services @390px: footer keeps the category links into the catalogue
+ok 47 - public /gallery @390px: footer variant = full
+ok 48 - public /gallery @390px: no horizontal overflow (390px viewport)
+ok 49 - public /gallery @390px: footer shows the brand block and motto
+ok 50 - public /gallery @390px: footer shows the Shop / Help / Talk to us columns
+ok 51 - public /gallery @390px: footer shows contact details + studio/pickup addresses
+ok 52 - public /gallery @390px: footer shows the social + WhatsApp links
+ok 53 - public /gallery @390px: footer keeps the legal line
+ok 54 - public /gallery @390px: footer keeps its policy/help links
+ok 55 - public /gallery @390px: footer keeps the category links into the catalogue
+ok 56 - public /about @390px: footer variant = full
+ok 57 - public /about @390px: no horizontal overflow (390px viewport)
+ok 58 - public /about @390px: footer shows the brand block and motto
+ok 59 - public /about @390px: footer shows the Shop / Help / Talk to us columns
+ok 60 - public /about @390px: footer shows contact details + studio/pickup addresses
+ok 61 - public /about @390px: footer shows the social + WhatsApp links
+ok 62 - public /about @390px: footer keeps the legal line
+ok 63 - public /about @390px: footer keeps its policy/help links
+ok 64 - public /about @390px: footer keeps the category links into the catalogue
+ok 65 - public /contact @390px: footer variant = full
+ok 66 - public /contact @390px: no horizontal overflow (390px viewport)
+ok 67 - public /contact @390px: footer shows the brand block and motto
+ok 68 - public /contact @390px: footer shows the Shop / Help / Talk to us columns
+ok 69 - public /contact @390px: footer shows contact details + studio/pickup addresses
+ok 70 - public /contact @390px: footer shows the social + WhatsApp links
+ok 71 - public /contact @390px: footer keeps the legal line
+ok 72 - public /contact @390px: footer keeps its policy/help links
+ok 73 - public /contact @390px: footer keeps the category links into the catalogue
+shot 04-public-contact-full-footer.png
+ok 74 - public /faq @390px: footer variant = full
+ok 75 - public /faq @390px: no horizontal overflow (390px viewport)
+ok 76 - public /faq @390px: footer shows the brand block and motto
+ok 77 - public /faq @390px: footer shows the Shop / Help / Talk to us columns
+ok 78 - public /faq @390px: footer shows contact details + studio/pickup addresses
+ok 79 - public /faq @390px: footer shows the social + WhatsApp links
+ok 80 - public /faq @390px: footer keeps the legal line
+ok 81 - public /faq @390px: footer keeps its policy/help links
+ok 82 - public /faq @390px: footer keeps the category links into the catalogue
+shot 05-public-faq-full-footer.png
+ok 83 - public /privacy @390px: footer variant = full
+ok 84 - public /privacy @390px: no horizontal overflow (390px viewport)
+ok 85 - public /privacy @390px: footer shows the brand block and motto
+ok 86 - public /privacy @390px: footer shows the Shop / Help / Talk to us columns
+ok 87 - public /privacy @390px: footer shows contact details + studio/pickup addresses
+ok 88 - public /privacy @390px: footer shows the social + WhatsApp links
+ok 89 - public /privacy @390px: footer keeps the legal line
+ok 90 - public /privacy @390px: footer keeps its policy/help links
+ok 91 - public /privacy @390px: footer keeps the category links into the catalogue
+ok 92 - public /terms @390px: footer variant = full
+ok 93 - public /terms @390px: no horizontal overflow (390px viewport)
+ok 94 - public /terms @390px: footer shows the brand block and motto
+ok 95 - public /terms @390px: footer shows the Shop / Help / Talk to us columns
+ok 96 - public /terms @390px: footer shows contact details + studio/pickup addresses
+ok 97 - public /terms @390px: footer shows the social + WhatsApp links
+ok 98 - public /terms @390px: footer keeps the legal line
+ok 99 - public /terms @390px: footer keeps its policy/help links
+ok 100 - public /terms @390px: footer keeps the category links into the catalogue
+ok 101 - public /install-help @390px: footer variant = full
+ok 102 - public /install-help @390px: no horizontal overflow (390px viewport)
+ok 103 - public /install-help @390px: footer shows the brand block and motto
+ok 104 - public /install-help @390px: footer shows the Shop / Help / Talk to us columns
+ok 105 - public /install-help @390px: footer shows contact details + studio/pickup addresses
+ok 106 - public /install-help @390px: footer shows the social + WhatsApp links
+ok 107 - public /install-help @390px: footer keeps the legal line
+ok 108 - public /install-help @390px: footer keeps its policy/help links
+ok 109 - public /install-help @390px: footer keeps the category links into the catalogue
+ok 110 - public /products @1440px: footer variant = full
+ok 111 - public /products @1440px: no horizontal overflow (1440px viewport)
+ok 112 - public /products @1440px: footer shows the brand block and motto
+ok 113 - public /products @1440px: footer shows the Shop / Help / Talk to us columns
+ok 114 - public /products @1440px: footer shows contact details + studio/pickup addresses
+ok 115 - public /products @1440px: footer shows the social + WhatsApp links
+ok 116 - public /products @1440px: footer keeps the legal line
+ok 117 - public /products @1440px: footer keeps its policy/help links
+ok 118 - public /products @1440px: footer keeps the category links into the catalogue
+ok 119 - public /faq @1440px: footer variant = full
+ok 120 - public /faq @1440px: no horizontal overflow (1440px viewport)
+ok 121 - public /faq @1440px: footer shows the brand block and motto
+ok 122 - public /faq @1440px: footer shows the Shop / Help / Talk to us columns
+ok 123 - public /faq @1440px: footer shows contact details + studio/pickup addresses
+ok 124 - public /faq @1440px: footer shows the social + WhatsApp links
+ok 125 - public /faq @1440px: footer keeps the legal line
+ok 126 - public /faq @1440px: footer keeps its policy/help links
+ok 127 - public /faq @1440px: footer keeps the category links into the catalogue
+ok 128 - public /contact @1440px: footer variant = full
+ok 129 - public /contact @1440px: no horizontal overflow (1440px viewport)
+ok 130 - public /contact @1440px: footer shows the brand block and motto
+ok 131 - public /contact @1440px: footer shows the Shop / Help / Talk to us columns
+ok 132 - public /contact @1440px: footer shows contact details + studio/pickup addresses
+ok 133 - public /contact @1440px: footer shows the social + WhatsApp links
+ok 134 - public /contact @1440px: footer keeps the legal line
+ok 135 - public /contact @1440px: footer keeps its policy/help links
+ok 136 - public /contact @1440px: footer keeps the category links into the catalogue
+
+===== A2. storefront footer links still work =====
+ok 137 - footer link 'Privacy' opens /privacy
+ok 138 - footer link 'Terms' opens /terms
+ok 139 - footer link 'About us' opens /about
+ok 140 - footer link 'FAQ' opens /faq
+ok 141 - footer link 'Contact us' opens /contact
+shot 06-public-footer-links-work.png
+ok 142 - footer link 'Custom printing' opens /services
+
+===== B. guest transactional pages are focused (slim bar) =====
+ok 143 - guest /cart @390px: footer variant = slim
+ok 144 - guest /cart @390px: no horizontal overflow (390px viewport)
+ok 145 - guest /cart @390px: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 146 - guest /cart @390px: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 147 - guest /cart @390px: slim bar keeps the copyright line
+ok 148 - guest /cart @390px: slim bar keeps the payment line
+ok 149 - guest /cart @390px: slim bar keeps Privacy / Terms / Contact
+ok 150 - guest /cart @390px: no storefront footer anywhere in the page
+shot 07-guest-cart-slim-footer.png
+ok 151 - guest /cart still offers a way to the catalogue
+ok 152 - guest /checkout redirects to the clean auth page
+ok 153 - guest /checkout -> login (auth layout): footer variant = none
+
+===== C. customer shop browsing keeps the storefront footer =====
+ok 154 - customer /portal/shop @390px: footer variant = full
+ok 155 - customer /portal/shop @390px: no horizontal overflow (390px viewport)
+ok 156 - customer /portal/shop @390px: footer shows the brand block and motto
+ok 157 - customer /portal/shop @390px: footer shows the Shop / Help / Talk to us columns
+ok 158 - customer /portal/shop @390px: footer shows contact details + studio/pickup addresses
+ok 159 - customer /portal/shop @390px: footer shows the social + WhatsApp links
+ok 160 - customer /portal/shop @390px: footer keeps the legal line
+ok 161 - customer /portal/shop @390px: footer keeps its policy/help links
+ok 162 - customer /portal/shop @390px: footer keeps the category links into the catalogue
+shot 08-customer-shop-storefront-footer.png
+ok 163 - customer shop footer links back into the portal catalogue
+ok 164 - customer /portal/shop/{id} @390px: footer variant = full
+ok 165 - customer /portal/shop/{id} @390px: no horizontal overflow (390px viewport)
+ok 166 - customer /portal/shop/{id} @390px: footer shows the brand block and motto
+ok 167 - customer /portal/shop/{id} @390px: footer shows the Shop / Help / Talk to us columns
+ok 168 - customer /portal/shop/{id} @390px: footer shows contact details + studio/pickup addresses
+ok 169 - customer /portal/shop/{id} @390px: footer shows the social + WhatsApp links
+ok 170 - customer /portal/shop/{id} @390px: footer keeps the legal line
+ok 171 - customer /portal/shop/{id} @390px: footer keeps its policy/help links
+ok 172 - customer /portal/shop/{id} @390px: footer keeps the category links into the catalogue
+
+===== D. customer workspace pages have no storefront footer =====
+ok 173 - customer /portal (dashboard): footer variant = slim
+ok 174 - customer /portal (dashboard): no horizontal overflow (390px viewport)
+ok 175 - customer /portal (dashboard): slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 176 - customer /portal (dashboard): no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 177 - customer /portal (dashboard): slim bar keeps the copyright line
+ok 178 - customer /portal (dashboard): slim bar keeps the payment line
+ok 179 - customer /portal (dashboard): slim bar keeps Privacy / Terms / Contact
+ok 180 - customer /portal (dashboard): no storefront footer anywhere in the page
+ok 181 - customer /portal (dashboard): customer app navigation still present (bottom nav)
+shot 09-customer-dashboard-slim-footer.png
+ok 182 - customer /portal/orders: footer variant = slim
+ok 183 - customer /portal/orders: no horizontal overflow (390px viewport)
+ok 184 - customer /portal/orders: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 185 - customer /portal/orders: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 186 - customer /portal/orders: slim bar keeps the copyright line
+ok 187 - customer /portal/orders: slim bar keeps the payment line
+ok 188 - customer /portal/orders: slim bar keeps Privacy / Terms / Contact
+ok 189 - customer /portal/orders: no storefront footer anywhere in the page
+ok 190 - customer /portal/orders: customer app navigation still present (bottom nav)
+shot 10-customer-orders-slim-footer.png
+ok 191 - customer /portal/orders/track: footer variant = slim
+ok 192 - customer /portal/orders/track: no horizontal overflow (390px viewport)
+ok 193 - customer /portal/orders/track: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 194 - customer /portal/orders/track: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 195 - customer /portal/orders/track: slim bar keeps the copyright line
+ok 196 - customer /portal/orders/track: slim bar keeps the payment line
+ok 197 - customer /portal/orders/track: slim bar keeps Privacy / Terms / Contact
+ok 198 - customer /portal/orders/track: no storefront footer anywhere in the page
+ok 199 - customer /portal/orders/track: customer app navigation still present (bottom nav)
+ok 200 - customer /portal/profile: footer variant = slim
+ok 201 - customer /portal/profile: no horizontal overflow (390px viewport)
+ok 202 - customer /portal/profile: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 203 - customer /portal/profile: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 204 - customer /portal/profile: slim bar keeps the copyright line
+ok 205 - customer /portal/profile: slim bar keeps the payment line
+ok 206 - customer /portal/profile: slim bar keeps Privacy / Terms / Contact
+ok 207 - customer /portal/profile: no storefront footer anywhere in the page
+ok 208 - customer /portal/profile/password: footer variant = slim
+ok 209 - customer /portal/profile/password: no horizontal overflow (390px viewport)
+ok 210 - customer /portal/profile/password: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 211 - customer /portal/profile/password: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 212 - customer /portal/profile/password: slim bar keeps the copyright line
+ok 213 - customer /portal/profile/password: slim bar keeps the payment line
+ok 214 - customer /portal/profile/password: slim bar keeps Privacy / Terms / Contact
+ok 215 - customer /portal/profile/password: no storefront footer anywhere in the page
+ok 216 - customer /portal/addresses: footer variant = slim
+ok 217 - customer /portal/addresses: no horizontal overflow (390px viewport)
+ok 218 - customer /portal/addresses: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 219 - customer /portal/addresses: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 220 - customer /portal/addresses: slim bar keeps the copyright line
+ok 221 - customer /portal/addresses: slim bar keeps the payment line
+ok 222 - customer /portal/addresses: slim bar keeps Privacy / Terms / Contact
+ok 223 - customer /portal/addresses: no storefront footer anywhere in the page
+ok 224 - customer /portal/addresses/add: footer variant = slim
+ok 225 - customer /portal/addresses/add: no horizontal overflow (390px viewport)
+ok 226 - customer /portal/addresses/add: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 227 - customer /portal/addresses/add: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 228 - customer /portal/addresses/add: slim bar keeps the copyright line
+ok 229 - customer /portal/addresses/add: slim bar keeps the payment line
+ok 230 - customer /portal/addresses/add: slim bar keeps Privacy / Terms / Contact
+ok 231 - customer /portal/addresses/add: no storefront footer anywhere in the page
+ok 232 - customer /portal/wishlist: footer variant = slim
+ok 233 - customer /portal/wishlist: no horizontal overflow (390px viewport)
+ok 234 - customer /portal/wishlist: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 235 - customer /portal/wishlist: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 236 - customer /portal/wishlist: slim bar keeps the copyright line
+ok 237 - customer /portal/wishlist: slim bar keeps the payment line
+ok 238 - customer /portal/wishlist: slim bar keeps Privacy / Terms / Contact
+ok 239 - customer /portal/wishlist: no storefront footer anywhere in the page
+shot 11-customer-wishlist-slim-footer.png
+ok 240 - customer /portal/payments: footer variant = slim
+ok 241 - customer /portal/payments: no horizontal overflow (390px viewport)
+ok 242 - customer /portal/payments: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 243 - customer /portal/payments: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 244 - customer /portal/payments: slim bar keeps the copyright line
+ok 245 - customer /portal/payments: slim bar keeps the payment line
+ok 246 - customer /portal/payments: slim bar keeps Privacy / Terms / Contact
+ok 247 - customer /portal/payments: no storefront footer anywhere in the page
+ok 248 - customer /portal/invoices: footer variant = slim
+ok 249 - customer /portal/invoices: no horizontal overflow (390px viewport)
+ok 250 - customer /portal/invoices: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 251 - customer /portal/invoices: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 252 - customer /portal/invoices: slim bar keeps the copyright line
+ok 253 - customer /portal/invoices: slim bar keeps the payment line
+ok 254 - customer /portal/invoices: slim bar keeps Privacy / Terms / Contact
+ok 255 - customer /portal/invoices: no storefront footer anywhere in the page
+ok 256 - customer custom-order form /portal/shop/{id}/order: footer variant = slim
+ok 257 - customer custom-order form /portal/shop/{id}/order: no horizontal overflow (390px viewport)
+ok 258 - customer custom-order form /portal/shop/{id}/order: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 259 - customer custom-order form /portal/shop/{id}/order: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 260 - customer custom-order form /portal/shop/{id}/order: slim bar keeps the copyright line
+ok 261 - customer custom-order form /portal/shop/{id}/order: slim bar keeps the payment line
+ok 262 - customer custom-order form /portal/shop/{id}/order: slim bar keeps Privacy / Terms / Contact
+ok 263 - customer custom-order form /portal/shop/{id}/order: no storefront footer anywhere in the page
+shot 12-customer-order-form-slim-footer.png
+ok 264 - customer /portal @1440px: footer variant = slim
+ok 265 - customer /portal @1440px: no horizontal overflow (1440px viewport)
+ok 266 - customer /portal @1440px: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 267 - customer /portal @1440px: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 268 - customer /portal @1440px: slim bar keeps the copyright line
+ok 269 - customer /portal @1440px: slim bar keeps the payment line
+ok 270 - customer /portal @1440px: slim bar keeps Privacy / Terms / Contact
+ok 271 - customer /portal @1440px: no storefront footer anywhere in the page
+shot 13-customer-dashboard-slim-footer-desktop.png
+
+===== E. transactional checkout funnel (slim, focused) =====
+ok 272 - customer /cart with an item: footer variant = slim
+ok 273 - customer /cart with an item: no horizontal overflow (390px viewport)
+ok 274 - customer /cart with an item: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 275 - customer /cart with an item: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 276 - customer /cart with an item: slim bar keeps the copyright line
+ok 277 - customer /cart with an item: slim bar keeps the payment line
+ok 278 - customer /cart with an item: slim bar keeps Privacy / Terms / Contact
+ok 279 - customer /cart with an item: no storefront footer anywhere in the page
+shot 14-customer-cart-slim-footer.png
+ok 280 - customer /checkout: footer variant = slim
+ok 281 - customer /checkout: no horizontal overflow (390px viewport)
+ok 282 - customer /checkout: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 283 - customer /checkout: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 284 - customer /checkout: slim bar keeps the copyright line
+ok 285 - customer /checkout: slim bar keeps the payment line
+ok 286 - customer /checkout: slim bar keeps Privacy / Terms / Contact
+ok 287 - customer /checkout: no storefront footer anywhere in the page
+shot 15-customer-checkout-slim-footer.png
+ok 288 - order placed, lands on the confirmation page
+ok 289 - order confirmation /checkout/complete/{id}: footer variant = slim
+ok 290 - order confirmation /checkout/complete/{id}: no horizontal overflow (390px viewport)
+ok 291 - order confirmation /checkout/complete/{id}: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 292 - order confirmation /checkout/complete/{id}: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 293 - order confirmation /checkout/complete/{id}: slim bar keeps the copyright line
+ok 294 - order confirmation /checkout/complete/{id}: slim bar keeps the payment line
+ok 295 - order confirmation /checkout/complete/{id}: slim bar keeps Privacy / Terms / Contact
+ok 296 - order confirmation /checkout/complete/{id}: no storefront footer anywhere in the page
+shot 16-order-confirmation-slim-footer.png
+ok 297 - Paystack stub checkout opened
+ok 298 - payment return /checkout/return: footer variant = slim
+ok 299 - payment return /checkout/return: no horizontal overflow (390px viewport)
+ok 300 - payment return /checkout/return: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 301 - payment return /checkout/return: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 302 - payment return /checkout/return: slim bar keeps the copyright line
+ok 303 - payment return /checkout/return: slim bar keeps the payment line
+ok 304 - payment return /checkout/return: slim bar keeps Privacy / Terms / Contact
+ok 305 - payment return /checkout/return: no storefront footer anywhere in the page
+shot 17-payment-return-slim-footer.png
+ok 306 - staff account /checkout (no customer profile): footer variant = slim
+ok 307 - customer order details /portal/orders/{id}: footer variant = slim
+ok 308 - customer order details /portal/orders/{id}: no horizontal overflow (390px viewport)
+ok 309 - customer order details /portal/orders/{id}: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 310 - customer order details /portal/orders/{id}: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 311 - customer order details /portal/orders/{id}: slim bar keeps the copyright line
+ok 312 - customer order details /portal/orders/{id}: slim bar keeps the payment line
+ok 313 - customer order details /portal/orders/{id}: slim bar keeps Privacy / Terms / Contact
+ok 314 - customer order details /portal/orders/{id}: no storefront footer anywhere in the page
+shot 18-order-details-slim-footer.png
+ok 315 - customer order workspace: footer variant = slim
+ok 316 - customer order workspace: no horizontal overflow (390px viewport)
+ok 317 - customer order workspace: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 318 - customer order workspace: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 319 - customer order workspace: slim bar keeps the copyright line
+ok 320 - customer order workspace: slim bar keeps the payment line
+ok 321 - customer order workspace: slim bar keeps Privacy / Terms / Contact
+ok 322 - customer order workspace: no storefront footer anywhere in the page
+shot 19-order-workspace-slim-footer.png
+
+===== F. admin/staff pages render no footer =====
+ok 323 - admin /admin/dashboard @1440px: footer variant = none
+ok 324 - admin /admin/dashboard @1440px: no horizontal overflow (1440px viewport)
+ok 325 - admin /admin/dashboard @1440px: no empty footer-shaped band under the content
+shot 20-admin-dashboard-no-footer.png
+ok 326 - admin /admin/orders @1440px: footer variant = none
+ok 327 - admin /admin/orders @1440px: no horizontal overflow (1440px viewport)
+ok 328 - admin /admin/orders @1440px: no empty footer-shaped band under the content
+shot 21-admin-orders-no-footer.png
+ok 329 - admin /admin/products @1440px: footer variant = none
+ok 330 - admin /admin/products @1440px: no horizontal overflow (1440px viewport)
+ok 331 - admin /admin/products @1440px: no empty footer-shaped band under the content
+ok 332 - admin /admin/customers @1440px: footer variant = none
+ok 333 - admin /admin/customers @1440px: no horizontal overflow (1440px viewport)
+ok 334 - admin /admin/customers @1440px: no empty footer-shaped band under the content
+ok 335 - admin /admin/settings @1440px: footer variant = none
+ok 336 - admin /admin/settings @1440px: no horizontal overflow (1440px viewport)
+ok 337 - admin /admin/settings @1440px: no empty footer-shaped band under the content
+shot 22-admin-settings-no-footer.png
+ok 338 - admin /admin/notifications @1440px: footer variant = none
+ok 339 - admin /admin/notifications @1440px: no horizontal overflow (1440px viewport)
+ok 340 - admin /admin/notifications @1440px: no empty footer-shaped band under the content
+ok 341 - admin /admin/inventory @1440px: footer variant = none
+ok 342 - admin /admin/inventory @1440px: no horizontal overflow (1440px viewport)
+ok 343 - admin /admin/inventory @1440px: no empty footer-shaped band under the content
+ok 344 - admin /admin/reports @1440px: footer variant = none
+ok 345 - admin /admin/reports @1440px: no horizontal overflow (1440px viewport)
+ok 346 - admin /admin/reports @1440px: no empty footer-shaped band under the content
+ok 347 - admin order workspace: footer variant = none
+ok 348 - admin order workspace: no horizontal overflow (1440px viewport)
+ok 349 - admin order workspace: no empty footer-shaped band under the content
+ok 350 - guest hitting an admin page is redirected to the clean auth page
+ok 351 - guest /admin/dashboard -> login: footer variant = none
+
+===== G. authentication pages stay clean =====
+ok 352 - auth /Account/Login @390px: footer variant = none
+ok 353 - auth /Account/Login @390px: no horizontal overflow (390px viewport)
+ok 354 - auth /Account/Login @390px: no empty footer-shaped band under the content
+shot 23-auth-login-no-footer.png
+ok 355 - auth /Account/Login: no customer bottom nav either
+ok 356 - auth /Account/Register @390px: footer variant = none
+ok 357 - auth /Account/Register @390px: no horizontal overflow (390px viewport)
+ok 358 - auth /Account/Register @390px: no empty footer-shaped band under the content
+shot 24-auth-register-no-footer.png
+ok 359 - auth /Account/Register: no customer bottom nav either
+ok 360 - auth /Account/ForgotPassword @390px: footer variant = none
+ok 361 - auth /Account/ForgotPassword @390px: no horizontal overflow (390px viewport)
+ok 362 - auth /Account/ForgotPassword @390px: no empty footer-shaped band under the content
+shot 25-auth-forgot-password-no-footer.png
+ok 363 - auth /Account/ForgotPassword: no customer bottom nav either
+ok 364 - auth /Account/ResetPassword @390px: footer variant = none
+ok 365 - auth /Account/ResetPassword @390px: no horizontal overflow (390px viewport)
+ok 366 - auth /Account/ResetPassword @390px: no empty footer-shaped band under the content
+shot 26-auth-reset-password-no-footer.png
+ok 367 - auth /Account/ResetPassword: no customer bottom nav either
+ok 368 - auth /Account/AccessDenied: footer variant = none
+ok 369 - auth /Account/AccessDenied: no horizontal overflow (390px viewport)
+ok 370 - auth /Account/AccessDenied: no empty footer-shaped band under the content
+ok 371 - auth /Account/Login @1440px: footer variant = none
+ok 372 - auth /Account/Login @1440px: no horizontal overflow (390px viewport)
+ok 373 - auth /Account/Login @1440px: no empty footer-shaped band under the content
+ok 374 - auth /Account/Login desktop: footer variant = none
+ok 375 - auth /Account/Login desktop: no horizontal overflow (1440px viewport)
+ok 376 - auth /Account/Login desktop: no empty footer-shaped band under the content
+
+===== H. narrow 320px pass (mobile layout stays correct) =====
+ok 377 - public home @320px: footer variant = full
+ok 378 - public home @320px: no horizontal overflow (320px viewport)
+ok 379 - public home @320px: footer shows the brand block and motto
+ok 380 - public home @320px: footer shows the Shop / Help / Talk to us columns
+ok 381 - public home @320px: footer shows contact details + studio/pickup addresses
+ok 382 - public home @320px: footer shows the social + WhatsApp links
+ok 383 - public home @320px: footer keeps the legal line
+ok 384 - public home @320px: footer keeps its policy/help links
+ok 385 - public home @320px: footer keeps the category links into the catalogue
+ok 386 - @320px: storefront footer stacks to a single column
+ok 387 - public /faq @320px: footer variant = full
+ok 388 - public /faq @320px: no horizontal overflow (320px viewport)
+ok 389 - public /faq @320px: footer shows the brand block and motto
+ok 390 - public /faq @320px: footer shows the Shop / Help / Talk to us columns
+ok 391 - public /faq @320px: footer shows contact details + studio/pickup addresses
+ok 392 - public /faq @320px: footer shows the social + WhatsApp links
+ok 393 - public /faq @320px: footer keeps the legal line
+ok 394 - public /faq @320px: footer keeps its policy/help links
+ok 395 - public /faq @320px: footer keeps the category links into the catalogue
+shot 27-public-faq-full-footer-320px.png
+ok 396 - guest /cart @320px: footer variant = slim
+ok 397 - guest /cart @320px: no horizontal overflow (320px viewport)
+ok 398 - guest /cart @320px: slim bar is the last in-flow element (nothing but the fixed-bar clearance below it)
+ok 399 - guest /cart @320px: no storefront-footer spacing left on the page (<main> margin-bottom 0)
+ok 400 - guest /cart @320px: slim bar keeps the copyright line
+ok 401 - guest /cart @320px: slim bar keeps the payment line
+ok 402 - guest /cart @320px: slim bar keeps Privacy / Terms / Contact
+ok 403 - guest /cart @320px: no storefront footer anywhere in the page
+shot 28-guest-cart-slim-footer-320px.png
+
+===== I. no console/page/network problems on any page visited =====
+ok 404 - clean console, no page errors, no failed or 4xx/5xx sub-resource requests (0)
+
+RESULT: 404 passed, 0 failed (TAG=emailfft)

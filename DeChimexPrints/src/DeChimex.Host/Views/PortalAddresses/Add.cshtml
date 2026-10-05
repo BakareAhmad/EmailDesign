@@ -1,0 +1,54 @@
+@model DeChimex.Host.Models.Portal.AddressFormViewModel
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Add address";
+    ViewData["ActiveNav"] = "addresses";
+}
+<div class="cs-wrap cs-wrap-sm">
+    <a class="cs-back" asp-action="Index" style="margin-top:12px">@Html.Raw(CustomerIcons.Svg("arrow-left", 18)) Addresses</a>
+    <div class="cs-page-head"><h1>Add address</h1></div>
+    <section class="cs-card cs-card-pad">
+        <form asp-action="Add" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+            <div class="field">
+                <label class="label" asp-for="Label">Label <span class="req">*</span></label>
+                <input class="input" asp-for="Label" placeholder="e.g. Home, Office" />
+                <span asp-validation-for="Label" class="field-error"></span>
+            </div>
+            <div class="field">
+                <label class="label" asp-for="Street">Street address <span class="req">*</span></label>
+                <input class="input" asp-for="Street" autocomplete="street-address" />
+                <span asp-validation-for="Street" class="field-error"></span>
+            </div>
+            <div class="au-grid-2">
+                <div class="field">
+                    <label class="label" asp-for="City">City <span class="req">*</span></label>
+                    <input class="input" asp-for="City" autocomplete="address-level2" />
+                    <span asp-validation-for="City" class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label class="label" asp-for="State">State <span class="req">*</span></label>
+                    <input class="input" asp-for="State" autocomplete="address-level1" />
+                    <span asp-validation-for="State" class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label class="label" asp-for="Country">Country <span class="req">*</span></label>
+                    <input class="input" asp-for="Country" autocomplete="country-name" />
+                    <span asp-validation-for="Country" class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label class="label" asp-for="PostalCode">Postal code</label>
+                    <input class="input" asp-for="PostalCode" autocomplete="postal-code" />
+                </div>
+            </div>
+            <div class="field">
+                <label class="cs-check"><input asp-for="IsDefault" /> Use as my default delivery address</label>
+            </div>
+            <div class="cs-actions">
+                <button class="btn btn-primary" type="submit">Save address</button>
+                <a class="btn btn-ghost" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </section>
+</div>

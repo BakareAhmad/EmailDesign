@@ -1,0 +1,14 @@
+﻿Order DCX-2026-000123 is confirmed and moving into production.
+
+Your order is confirmed
+Thank you, O'Neil <b>Attridge-Smith-Worthington the Third</b>. We've received your payment and your order is now being prepared.
+Payment received
+Order number
+DCX-2026-000123
+Payment status
+Paid
+Amount paid
+₦1,250,999.50
+We'll email you at every status change. You can follow progress any time:
+Track your order https://dechimexprinthub.com/portal/orders/track?orderNumber=DCX-2026-000123
+Button not working? Copy this link: https://dechimexprinthub.com/portal/orders/track?orderNumber=DCX-2026-000123

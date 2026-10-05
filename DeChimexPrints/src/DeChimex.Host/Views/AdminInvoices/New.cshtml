@@ -1,0 +1,259 @@
+@model DeChimex.Host.Models.Admin.QuoteInvoiceFormViewModel
+@{
+    Layout = "_AdminLayout";
+    var products = ViewBag.Products as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+    var services = ViewBag.Services as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? new();
+    var selectedCustomer = ViewBag.SelectedCustomer as string;
+}
+<div class="card" style="max-width:900px">
+    <div class="card-head"><h3>New quote invoice</h3></div>
+    <div class="card-body">
+        <p class="text-sm text-muted mb-4">
+            For sales that start off-platform (phone, walk-in chat, socials): pick the products and
+            services, and we issue a <strong>quote invoice (Draft)</strong>. No order is placed yet.
+            The customer can pay from it later, and you can create the order from it in one step.
+        </p>
+        <form asp-action="New" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+            <h4 class="mb-2">Customer</h4>
+            <div class="field">
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="CustomerMode" value="existing" @(Model.CustomerMode == "existing" ? "checked" : "") /> Existing customer
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" name="CustomerMode" value="new" @(Model.CustomerMode == "new" ? "checked" : "") /> New customer
+                </label>
+            </div>
+            <div id="existingCustomerRow" class="field">
+                <label class="label">Customer <span class="req">*</span></label>
+                <div style="position:relative">
+                    <input class="input" type="text" id="customerSearch" autocomplete="off"
+                           placeholder="Search by name, email or phone..." value="@(selectedCustomer ?? "")" />
+                    <input type="hidden" asp-for="CustomerId" />
+                    <div id="customerResults" class="picker-results" style="display:none"></div>
+                </div>
+                <span asp-validation-for="CustomerId" class="field-error"></span>
+            </div>
+            <div id="newCustomerRow" class="field" style="display:none">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                    <div class="field">
+                        <label class="label">First name <span class="req">*</span></label>
+                        <input class="input" asp-for="NewFirstName" />
+                    </div>
+                    <div class="field">
+                        <label class="label">Last name <span class="req">*</span></label>
+                        <input class="input" asp-for="NewLastName" />
+                    </div>
+                    <div class="field">
+                        <label class="label">Email</label>
+                        <input class="input" asp-for="NewEmail" type="email" />
+                        <div class="text-xs text-muted">Optional: lets the customer use the link on the shared invoice.</div>
+                        <span asp-validation-for="NewEmail" class="field-error"></span>
+                    </div>
+                    <div class="field">
+                        <label class="label">Phone</label>
+                        <input class="input" asp-for="NewPhone" />
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mt-4 mb-2">Lines (products and services)</h4>
+            <div id="lineRows">
+                @for (var i = 0; i < Model.Lines.Count; i++)
+                {
+                    var idx = i;
+                    <div class="quote-line" style="display:grid;grid-template-columns:1fr 1fr 80px 1fr 36px;gap:8px;margin-bottom:8px;align-items:center">
+                        <select class="select" name="Lines[@idx].ProductId">
+                            <option value="">Product (optional)</option>
+                            @foreach (var p in products)
+                            {
+                                <option value="@p.Value" selected="@(Model.Lines[idx].ProductId == p.Value ? "selected" : null)">@p.Text</option>
+                            }
+                        </select>
+                        <select class="select" name="Lines[@idx].ServiceId">
+                            <option value="">Service (optional)</option>
+                            @foreach (var sv in services)
+                            {
+                                <option value="@sv.Value" selected="@(Model.Lines[idx].ServiceId == sv.Value ? "selected" : null)">@sv.Text</option>
+                            }
+                        </select>
+                        <input class="input" type="number" min="1" name="Lines[@idx].Quantity" value="@Model.Lines[idx].Quantity" />
+                        <input class="input" name="Lines[@idx].Notes" placeholder="Line notes (optional)" value="@Model.Lines[idx].Notes" />
+                        <button type="button" class="btn btn-ghost btn-sm remove-line" title="Remove line" aria-label="Remove line">&times;</button>
+                    </div>
+                }
+            </div>
+            <div class="text-xs text-muted mb-2">Each line must be a product OR a service, not both.</div>
+            <button type="button" class="btn btn-outline btn-sm" id="addLineRow">+ Add line</button>
+
+            <h4 class="mt-4 mb-2">Pricing adjustments</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="field">
+                    <label class="label" asp-for="Discount">Discount (&#8358;)</label>
+                    <input class="input" asp-for="Discount" type="number" step="0.01" min="0" />
+                    <span asp-validation-for="Discount" class="field-error"></span>
+                </div>
+                <div class="field">
+                    <label class="label" asp-for="Tax">Tax (&#8358;)</label>
+                    <input class="input" asp-for="Tax" type="number" step="0.01" min="0" />
+                    <span asp-validation-for="Tax" class="field-error"></span>
+                </div>
+            </div>
+            <div class="field mt-3">
+                <label class="label" asp-for="Notes">Invoice notes</label>
+                <textarea class="input" asp-for="Notes" rows="2" placeholder="e.g. deposit expected before production..."></textarea>
+                <span asp-validation-for="Notes" class="field-error"></span>
+            </div>
+
+            <div class="flex items-center gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">Create quote invoice</button>
+                <a class="btn btn-outline" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function(){
+    const lineTpl = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        "<div class=\"quote-line\" style=\"display:grid;grid-template-columns:1fr 1fr 80px 1fr 36px;gap:8px;margin-bottom:8px;align-items:center\">" +
+        "<select class=\"select\" name=\"Lines[__IDX__].ProductId\"><option value=\"\">Product (optional)</option>__PRODUCTS__</select>" +
+        "<select class=\"select\" name=\"Lines[__IDX__].ServiceId\"><option value=\"\">Service (optional)</option>__SERVICES__</select>" +
+        "<input class=\"input\" type=\"number\" min=\"1\" name=\"Lines[__IDX__].Quantity\" value=\"1\" />" +
+        "<input class=\"input\" name=\"Lines[__IDX__].Notes\" placeholder=\"Line notes (optional)\" />" +
+        "<button type=\"button\" class=\"btn btn-ghost btn-sm remove-line\" title=\"Remove line\" aria-label=\"Remove line\">&times;</button></div>"));
+
+    const firstRow = document.querySelector('#lineRows .quote-line');
+    const productOptions = (firstRow?.querySelectorAll('select')[0]?.innerHTML || '').trim();
+    const serviceOptions = (firstRow?.querySelectorAll('select')[1]?.innerHTML || '').trim();
+
+    function nextIndex(){
+        let max = -1;
+        document.querySelectorAll('#lineRows [name^="Lines["]').forEach(el => {
+            const m = el.name.match(/Lines\[(\d+)\]/);
+            if (m) max = Math.max(max, parseInt(m[1], 10));
+        });
+        return max + 1;
+    }
+
+    document.getElementById('addLineRow').addEventListener('click', () => {
+        const idx = nextIndex();
+        document.getElementById('lineRows').insertAdjacentHTML('beforeend',
+            lineTpl.replaceAll('__IDX__', String(idx)).replaceAll('__PRODUCTS__', productOptions).replaceAll('__SERVICES__', serviceOptions));
+        bindRemove();
+    });
+
+    function bindRemove(){
+        document.querySelectorAll('.remove-line').forEach(btn => {
+            if (btn.dataset.bound) return;
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', () => {
+                const rows = document.getElementById('lineRows');
+                if (rows.children.length > 1) btn.closest('.quote-line').remove();
+                else { window.location.reload(); }
+            });
+        });
+    }
+    bindRemove();
+
+    // One catalog item per line: picking a product clears the service, and vice versa.
+    document.getElementById('lineRows').addEventListener('change', ev => {
+        const row = ev.target.closest('.quote-line');
+        if (!row) return;
+        const p = row.querySelectorAll('select')[0];
+        const sv = row.querySelectorAll('select')[1];
+        if (ev.target === p && p.value) sv.value = '';
+        if (ev.target === sv && sv.value) p.value = '';
+    });
+
+    const modes = document.querySelectorAll('input[name="CustomerMode"]');
+    function toggleMode(){
+        const mode = document.querySelector('input[name="CustomerMode"]:checked')?.value;
+        document.getElementById('existingCustomerRow').style.display = mode === 'existing' ? '' : 'none';
+        document.getElementById('newCustomerRow').style.display = mode === 'new' ? '' : 'none';
+        if (mode === 'new') clearCustomerSelection();
+    }
+    modes.forEach(r => r.addEventListener('change', toggleMode));
+    toggleMode();
+
+    // ---- Searchable customer picker (no fixed list cap) ----
+    const searchInput = document.getElementById('customerSearch');
+    const hiddenId = document.querySelector('#existingCustomerRow input[type="hidden"]');
+    const resultsBox = document.getElementById('customerResults');
+    let pickerTimer = null;
+    let pickerItems = [];
+    let pickerBusy = false;
+
+    function clearCustomerSelection(){
+        hiddenId.value = '';
+        searchInput.value = '';
+        resultsBox.style.display = 'none';
+        resultsBox.innerHTML = '';
+    }
+
+    async function loadPicker(q){
+        if (pickerBusy) return;
+        pickerBusy = true;
+        try {
+            const res = await fetch('/admin/customers/picker?q=' + encodeURIComponent(q || ''),
+                { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            pickerItems = await res.json();
+            renderResults();
+        } catch (e) {
+            // transient failure: leave the current list in place
+        }
+        pickerBusy = false;
+    }
+
+    function renderResults(){
+        resultsBox.innerHTML = '';
+        if (!pickerItems.length) {
+            const empty = document.createElement('div');
+            empty.className = 'picker-empty';
+            empty.textContent = 'No customers found.';
+            resultsBox.appendChild(empty);
+        } else {
+            pickerItems.forEach(c => {
+                const row = document.createElement('div');
+                row.className = 'picker-item';
+                const sub = c.email ? c.email : 'guest (no email)';
+                row.textContent = c.name + (c.phone ? '  -  ' + c.phone : '') + '  -  ' + sub;
+                row.addEventListener('mousedown', ev => { ev.preventDefault(); selectCustomer(c); });
+                resultsBox.appendChild(row);
+            });
+        }
+        resultsBox.style.display = 'block';
+    }
+
+    function selectCustomer(c){
+        hiddenId.value = c.id;
+        searchInput.value = c.name + (c.guest ? ' (guest)' : '');
+        resultsBox.style.display = 'none';
+    }
+
+    searchInput.addEventListener('input', () => {
+        hiddenId.value = '';
+        clearTimeout(pickerTimer);
+        pickerTimer = setTimeout(() => loadPicker(searchInput.value.trim()), 250);
+    });
+    searchInput.addEventListener('focus', () => {
+        clearTimeout(pickerTimer);
+        pickerTimer = setTimeout(() => loadPicker(searchInput.value.trim()), 150);
+    });
+    searchInput.addEventListener('keydown', ev => {
+        if (ev.key === 'Enter') {
+            ev.preventDefault();
+            if (pickerItems.length) selectCustomer(pickerItems[0]);
+        } else if (ev.key === 'Escape') {
+            resultsBox.style.display = 'none';
+        }
+    });
+    document.addEventListener('click', ev => {
+        if (!ev.target.closest('#existingCustomerRow')) resultsBox.style.display = 'none';
+    });
+})();
+</script>
+}

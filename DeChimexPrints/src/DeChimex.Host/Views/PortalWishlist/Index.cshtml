@@ -1,0 +1,40 @@
+@model IReadOnlyList<DeChimex.Contracts.Wishlist.WishlistItemDto>
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Wishlist";
+    ViewData["ActiveNav"] = "wishlist";
+}
+<div class="cs-wrap">
+    <partial name="Customer/_AccountTabs" model="@("wishlist")" />
+    <div class="cs-page-head"><h1>Wishlist</h1></div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="cs-card">
+            @{ var es = new EmptyState(EmptyIcons.Heart, "Your wishlist is empty", "Tap the heart on any product to save it here for later.", CtaHref: "/portal/shop", CtaText: "Browse products"); }
+            <partial name="_EmptyState" model="es" />
+        </div>
+    }
+    else
+    {
+        <div class="pgrid">
+            @foreach (var w in Model)
+            {
+                <article class="pc">
+                    <a class="pc-media" href="/portal/shop/@w.ProductId">
+                        @if (!string.IsNullOrWhiteSpace(w.PrimaryImageUrl)) { <img src="@w.PrimaryImageUrl" alt="@w.ProductName" loading="lazy" width="400" height="400"> } else { <span class="pc-noimg">@Html.Raw(CustomerIcons.Svg("image", 28, null, 1.5))</span> }
+                    </a>
+                    <form asp-action="Remove" asp-route-productId="@w.ProductId" method="post" class="pc-heart-wrap">
+                        <button type="submit" class="pc-heart is-on" aria-label="Remove @w.ProductName from wishlist">@Html.Raw(CustomerIcons.Svg("heart", 18))</button>
+                    </form>
+                    <div class="pc-body">
+                        <a class="pc-name" href="/portal/shop/@w.ProductId">@w.ProductName</a>
+                        <div class="pc-price">@CustomerPresentation.Money(w.SellingPrice)</div>
+                        <a class="btn btn-primary btn-sm pc-cta" href="/portal/shop/@w.ProductId">View product</a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</div>

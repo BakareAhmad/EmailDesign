@@ -1,0 +1,22 @@
+@{
+    // Customer app + transactional shell: the same top bar and bottom nav as the
+    // storefront, but no storefront footer. Workspace pages (dashboard, orders,
+    // tracking, workspace, profile, addresses, wishlist, payments, invoices),
+    // the custom-order form, the cart and the whole checkout funnel render the
+    // slim legal bar instead, and admin/staff pages never render one at all.
+    //
+    // The footer itself stays a layout decision (see _CustomerLayout.cshtml):
+    // ViewData["Footer"] = "full" (storefront) | "slim" (here) | "none".
+    Layout = "_CustomerLayout";
+    ViewData["Footer"] = "slim";
+    if (ViewData["ActiveNav"] is null)
+    {
+        var segs = (Context.Request.Path.Value ?? "/portal").Trim('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+        ViewData["ActiveNav"] = segs.Length > 1 ? segs[1].ToLowerInvariant() : "dashboard";
+        if (segs.Length > 2 && segs[1].Equals("orders", StringComparison.OrdinalIgnoreCase) && segs[2].Equals("track", StringComparison.OrdinalIgnoreCase))
+            ViewData["ActiveNav"] = "track";
+    }
+}
+@RenderBody()
+@section Styles { @await RenderSectionAsync("Styles", required: false) }
+@section Scripts { @await RenderSectionAsync("Scripts", required: false) }

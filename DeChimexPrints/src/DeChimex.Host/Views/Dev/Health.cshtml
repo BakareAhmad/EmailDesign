@@ -1,0 +1,85 @@
+@model DevHealthSnapshot
+@{
+    var sys = (SystemInfo)ViewBag.System;
+    var db = (DatabaseInfo)ViewBag.Db;
+    var perf = (PerformanceStats)ViewBag.Perf;
+    var q = ((long Enqueued, long Written, long Dropped, int Pending, long WriteFailures, long CaptureFailures))ViewBag.Queue;
+    var rt = (RealtimeMonitor)ViewBag.Realtime;
+    var perms = ViewBag.DevPerms as HashSet<string> ?? new();
+}
+<div class="dv-card dv-overall dv-tile st-@Model.Overall">
+    <div><div class="dv-muted dv-small">Health checks (all registered, incl. Developer Portal checks)</div><div class="big">@Model.Overall</div></div>
+    <div style="margin-left:auto;text-align:right" class="dv-small dv-muted">
+        Checked @DevUi.Utc(Model.CheckedAtUtc) · total @DevUi.Ms(Model.TotalMs) · cached 30 s
+        @if (perms.Contains(Permissions.Developer.MaintenanceRun))
+        {
+            <form method="post" action="/dev/maintenance/rerun-health" data-confirm="Run every health check now?" style="margin-top:6px">
+                @Html.AntiForgeryToken()<input type="hidden" name="confirm" value="yes" />
+                <button class="dv-btn dv-btn-ghost" type="submit">Re-run health checks</button>
+            </form>
+        }
+    </div>
+</div>
+
+<section class="dv-card" style="margin-top:12px">
+    <h2>Checks</h2>
+    <div class="dv-table-wrap"><table class="dv-table">
+        <thead><tr><th>Check</th><th>Status</th><th>Description</th><th class="num">Duration</th><th>Error</th><th>Tags</th></tr></thead>
+        <tbody>
+        @foreach (var e in Model.Entries)
+        {
+            <tr id="@e.Name"><td><strong>@e.Name</strong></td><td>@DevUi.Status(e.Status)</td><td class="dv-wrap">@e.Description</td><td class="num">@DevUi.Ms(e.DurationMs)</td><td class="dv-wrap dv-small">@e.Error</td><td class="dv-small dv-muted">@string.Join(", ", e.Tags)</td></tr>
+        }
+        </tbody>
+    </table></div>
+</section>
+
+<div class="dv-grid dv-g2" style="margin-top:12px">
+    <section class="dv-card">
+        <h2>Application</h2>
+        <dl class="dv-kv">
+            <dt>Environment</dt><dd>@sys.Environment</dd>
+            <dt>Version / build</dt><dd>@sys.Version <span class="dv-muted">(@sys.InformationalVersion)</span> · built @DevUi.Utc(sys.BuildUtc)</dd>
+            <dt>Runtime</dt><dd>@sys.Runtime · @sys.ProcessArch · @sys.ProcessorCount CPU</dd>
+            <dt>OS</dt><dd>@sys.Os</dd>
+            <dt>Started</dt><dd>@DevUi.Utc(sys.StartedUtc)</dd>
+            <dt>Uptime</dt><dd>@DevUi.Duration(sys.Uptime)</dd>
+            <dt>Memory</dt><dd>@sys.WorkingSetMb MB working set · @sys.GcHeapMb MB managed heap · @sys.ThreadCount threads</dd>
+            <dt>Requests (24 h)</dt><dd>@DevUi.Num(perf.Requests) · @perf.ServerErrors 5xx (@perf.ErrorRatePercent%) · avg @DevUi.Ms(perf.AvgMs) · <a href="/dev/performance">details</a></dd>
+        </dl>
+    </section>
+    <section class="dv-card" id="database">
+        <h2>Database</h2>
+        <dl class="dv-kv">
+            <dt>Provider</dt><dd>@db.Provider</dd>
+            <dt>Connectivity</dt><dd>@DevUi.Status(db.CanConnect ? "Healthy" : "Unavailable") @(db.Error)</dd>
+            <dt>Latency</dt><dd>@DevUi.Ms(db.LatencyMs) (connection probe)</dd>
+            <dt>Migrations</dt><dd>@db.Migrations.Count known · @db.PendingCount pending · last applied <span class="dv-mono">@(db.LastApplied ?? "none")</span></dd>
+        </dl>
+        <p class="dv-muted dv-small">@db.SchemaNote <a href="/dev/database">Database page →</a></p>
+    </section>
+    <section class="dv-card" id="storage">
+        <h2>Storage</h2>
+        @{ var st = Model.Get("storage"); }
+        <p>@DevUi.Status(st?.Status) @st?.Description</p>
+        @if (st?.Error is not null) { <p class="dv-small">@st.Error</p> }
+    </section>
+    <section class="dv-card" id="realtime">
+        <h2>Realtime (SignalR)</h2>
+        @{ var r = Model.Get("realtime"); }
+        <p>@DevUi.Status(r?.Status) @r?.Description</p>
+        <div class="dv-table-wrap"><table class="dv-table"><thead><tr><th>Hub</th><th class="num">Open</th><th class="num">Connects</th><th class="num">Abnormal disconnects</th><th class="num">Invocations</th><th class="num">Failures</th></tr></thead><tbody>
+        @if (rt.Hubs.Count == 0) { <tr><td colspan="6" class="dv-muted">No connections since start.</td></tr> }
+        @foreach (var (hub, s) in rt.Hubs)
+        {
+            <tr><td>@hub</td><td class="num">@s.Open</td><td class="num">@s.Connects</td><td class="num">@s.AbnormalDisconnects</td><td class="num">@s.Invocations</td><td class="num">@s.InvocationFailures</td></tr>
+        }
+        </tbody></table></div>
+    </section>
+</div>
+
+<section class="dv-card" style="margin-top:12px">
+    <h2>Diagnostics pipeline</h2>
+    <p class="dv-small">Queued @q.Enqueued · written @q.Written · pending @q.Pending · dropped @q.Dropped · failed writes @q.WriteFailures · capture failures @q.CaptureFailures.
+    Technical events are queued in memory and written in batches every ~2 s; the queue is bounded so diagnostics can never slow the shop down.</p>
+</section>

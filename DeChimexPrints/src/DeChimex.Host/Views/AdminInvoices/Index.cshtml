@@ -1,0 +1,66 @@
+@model IReadOnlyList<DeChimex.Host.Controllers.InvoiceListDto>
+@{
+    Layout = "_AdminLayout";
+    var statuses = ViewBag.Statuses as string[] ?? Array.Empty<string>();
+}
+<div class="toolbar" style="margin-bottom:16px">
+    @if (User.HasClaim(Permissions.ClaimType, Permissions.Orders.Create))
+    {
+        <a class="btn btn-primary" href="/admin/invoices/new">+ New quote invoice</a>
+    }
+</div>
+<div class="toolbar" style="margin-bottom:16px">
+    <form method="get" class="flex items-center gap-2" style="flex-wrap:wrap">
+        <input class="input" type="search" name="search" value="@(ViewBag.Search)" placeholder="Search invoice, order number or customer..." style="width:280px;min-width:220px">
+        <select class="select" name="status" style="width:190px;min-width:150px">
+            <option value="">All statuses</option>
+            @foreach (var s in statuses)
+            {
+                <option value="@s" selected="@(s == (string?)ViewBag.Status)">@s</option>
+            }
+        </select>
+        <button class="btn btn-secondary" type="submit">Filter</button>
+    </form>
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead><tr><th>Invoice</th><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Issued</th><th></th></tr></thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                    var es = !string.IsNullOrWhiteSpace((string?)ViewBag.Search) || !string.IsNullOrWhiteSpace((string?)ViewBag.Status)
+    ? new EmptyState(EmptyIcons.Search, "No results", "Try adjusting your search or filters.")
+    : new EmptyState(EmptyIcons.Receipt, "No invoices yet", "Invoices are issued when orders are placed. Staff can also create quote invoices for off-platform sales.");
+                <tr><td colspan="7" class="table-empty">
+                <partial name="_EmptyState" model="es" /></td></tr>
+            }
+            @foreach (var i in Model)
+            {
+                <tr>
+                    <td class="font-semibold">@i.InvoiceNumber
+                        @if (i.IsQuote)
+                        {
+                            <span class="badge badge-primary">Quote</span>
+                        }
+                    </td>
+                    <td class="text-muted">@(i.OrderNumber ?? "-")</td>
+                    <td>@i.CustomerName</td>
+                    <td>₦@i.GrandTotal.ToString("N2")</td>
+                    <td><span class="badge badge-neutral">@i.Status</span></td>
+                    <td class="text-muted">@i.IssuedAtUtc.ToLocalTime().ToString("d MMM yyyy")</td>
+                    <td class="text-right"><a class="btn btn-outline btn-sm" href="/admin/invoices/@i.Id">View</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.Page > 1) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)" asp-route-search="@(ViewBag.Search)" asp-route-status="@(ViewBag.Status)">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.Page < ViewBag.TotalPages) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)" asp-route-search="@(ViewBag.Search)" asp-route-status="@(ViewBag.Status)">Next</a> }
+    </div>
+}

@@ -1,0 +1,84 @@
+@using DeChimex.Host
+@{
+    Layout = "_PortalLayout";
+    ViewData["Title"] = "Payment";
+    ViewData["ActiveNav"] = "orders";
+    var order = ViewBag.Order as DeChimex.Contracts.Orders.OrderDto;
+    var isCustomer = User.Identity?.IsAuthenticated == true && User.IsInRole(DeChimex.Shared.Constants.RoleNames.Customer);
+    var shopBase = isCustomer ? "/portal/shop" : "/products";
+    var paystackCharge = ViewBag.PaystackCharge is decimal pc ? pc : 0m;
+    var customerPayable = order is null ? 0m : (ViewBag.CustomerPayable is decimal cp ? cp : order.GrandTotal + paystackCharge);
+    var isPaid = order is not null && order.PaidAtUtc is not null;
+    var awaitingPayment = order is not null && order.Status is "PendingPayment" or "Draft";
+}
+
+<div class="cs-wrap cs-wrap-md">
+    @if (order is null)
+    {
+        <div class="cs-page-head"><h1>Order not found</h1></div>
+        <div class="cs-card"><div class="pay-result"><p>We couldn't find that order.</p><div class="pay-actions"><a href="/portal/orders" class="btn btn-primary">My orders</a></div></div></div>
+    }
+    else
+    {
+        <div class="ck-steps" style="padding-top:16px" aria-label="Checkout progress">
+            <span class="is-done"><i>✓</i> Cart</span>@Html.Raw(CustomerIcons.Svg("chev-right", 12))
+            <span class="is-done"><i>✓</i> Delivery</span>@Html.Raw(CustomerIcons.Svg("chev-right", 12))
+            <span class="is-on"><i>3</i> Payment</span>
+        </div>
+
+        <div class="cs-callout @(isPaid ? "is-ok" : awaitingPayment ? "is-warn" : "")" style="margin-bottom:16px">
+            @Html.Raw(CustomerIcons.Svg(isPaid ? "check-circle" : "clock", 22))
+            <div>
+                <strong>@(isPaid ? $"Order {order.OrderNumber} is paid. Thank you!" : $"Order {order.OrderNumber} placed. One last step: payment.")</strong>
+                @(isPaid ? CustomerPresentation.NextStep(order.Status) : "Nothing goes into production until your payment is confirmed. You can pay now or come back from My orders.")
+            </div>
+        </div>
+
+        <div class="ck-layout">
+            <section class="cs-card cs-card-pad" aria-labelledby="sumHeading">
+                <h2 id="sumHeading" class="cs-card-title">Order summary</h2>
+                <div class="od-items" style="margin-top:8px">
+                    @foreach (var i in order.Items)
+                    {
+                        <div class="od-item"><div><div class="od-item-name">@i.ProductName</div><div class="od-item-meta">Qty @i.Quantity × @CustomerPresentation.Money(i.UnitPrice)</div></div><div class="od-item-total">@CustomerPresentation.Money(i.LineTotal)</div></div>
+                    }
+                    @foreach (var s in order.Services)
+                    {
+                        <div class="od-item"><div><div class="od-item-name">@s.ServiceName</div><div class="od-item-meta">Service · Qty @s.Quantity</div></div><div class="od-item-total">@CustomerPresentation.Money(s.LineTotal)</div></div>
+                    }
+                </div>
+                <div class="ck-sum-row" style="margin-top:8px"><span>Subtotal</span><span>@CustomerPresentation.Money(order.Subtotal)</span></div>
+                <div class="ck-sum-row"><span>Delivery</span><span>@(order.DeliveryFee > 0 ? CustomerPresentation.Money(order.DeliveryFee) : "Free (pickup)")</span></div>
+                @if (order.Discount > 0) { <div class="ck-sum-row"><span>Discount</span><span>−@CustomerPresentation.Money(order.Discount)</span></div> }
+                <div class="ck-sum-row is-total"><span>Order total</span><span>@CustomerPresentation.Money(order.GrandTotal)</span></div>
+                @if (!isPaid)
+                {
+                    <div class="ck-sum-row"><span>Payment service fee <span class="cs-xs">(card/transfer processing)</span></span><span>@CustomerPresentation.Money(paystackCharge)</span></div>
+                    <div class="ck-sum-row is-pay"><span>You will pay</span><span>@CustomerPresentation.Money(customerPayable)</span></div>
+                }
+            </section>
+
+            <aside class="cs-card cs-card-pad" aria-labelledby="payHeading">
+                <h2 id="payHeading" class="cs-card-title">@(isPaid ? "Payment received" : "Pay now")</h2>
+                @if (isPaid)
+                {
+                    <p class="cs-card-sub">Paid on @order.PaidAtUtc!.Value.ToLocalTime().ToString("d MMM yyyy, HH:mm"). We'll keep you posted as production progresses.</p>
+                    <a href="/portal/orders/@order.Id" class="btn btn-primary btn-block" style="margin-top:14px">Track this order</a>
+                }
+                else
+                {
+                    <p class="cs-card-sub">You'll be taken to a secure payment page. Pay with card, bank transfer, USSD or any option available for this store.</p>
+                    <form asp-action="Pay" asp-route-orderId="@order.Id" method="post" style="margin-top:14px">
+                        <button type="submit" class="btn btn-primary btn-lg btn-block">@Html.Raw(CustomerIcons.Svg("lock", 18)) Pay with Paystack · @CustomerPresentation.Money(customerPayable)</button>
+                    </form>
+                    <div class="pay-methods"><span>Card</span><span>Bank transfer</span><span>USSD</span><span>Mobile money</span></div>
+                    <div class="ck-secure" style="justify-content:center">@Html.Raw(CustomerIcons.Svg("shield", 14)) Secured by Paystack · you can also pay later from My orders</div>
+                }
+                <div class="cs-row" style="margin-top:16px;justify-content:center;gap:16px">
+                    <a href="/portal/orders" class="cs-link cs-small">My orders</a>
+                    <a href="@shopBase" class="cs-link cs-small">Continue shopping</a>
+                </div>
+            </aside>
+        </div>
+    }
+</div>

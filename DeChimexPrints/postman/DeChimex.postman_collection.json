@@ -1,0 +1,68 @@
+{
+  "info": {
+    "_postman_id": "a2e8f6e1-7b0c-4f3a-9d5e-5c1b2e8f0aaa",
+    "name": "DE-CHIMEX PRINT HUB API (current)",
+    "description": "Remaining /api/v1 surface after the API-relevance cleanup of 2026-08-30. All business (non-webhook) endpoints now run through the MVC controllers; the JWT auth endpoints (register/login/refresh/verify/reset) were removed with the retired SPA. Only the server-to-server webhook and the two anonymous public-config contracts remain as API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5046/api/v1" }
+  ],
+  "auth": { "type": "noauth" },
+  "item": [
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Paystack Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-paystack-signature", "value": "<paystack-hmac-sha512>" }
+            ],
+            "url": "{{baseUrl}}/payments/webhook/paystack",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"charge.success\",\n  \"data\": { \"reference\": \"<order-reference>\", \"status\": \"success\" }\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public config",
+      "item": [
+        {
+          "name": "Settings (public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/settings/public"
+          }
+        },
+        {
+          "name": "Config",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/config"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Live",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/../../health/live" }
+        },
+        {
+          "name": "Ready",
+          "request": { "method": "GET", "header": [], "url": "{{baseUrl}}/../../health/ready" }
+        }
+      ]
+    }
+  ]
+}

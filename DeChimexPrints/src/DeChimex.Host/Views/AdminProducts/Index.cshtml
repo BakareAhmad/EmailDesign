@@ -1,0 +1,64 @@
+@model IReadOnlyList<DeChimex.Contracts.Products.ProductSummaryDto>
+@{
+    Layout = "_AdminLayout";
+    var canCreate = ViewBag.CanCreate is true;
+    var canUpdate = ViewBag.CanUpdate is true;
+    var canDelete = ViewBag.CanDelete is true;
+    var hasFilter = !string.IsNullOrWhiteSpace((string?)ViewBag.Search);
+}
+<div class="toolbar" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <form method="get" class="flex items-center gap-2">
+        <input class="input" type="search" name="search" value="@(ViewBag.Search)" placeholder="Search products..." style="width:280px;min-width:220px">
+        <button class="btn btn-secondary" type="submit">Search</button>
+    </form>
+    @if (canCreate)
+    {
+        <a class="btn btn-primary" asp-action="Create">New product</a>
+    }
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead>
+            <tr><th>Name</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                    var es = hasFilter
+    ? new EmptyState(EmptyIcons.Search, "No results", "Try adjusting your search or filters.")
+    : new EmptyState(EmptyIcons.Box, "No products yet", "Products you add will be available on the storefront.", CtaHref: canCreate ? "/admin/products/create" : null, CtaText: "New product");
+                <tr><td colspan="7" class="table-empty">
+                <partial name="_EmptyState" model="es" /></td></tr>
+            }
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@p.Id" class="font-semibold">@p.Name</a></td>
+                    <td class="text-muted">@p.Sku</td>
+                    <td>@p.CategoryName</td>
+                    <td>₦@p.SellingPrice.ToString("N2")</td>
+                    <td>@p.AvailableQuantity</td>
+                    <td>
+                        @if (!p.IsActive) { <span class="badge badge-neutral">Inactive</span> }
+                        else if (p.IsOutOfStock) { <span class="badge badge-error">Out of stock</span> }
+                        else if (p.IsLowStock) { <span class="badge badge-warning">Low stock</span> }
+                        else { <span class="badge badge-success">Active</span> }
+                    </td>
+                    <td style="text-align:right">
+                        @if (canUpdate) { <a class="btn btn-ghost btn-sm" asp-action="Edit" asp-route-id="@p.Id">Edit</a> }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.HasPrevious) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)" asp-route-search="@(ViewBag.Search)">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.HasNext) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)" asp-route-search="@(ViewBag.Search)">Next</a> }
+    </div>
+}

@@ -1,0 +1,8 @@
+Paystack /transaction/initialize calls: 4
+  ref=PAY-20260925180025-A2C18E1E56 auth_present=True matches_configured_secret=True
+  ref=PAY-20260925180045-F68011FF64 auth_present=True matches_configured_secret=True
+  ref=PAY-20260925180050-75F43EE549 auth_present=True matches_configured_secret=True
+  ref=PAY-20260925180113-18C28C6757 auth_present=True matches_configured_secret=True
+Paystack /refund calls: 1
+  auth_matches_configured_secret=True
+RESULT: ALL Paystack API calls authenticated with the configured secret key (values hidden)

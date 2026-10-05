@@ -1,0 +1,156 @@
+@{
+    Layout = "_CustomerLayout";
+    ViewData["Title"] = "Privacy Policy";
+    ViewData["ActiveNav"] = "";
+    var biz = ViewBag.Business as Dictionary<string, string> ?? new Dictionary<string, string>();
+    string Get(string k, string fb = "") => biz.TryGetValue(k, out var v) && !string.IsNullOrWhiteSpace(v) ? v : fb;
+    // The setting stores the number only; the wa.me link is generated here. Falls back
+    // to the first public phone number when the setting is empty.
+    var waUrl = DeChimex.Shared.WhatsApp.BuildUrl(Get("business.whatsapp"));
+    if (waUrl is null)
+    {
+        var firstPhone = Get("business.phone", "+2349062051935").Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim() ?? "";
+        waUrl = DeChimex.Shared.WhatsApp.BuildUrl(firstPhone) ?? "https://wa.me/2349062051935";
+    }
+    var bizEmail = Get("business.email", "chimexgraphics@gmail.com");
+    var bizPhone = Get("business.phone", "+234 906 205 1935");
+    var bizAddress = Get("business.address", "Abeokuta, Ogun State, Nigeria");
+}
+
+@section Styles {
+<style>
+.pp-intro{font-size:14px;line-height:1.75;color:#475569;margin-bottom:10px}
+.pp-sec{padding:20px 0;border-top:1px solid var(--border)}
+.pp-sec:first-of-type{border-top:none;padding-top:6px}
+.pp-sec:last-of-type{padding-bottom:4px}
+.pp-sec h3{font-size:15px;font-weight:800;color:#0F172A;letter-spacing:-.01em;margin:0 0 8px}
+.pp-sec p{font-size:13.5px;line-height:1.75;color:#475569;margin:0 0 8px}
+.pp-sec p:last-child{margin-bottom:0}
+.pp-sec ul{margin:6px 0 12px;padding:0;list-style:none}
+.pp-sec li{position:relative;font-size:13.5px;line-height:1.7;color:#475569;padding-left:18px;margin-bottom:6px}
+.pp-sec li::before{content:'';position:absolute;left:2px;top:.62em;width:6px;height:6px;border-radius:2px;background:#4F46E5}
+.pp-sec li:last-child{margin-bottom:0}
+.pp-contact{display:grid;gap:8px;margin-top:4px}
+.pp-contact a{color:#4F46E5;text-decoration:none;font-weight:600}
+.pp-contact a:hover{text-decoration:underline}
+@@media(max-width:720px){
+  .pp-intro{font-size:10.5px}
+  .pp-sec{padding:14px 0}
+  .pp-sec h3{font-size:12px;margin-bottom:6px}
+  .pp-sec p,.pp-sec li{font-size:10px}
+}
+</style>
+}
+
+<div class="cs-wrap cs-wrap-md"><div class="cs-page-head">
+        
+        <h1 id="privacyHeading" >Privacy Policy</h1>
+        <p class="cs-muted" style="max-width:58ch">How DE-CHIMEX PRINT HUB collects, uses, stores and protects your information. Effective Date: July 29, 2026</p>
+    </div>
+
+<section class="pg-prose">
+        <div class="card">
+            <div class="card-body">
+                <p class="pp-intro">Welcome to DE-CHIMEX PRINT HUB ("we", "us", "our"). We value your privacy and are committed to protecting the personal information you share with us. This Privacy Policy explains what we collect when you use the DE-CHIMEX PRINT HUB website, customer portal and services, why we collect it, and how we keep it safe.</p>
+
+                <div class="pp-sec">
+                    <h3>1. Who We Are</h3>
+                    <p>DE-CHIMEX PRINT HUB is a graphics, branding and printing company based in Abeokuta, Ogun State, Nigeria, and is the data controller for personal information collected through this website. You can reach us through the contact details at the end of this Policy.</p>
+                    <p>This Policy is prepared in line with the Nigeria Data Protection Act 2023 and other applicable Nigerian laws.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>2. Information We Collect</h3>
+                    <ul>
+                        <li>Account details: first name, last name, email address, phone number and password. Passwords are stored only as secure hashes, never in plain text.</li>
+                        <li>Enquiries: name, phone number, email address, service of interest and project details you submit through the contact form.</li>
+                        <li>Address book: delivery and billing addresses you save to your account, including city and state.</li>
+                        <li>Orders and services: products ordered, quantities, delivery method, custom printing instructions, uploaded artwork and design files, quote requests, order history, downloadable invoices and wishlist items.</li>
+                        <li>Payment details: your chosen payment method (card via Paystack, or a bank transfer / cash reference confirmed by our team) and the transaction reference and status returned by our payment provider. We never see or store your full card number, CVV or PIN; card details go directly to Paystack.</li>
+                        <li>Communications: support messages you send us and WhatsApp conversations you choose to start.</li>
+                        <li>Technical information: IP address, browser and device type, pages visited and visit timestamps, logged automatically for security and service reliability.</li>
+                    </ul>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>3. How We Use Your Information</h3>
+                    <ul>
+                        <li>To create and manage your account and saved addresses.</li>
+                        <li>To process payments, produce, and deliver your orders, including using your uploaded artwork and instructions for production.</li>
+                        <li>To send essential service emails: account verification, password resets, order confirmations, status updates and invoices, delivered through our email provider Brevo.</li>
+                        <li>To prepare quotes for custom or corporate jobs at your request.</li>
+                        <li>To enable faster reprints by keeping artwork attached to your previous orders.</li>
+                        <li>To respond to your questions and support requests.</li>
+                        <li>To keep the accounting and tax records the law requires of us.</li>
+                        <li>To prevent fraud, abuse and unauthorized access, and to keep the website secure and reliable.</li>
+                    </ul>
+                    <p>We do not use your information for automated decision-making or profiling, and we do not send marketing emails.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>4. Cookies and Browser Storage</h3>
+                    <p>We do not use advertising cookies or cross-site tracking. Our website relies on essential browser storage (local storage) only, to:</p>
+                    <ul>
+                        <li>Keep you signed in (your session token).</li>
+                        <li>Remember your account information for the session.</li>
+                        <li>Hold your shopping cart before checkout.</li>
+                    </ul>
+                    <p>Clearing this storage will sign you out and empty any unsaved cart.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>5. Sharing Your Information</h3>
+                    <p>We do not sell or rent your personal information. We share only what is necessary with the service providers that help us run the business:</p>
+                    <ul>
+                        <li>Paystack: to process card and bank payments securely.</li>
+                        <li>Brevo: to deliver transactional emails (verification, password resets, order updates, invoices).</li>
+                        <li>Delivery and logistics partners: your name, phone number and delivery address, so your orders reach you.</li>
+                        <li>Cloud hosting provider: where the website and its database are hosted securely.</li>
+                        <li>Google Fonts: pages load fonts from Google servers.</li>
+                        <li>WhatsApp (Meta): only when you tap a chat link and choose to message us.</li>
+                    </ul>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>6. Your Artwork and Uploaded Files</h3>
+                    <p>Artwork, logos and design files you upload remain your intellectual property. We use them solely to produce the products you order and store them with your order history so you can request reprints.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>7. Where Your Information Is Processed</h3>
+                    <p>Your information is processed primarily in Nigeria. Our email provider Brevo processes messages in the European Union under contractual safeguards. Paystack processes payments within Nigeria.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>8. Data Security</h3>
+                    <p>We protect your information with encrypted connections (HTTPS), hashed passwords, short-lived access tokens, and role-based access that limits staff to only what they need.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>9. Data Retention</h3>
+                    <ul>
+                        <li>Account information: kept while your account is active.</li>
+                        <li>Orders, invoices and payment records: kept for the periods required by Nigerian tax and accounting laws.</li>
+                        <li>Artwork files: kept alongside your order history to support reprints, unless you ask us to delete them.</li>
+                    </ul>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>10. Your Rights</h3>
+                    <p>Under the Nigeria Data Protection Act 2023, you have the right to access, correct, or request deletion of your information, or withdraw consent at any time.</p>
+                </div>
+
+                <div class="pp-sec">
+                    <h3>11. Contact Us</h3>
+                    <p>Questions about this Privacy Policy:</p>
+                    <div class="pp-contact">
+                        <span>Email: <a href="mailto:@bizEmail">@bizEmail</a> (subject: Privacy Request)</span>
+                        <span>Phone or WhatsApp: <a href="@waUrl" target="_blank" rel="noopener">@bizPhone</a></span>
+                        <span>Location: <span>@bizAddress</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+

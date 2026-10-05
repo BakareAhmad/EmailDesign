@@ -1,0 +1,38 @@
+@model IReadOnlyList<DeChimex.Domain.Entities.Diagnostics.TechnicalEvent>
+@using DeChimex.Host.Controllers.Mvc.Dev
+<div class="dv-note" style="margin-bottom:12px">Only safe, idempotent operations are offered. Each one requires the <em>Run maintenance</em> permission, an explicit confirmation and a CSRF token, and is recorded in the technical log as “Developer X ran Y”. There is deliberately no SQL console, shell, file browser, data deletion, email sender or webhook replay.</div>
+<div class="dv-grid dv-g2">
+    @foreach (var a in DevMaintenanceController.Actions)
+    {
+        <section class="dv-card" id="op-@a.Key">
+            <h2>@a.Title</h2>
+            <p class="dv-small dv-muted">@a.Description</p>
+            <form method="post" action="/dev/maintenance/@a.Key" data-confirm="Run '@a.Title' now?">
+                @Html.AntiForgeryToken()
+                @if (a.NeedsReference)
+                {
+                    <label class="dv-small dv-muted" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">Payment reference
+                        <input name="reference" class="dv-mono" maxlength="80" placeholder="e.g. PAY-20261004123456-8F3A2C91D0" required />
+                    </label>
+                }
+                <div class="dv-maint">
+                    <label class="dv-confirm"><input type="checkbox" name="confirm" value="yes" required /> I understand and want to run this</label>
+                    <button type="submit" class="dv-btn">Run</button>
+                </div>
+            </form>
+        </section>
+    }
+</div>
+<section class="dv-card" style="margin-top:12px">
+    <h2>Recent maintenance actions</h2>
+    @if (Model.Count == 0) { <p class="dv-muted dv-small">None yet.</p> }
+    else
+    {
+        <div class="dv-table-wrap"><table class="dv-table"><tbody>
+        @foreach (var e in Model)
+        {
+            <tr><td class="dv-small dv-nowrap">@DevUi.Utc(e.TimestampUtc)</td><td>@DevUi.Severity(e.Severity)</td><td class="dv-wrap"><a href="/dev/logs/@e.Id">@e.Message</a></td></tr>
+        }
+        </tbody></table></div>
+    }
+</section>

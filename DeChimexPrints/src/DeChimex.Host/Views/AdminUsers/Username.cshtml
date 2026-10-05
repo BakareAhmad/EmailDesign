@@ -1,0 +1,32 @@
+@model DeChimex.Host.Models.Admin.UsernameFormViewModel
+@{
+    Layout = "_AdminLayout";
+}
+<div class="card" style="max-width:520px">
+    <div class="card-head"><h3>Change username</h3></div>
+    <div class="card-body">
+        <p class="text-muted" style="margin-top:0">
+            <strong>@Model.DisplayName</strong> (@Model.Email)
+            @if (!string.IsNullOrEmpty(Model.CurrentUsername))
+            {
+                <span>· currently <strong>@Model.CurrentUsername</strong></span>
+            }
+        </p>
+        <p class="text-muted">The username is the only staff identity shown to customers in chat. Changing it also updates this staff member's existing conversation messages.</p>
+        <form asp-action="Username" asp-route-id="@Model.UserId" method="post">
+            <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4" role="alert"></div>
+
+            <div class="field">
+                <label class="label" asp-for="Username">Username <span class="req">*</span></label>
+                <input class="input" asp-for="Username" autocomplete="off" />
+                <span class="hint">3 to 30 characters. Letters, digits, dots, underscores and hyphens.</span>
+                <span asp-validation-for="Username" class="field-error"></span>
+            </div>
+
+            <div class="flex items-center gap-2 mt-4">
+                <button class="btn btn-primary" type="submit">Save username</button>
+                <a class="btn btn-outline" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

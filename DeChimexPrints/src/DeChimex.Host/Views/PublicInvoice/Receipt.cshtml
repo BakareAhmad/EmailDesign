@@ -1,0 +1,54 @@
+@model DeChimex.Contracts.Invoices.ReceiptDocumentDto
+@inject DeChimex.Application.Common.Interfaces.IAppUrlProvider AppUrls
+@{
+    Layout = null;
+    var shareUrl = AppUrls.BuildPublicReceiptLink(Model.ShareToken);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(Model.ReceiptNumber)</title>
+    <partial name="_BrandHead" />
+    <style>
+        :root { color-scheme: light; }
+        body { margin:0; background:#f3f4f6; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+        .bar { position:sticky; top:0; z-index:10; background:#111827; color:#fff; display:flex; gap:10px; align-items:center; padding:10px 16px; }
+        .bar .title { font-weight:700; font-size:14px; flex:1; }
+        .bar button { background:#2563eb; border:none; color:#fff; font-weight:600; font-size:13px; border-radius:8px; padding:8px 14px; cursor:pointer; }
+        .bar button.ghost { background:transparent; border:1px solid #4b5563; color:#fff; }
+        .wrap { padding:20px 14px 40px; }
+        /* links in the bar were default link-blue on #111827 (unreadable); style them like the ghost button */
+        .bar a.ghost { color:#fff; border:1px solid #4b5563; border-radius:8px; padding:7px 12px; font-weight:600; font-size:13px; white-space:nowrap; }
+        .bar a.ghost:hover { background:#1f2937; }
+        @@media (max-width: 560px) {
+            .bar { flex-wrap:wrap; padding:10px 12px; }
+            .bar .title { flex:1 1 100%; }
+            .wrap { padding:12px 8px 32px; }
+            body .doc-print table.doc-lines th, body .doc-print table.doc-lines td { padding:6px 3px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bar">
+        <span class="title">Receipt @Model.ReceiptNumber @if (Model.IsRefunded) { <span style="font-weight:400">- refunded</span> }</span>
+        <a class="ghost" style="text-decoration:none" href="@shareUrl">Copy link</a>
+        <button type="button" onclick="window.print()">Download / Print (PDF)</button>
+    </div>
+    <div class="wrap">
+        <partial name="_ReceiptDocument" model="Model" />
+    </div>
+    <script>
+        const anchor = document.querySelector('a.ghost');
+        if (anchor) {
+            anchor.addEventListener('click', ev => {
+                ev.preventDefault();
+                navigator.clipboard?.writeText(anchor.href).catch(() => {});
+                anchor.textContent = 'Link copied';
+                setTimeout(() => { anchor.textContent = 'Copy link'; }, 1500);
+            });
+        }
+    </script>
+</body>
+</html>

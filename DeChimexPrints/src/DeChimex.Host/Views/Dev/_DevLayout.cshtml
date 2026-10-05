@@ -1,0 +1,102 @@
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
+@{
+    Layout = null;
+    var perms = ViewBag.DevPerms as HashSet<string> ?? new HashSet<string>();
+    bool Can(string p) => perms.Contains(p);
+    var nav = ViewData["DevNav"] as string ?? "";
+    string On(string key) => key == nav ? "is-active" : "";
+    var name = User.FindFirst("name")?.Value ?? "Developer";
+    var isStaff = RoleNames.StaffRoles().Any(r => User.IsInRole(r));
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>@ViewData["Title"] · Developer Portal · DE-CHIMEX</title>
+    <partial name="_BrandHead" />
+    <link rel="stylesheet" href="~/css/dev.css" asp-append-version="true" />
+</head>
+<body class="dv-body" data-env="@Env.EnvironmentName">
+<a class="dv-skip" href="#dv-main">Skip to content</a>
+<div class="dv-shell">
+    <aside class="dv-side" aria-label="Developer Portal navigation">
+        <div class="dv-brand">
+            <span class="dv-logo" aria-hidden="true">&lt;/&gt;</span>
+            <div><strong>Developer Portal</strong><small>DE-CHIMEX PRINT HUB</small></div>
+        </div>
+        <span class="dv-env dv-env-@Env.EnvironmentName.ToLowerInvariant()">@Env.EnvironmentName</span>
+        <nav class="dv-nav">
+            <div class="dv-nav-label">Monitoring</div>
+            <a class="@On("dashboard")" href="/dev">Dashboard</a>
+            <a class="@On("health")" href="/dev/health">System health</a>
+            <a class="@On("performance")" href="/dev/performance">Statistics &amp; performance</a>
+            <a class="@On("jobs")" href="/dev/jobs">Background jobs</a>
+            @if (Can(Permissions.Developer.LogsView))
+            {
+                <div class="dv-nav-label">Diagnostics</div>
+                <a class="@On("logs")" href="/dev/logs">Technical log</a>
+                <a class="@On("errors")" href="/dev/errors">Error center</a>
+            }
+            @if (Can(Permissions.Developer.PaymentsView))
+            {
+                <div class="dv-nav-label">Integrations</div>
+                <a class="@On("integrations")" href="/dev/integrations">Paystack &amp; Brevo</a>
+                <a class="@On("payments")" href="/dev/payments">Payment diagnostics</a>
+                <a class="@On("email")" href="/dev/email">Email diagnostics</a>
+            }
+            @if (Can(Permissions.Developer.ServiceFeesView))
+            {
+                <div class="dv-nav-label">Finance (technical)</div>
+                <a class="@On("fees")" href="/dev/service-fees">Service fees</a>
+            }
+            <div class="dv-nav-label">Platform</div>
+            <a class="@On("database")" href="/dev/database">Database &amp; migrations</a>
+            <a class="@On("configuration")" href="/dev/configuration">Configuration</a>
+            @if (Can(Permissions.Developer.MaintenanceRun))
+            {
+                <a class="@On("maintenance")" href="/dev/maintenance">Maintenance</a>
+            }
+        </nav>
+        <div class="dv-side-foot">
+            @if (isStaff)
+            {
+                <a href="/admin/dashboard">← Admin portal</a>
+            }
+            <a class="@On("account")" href="/dev/account/password">Change password</a>
+            <div class="dv-user"><span class="dv-avatar">@(name.Length > 0 ? name[..1] : "D")</span><span>@name</span></div>
+            <form method="post" action="/Account/Logout">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="dv-link-btn">Sign out</button>
+            </form>
+        </div>
+    </aside>
+    <main id="dv-main" class="dv-main">
+        <header class="dv-top">
+            <h1>@ViewData["Title"]</h1>
+            <div class="dv-top-right">
+                <span id="dv-live" class="dv-live" title="Realtime critical alerts">● alerts offline</span>
+            </div>
+        </header>
+        @if (TempData["Success"] is string ok)
+        {
+            <div class="dv-flash dv-flash-ok" role="status">@ok</div>
+        }
+        @if (TempData["Error"] is string err)
+        {
+            <div class="dv-flash dv-flash-bad" role="alert">@err</div>
+        }
+        @if (ViewData["Error"] is string verr)
+        {
+            <div class="dv-flash dv-flash-bad" role="alert">@verr</div>
+        }
+        @RenderBody()
+    </main>
+</div>
+<div id="dv-toasts" class="dv-toasts" aria-live="assertive"></div>
+<script src="~/lib/signalr/signalr.min.js"></script>
+<script src="~/js/dev-portal.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,78 @@
+@model LogDetail
+@{
+    var e = Model.Event;
+    var props = new List<KeyValuePair<string, string>>();
+    if (!string.IsNullOrEmpty(e.Properties))
+    {
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(e.Properties);
+            foreach (var p in doc.RootElement.EnumerateObject()) props.Add(new(p.Name, p.Value.ToString()));
+        }
+        catch { props.Add(new("raw", e.Properties)); }
+    }
+}
+<p><a href="/dev/logs">← Technical log</a> · <a href="/dev/errors/@e.Fingerprint">Error group (@Model.GroupOccurrences occurrence(s))</a></p>
+<div class="dv-grid dv-g2">
+    <section class="dv-card">
+        <div class="dv-card-head"><h2>@e.EventType</h2>@DevUi.Severity(e.Severity)</div>
+        <p class="dv-wrap">@e.Message</p>
+        <dl class="dv-kv">
+            <dt>Timestamp</dt><dd>@DevUi.Utc(e.TimestampUtc) (@DevUi.Ago(e.TimestampUtc))</dd>
+            <dt>Category</dt><dd>@e.Category</dd>
+            <dt>Exception</dt><dd class="dv-mono">@(e.ExceptionType ?? "none")</dd>
+            <dt>Source</dt><dd class="dv-mono">@(e.Source ?? "none")</dd>
+            <dt>Route</dt><dd class="dv-mono">@(e.Route ?? "none")</dd>
+            <dt>Correlation ID</dt><dd class="dv-mono">@if (e.CorrelationId is not null) { <a href="/dev/logs?range=30d&correlationId=@Uri.EscapeDataString(e.CorrelationId)">@e.CorrelationId</a> } else { <span>—</span> }</dd>
+            <dt>Request ID</dt><dd class="dv-mono">@(e.RequestId ?? "none")</dd>
+            <dt>User ID</dt><dd class="dv-mono">@(e.UserId?.ToString() ?? "none")</dd>
+            <dt>Order ID</dt><dd class="dv-mono">@(e.OrderId?.ToString() ?? "none")</dd>
+            <dt>Integration</dt><dd>@(e.Integration ?? "none")</dd>
+            <dt>Environment</dt><dd>@(e.Environment ?? "none")</dd>
+            <dt>Template</dt><dd class="dv-mono dv-small">@(e.MessageTemplate ?? "none")</dd>
+            <dt>Fingerprint</dt><dd class="dv-mono dv-small">@e.Fingerprint</dd>
+        </dl>
+    </section>
+    <section class="dv-card">
+        <h2>Metadata</h2>
+        @if (props.Count == 0) { <p class="dv-muted">No structured properties.</p> }
+        else
+        {
+            <div class="dv-table-wrap"><table class="dv-table"><tbody>
+            @foreach (var p in props) { <tr><td class="dv-mono dv-small">@p.Key</td><td class="dv-wrap dv-small">@p.Value</td></tr> }
+            </tbody></table></div>
+        }
+        <h3>Business audit (same request)</h3>
+        @if (Model.BusinessAudit.Count == 0) { <p class="dv-muted dv-small">No business audit entries share this correlation ID.</p> }
+        else
+        {
+            <div class="dv-table-wrap"><table class="dv-table"><tbody>
+            @foreach (var a in Model.BusinessAudit) { <tr><td class="dv-small dv-nowrap">@a.TimestampUtc.ToString("HH:mm:ss")</td><td>@a.Action</td><td>@a.EntityName</td><td class="dv-small">@a.Title</td><td class="dv-small dv-muted">@a.ActorRole</td></tr> }
+            </tbody></table></div>
+        }
+        <h3>Integration calls (same request)</h3>
+        @if (Model.Calls.Count == 0) { <p class="dv-muted dv-small">None.</p> }
+        else
+        {
+            <div class="dv-table-wrap"><table class="dv-table"><tbody>
+            @foreach (var c in Model.Calls) { <tr><td class="dv-small dv-nowrap">@c.TimestampUtc.ToString("HH:mm:ss")</td><td>@c.Integration @c.Operation</td><td>@DevUi.Status(c.Outcome)</td><td class="num">@c.DurationMs ms</td></tr> }
+            </tbody></table></div>
+        }
+    </section>
+</div>
+@if (!string.IsNullOrEmpty(e.StackTrace))
+{
+    <section class="dv-card" style="margin-top:12px"><h2>Stack trace</h2><pre class="dv-pre">@e.StackTrace</pre></section>
+}
+@if (Model.SameCorrelation.Count > 0)
+{
+    <section class="dv-card" style="margin-top:12px">
+        <h2>Other events in this request</h2>
+        <div class="dv-table-wrap"><table class="dv-table"><tbody>
+        @foreach (var o in Model.SameCorrelation)
+        {
+            <tr><td class="dv-small dv-nowrap">@o.TimestampUtc.ToString("HH:mm:ss.fff")</td><td>@DevUi.Severity(o.Severity)</td><td class="dv-wrap"><a href="/dev/logs/@o.Id">@o.Message</a></td></tr>
+        }
+        </tbody></table></div>
+    </section>
+}

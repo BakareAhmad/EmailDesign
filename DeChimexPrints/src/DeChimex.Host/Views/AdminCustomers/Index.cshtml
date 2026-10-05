@@ -1,0 +1,59 @@
+@model IReadOnlyList<DeChimex.Contracts.Customers.CustomerDto>
+@{
+    Layout = "_AdminLayout";
+    var canManage = User.HasClaim("permission", Permissions.Customers.Manage);
+}
+<div class="toolbar" style="margin-bottom:16px">
+    <form method="get" class="flex items-center gap-2">
+        <input class="input" type="search" name="search" value="@(ViewBag.Search)" placeholder="Search customers..." style="width:280px;min-width:220px">
+        <button class="btn btn-secondary" type="submit">Search</button>
+    </form>
+    @if (User.HasClaim("permission", Permissions.Customers.Manage))
+    {
+        <a class="btn btn-primary" asp-action="Create">New customer</a>
+    }
+</div>
+
+<div class="table-wrap">
+    <table class="table">
+        <thead>
+            <tr><th>Name</th><th>Email</th><th>Phone</th><th>Lifetime spend</th><th>Joined</th><th></th></tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                    var es = !string.IsNullOrWhiteSpace((string?)ViewBag.Search)
+    ? new EmptyState(EmptyIcons.Search, "No results", "Try adjusting your search or filters.")
+    : new EmptyState(EmptyIcons.Users, "No customers yet", "Customers are created when they register on the storefront.");
+                <tr><td colspan="6" class="table-empty">
+                <partial name="_EmptyState" model="es" /></td></tr>
+            }
+            @foreach (var c in Model)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@c.Id" class="font-semibold">@c.FullName</a></td>
+                    <td class="text-muted">@if (string.IsNullOrEmpty(c.Email)) { <span class="badge badge-neutral">Guest</span> } else { @c.Email }</td>
+                    <td class="text-muted">@(c.Phone ?? "-")</td>
+                    <td>₦@c.LifetimeSpending.ToString("N2")</td>
+                    <td class="text-muted">@c.CreatedDateUtc.ToLocalTime().ToString("d MMM yyyy")</td>
+                    <td style="text-align:right;white-space:nowrap">
+                        <a class="btn btn-ghost btn-sm" asp-action="Details" asp-route-id="@c.Id">View</a>
+                        @if (canManage)
+                        {
+                            <a class="btn btn-outline btn-sm" asp-action="Edit" asp-route-id="@c.Id">Edit</a>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (ViewBag.TotalPages > 1)
+{
+    <div class="flex items-center gap-3 mt-4">
+        @if (ViewBag.HasPrevious) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page - 1)" asp-route-search="@(ViewBag.Search)">Prev</a> }
+        <span class="text-sm text-muted">Page @ViewBag.Page of @ViewBag.TotalPages</span>
+        @if (ViewBag.HasNext) { <a class="btn btn-outline btn-sm" asp-action="Index" asp-route-page="@(ViewBag.Page + 1)" asp-route-search="@(ViewBag.Search)">Next</a> }
+    </div>
+}
